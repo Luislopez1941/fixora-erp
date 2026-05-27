@@ -166,11 +166,23 @@ const Sidebar: React.FC = () => {
                         </a>
                         <div className={`sub-menu ${activeMenu} ${activeMenu == 'catalogos' ? 'active' : ''}`}>
                             <div className='sub-menu-container'>
-                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATEGORIES}`} title="Payments" className="tooltip">
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/familias`} title="Familias" className="tooltip">
+                                    <span className="link hide">Familias</span>
+                                </Link>
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/contenedores`} title="Contenedores" className="tooltip">
+                                    <span className="link hide">Contenedores</span>
+                                </Link>
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATEGORIES}`} title="Categorías" className="tooltip">
                                     <span className="link hide">Categorías</span>
                                 </Link>
-                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.UNITS}`} title="Payments" className="tooltip">
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.UNITS}`} title="Unidades" className="tooltip">
                                     <span className="link hide">Unidades</span>
+                                </Link>
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.SERVICES}`} title="Servicios" className="tooltip">
+                                    <span className="link hide">Servicios</span>
+                                </Link>
+                                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.ARTICLES}`} title="Artículos" className="tooltip">
+                                    <span className="link hide">Artículos</span>
                                 </Link>
 
                             </div>

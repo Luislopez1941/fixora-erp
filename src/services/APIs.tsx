@@ -23,9 +23,9 @@ const APIs = {
 
 
 
-  getCompanies: async (id: number, customPath?: string) => {
+  getCompanies: async (id: number, customPath?: string, token?: string) => {
     const path = customPath || `companies/get/${id}`;
-    return ConfigurationAPIs.get(path);
+    return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
   },
 
 
@@ -37,9 +37,9 @@ const APIs = {
     return ConfigurationAPIs.post(path, data);
   },
 
-  getBranch: async (data: any, customPath?: string) => {
+  getBranch: async (data: any, customPath?: string, token?: string) => {
     const path = customPath || `branch/get/${data.companyId}/${data.userId}`;
-    return ConfigurationAPIs.get(path);
+    return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
   },
 
     ///////////////////////////////////SERIES////////////////////////////////////////////////////
@@ -78,9 +78,9 @@ const APIs = {
     return ConfigurationAPIs.post(path, data);
   },
 
-  getWarehouses: async (data: any, customPath?: string) => {
+  getWarehouses: async (data: any, customPath?: string, token?: string) => {
     const path = customPath || `store/get?companyId=${data.companyId}&branchId=${data.branchId}`;
-    return ConfigurationAPIs.get(path);
+    return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
   },
 
 
@@ -197,53 +197,117 @@ const APIs = {
 
 
 
-  ///////////////////////////////////////////////////////// Sub categorias ////////////////////////////////////////////////////////
-  createSubCategories: async (data: any, token: string, customPath?: string) => {
+  ///////////////////////////////////////////////////////// Categorías (API raíz + árbol) ////////////////////////////////////////////////////////
+  createCategory: async (body: Record<string, unknown>, token: string, customPath?: string) => {
     const path = customPath || 'category/create';
-    const headers = {
-      Authorization: token,
-    };
-    return ConfigurationAPIs.post(path, data, { headers });
+    return ConfigurationAPIs.post(path, body, {
+      headers: { Authorization: token, 'Content-Type': 'application/json' },
+    });
   },
 
-
-  // Administradores
-  getCategories: async (classification: any, token: any, customPath?: string) => {
-    const path = customPath || `category/get/${classification}`;
-    const config = {
-      headers: {
-        Authorization: token,
-      },
-      params: { ...classification },
-    };
-
-    return ConfigurationAPIs.get(path, config);
+  /** Raíces con subcategories anidados. Opcional ?branchId= */
+  getCategoryList: async (branchId: number | undefined, token: string, customPath?: string) => {
+    const base = customPath || 'category';
+    const path =
+      branchId != null && !Number.isNaN(branchId)
+        ? `${base}?branchId=${encodeURIComponent(String(branchId))}`
+        : base;
+    return ConfigurationAPIs.get(path, {
+      headers: { Authorization: token },
+    });
   },
 
-  // Administradores
-  updateStatusCategory: async (id: any, data: any, token: any, customPath?: string) => {
-    const path = customPath || `category/state/${id}`;
-    const config = {
-      headers: {
-        Authorization: token,
-      },
-      params: { ...data },
-    };
-
-    return ConfigurationAPIs.put(path, data, config);
+  getCategoryOptions: async (branchId: number | undefined, token: string, customPath?: string) => {
+    const base = customPath || 'category/options-categories';
+    const path =
+      branchId != null && !Number.isNaN(branchId)
+        ? `${base}?branchId=${encodeURIComponent(String(branchId))}`
+        : base;
+    return ConfigurationAPIs.get(path, {
+      headers: { Authorization: token },
+    });
   },
 
-  // Administradores
-  updateCategory: async (id: any, data: any, token: any, customPath?: string) => {
-    const path = customPath || `category/get/${id}`;
-    const config = {
-      headers: {
-        Authorization: token,
-      },
-      params: { ...data },
-    };
+  /** Filtrar familias (nivel 1) con POST - Filtros flexibles */
+  filterFamilias: async (
+    filters: {
+      companyId?: number;
+      branchId?: number;
+      allowedItemType?: string;
+      search?: string;
+    },
+    token: string,
+    customPath?: string
+  ) => {
+    const path = customPath || 'category/get-categories-familias-filter-level-1';
+    return ConfigurationAPIs.post(path, filters, {
+      headers: { Authorization: token },
+    });
+  },
 
-    return ConfigurationAPIs.put(path, data, config);
+  getCategoryById: async (id: string | number, token: string, customPath?: string) => {
+    const path = customPath || `category/${id}`;
+    return ConfigurationAPIs.get(path, {
+      headers: { Authorization: token },
+    });
+  },
+
+  /** Campos parciales; no envía subcategories */
+  patchCategory: async (id: string | number, body: Record<string, unknown>, token: string, customPath?: string) => {
+    const path = customPath || `category/${id}`;
+    return ConfigurationAPIs.patch(path, body, {
+      headers: { Authorization: token, 'Content-Type': 'application/json' },
+    });
+  },
+
+  deleteCategory: async (id: string | number, token: string, customPath?: string) => {
+    const path = customPath || `category/${id}`;
+    return ConfigurationAPIs.delete(path, {
+      headers: { Authorization: token },
+    });
+  },
+
+  ///////////////////////////////////////////////////////// Items (Artículos y Servicios) ////////////////////////////////////////////////////////
+  getItemList: async (token: string, customPath?: string) => {
+    const path = customPath || 'item';
+    return ConfigurationAPIs.get(path, {
+      headers: { Authorization: token },
+    });
+  },
+
+  getItemsByCategory: async (categoryId: number, token: string) => {
+    return ConfigurationAPIs.get('item/get-by-category', {
+      params: { categoryId },
+      headers: { Authorization: token },
+    });
+  },
+
+  createItem: async (body: Record<string, unknown>, token: string, customPath?: string) => {
+    const path = customPath || 'item';
+    return ConfigurationAPIs.post(path, body, {
+      headers: { Authorization: token, 'Content-Type': 'application/json' },
+    });
+  },
+
+  getItemById: async (id: string | number, token: string, customPath?: string) => {
+    const path = customPath || `item/${id}`;
+    return ConfigurationAPIs.get(path, {
+      headers: { Authorization: token },
+    });
+  },
+
+  updateItem: async (id: string | number, body: Record<string, unknown>, token: string, customPath?: string) => {
+    const path = customPath || `item/${id}`;
+    return ConfigurationAPIs.patch(path, body, {
+      headers: { Authorization: token, 'Content-Type': 'application/json' },
+    });
+  },
+
+  deleteItem: async (id: string | number, token: string, customPath?: string) => {
+    const path = customPath || `item/${id}`;
+    return ConfigurationAPIs.delete(path, {
+      headers: { Authorization: token },
+    });
   },
 
 

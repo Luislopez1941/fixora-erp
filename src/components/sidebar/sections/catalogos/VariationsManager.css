@@ -1,0 +1,181 @@
+.variations-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.variations-manager__title {
+  color: #f5f6f7;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.variations-manager__section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variations-manager__label {
+  color: #f5f6f7;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.variations-manager__color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.variations-manager__color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+
+.variations-manager__color-swatch:hover {
+  transform: scale(1.08);
+}
+
+.variations-manager__color-swatch.is-selected {
+  border-color: #586ae9;
+  box-shadow: 0 0 0 2px rgba(88, 106, 233, 0.45);
+}
+
+.variations-manager__color-swatch--custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1f2124;
+  overflow: hidden;
+  position: relative;
+}
+
+.variations-manager__color-swatch--custom svg {
+  pointer-events: none;
+}
+
+.variations-manager__color-input-hidden {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.variations-manager__selected-color {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(245, 246, 247, 0.75);
+}
+
+.variations-manager__selected-color-preview {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.variations-manager__size-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variations-manager__size-chip {
+  min-width: 40px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1f2124;
+  color: #f5f6f7;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.variations-manager__size-chip:hover {
+  border-color: rgba(88, 106, 233, 0.5);
+  background: rgba(88, 106, 233, 0.15);
+}
+
+.variations-manager__size-chip.is-selected {
+  border-color: #586ae9;
+  background: rgba(88, 106, 233, 0.35);
+  color: #fff;
+}
+
+.variations-manager__extras {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.variations-manager__extras .inputs__general {
+  margin-top: 0;
+}
+
+.variations-manager__add-btn {
+  height: 40px;
+  white-space: nowrap;
+}
+
+.variations-manager__list {
+  overflow-x: auto;
+}
+
+.variations-manager__table {
+  width: 100%;
+  font-size: 0.82rem;
+  border-collapse: collapse;
+  color: #f5f6f7;
+}
+
+.variations-manager__table th,
+.variations-manager__table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.variations-manager__table th {
+  font-weight: 600;
+  color: rgba(245, 246, 247, 0.85);
+}
+
+.variations-manager__color-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.variations-manager__color-cell-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .variations-manager__extras {
+    grid-template-columns: 1fr;
+  }
+}

@@ -48,6 +48,8 @@ export const PrivateRoutes = {
   CATALOGOS: 'catalogos',
   CATEGORIES: 'categories',
   UNITS: 'units',
+  SERVICES: 'services',
+  ARTICLES: 'articles',
 
   INCOME: 'income',
 

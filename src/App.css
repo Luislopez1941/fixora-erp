@@ -187,6 +187,7 @@ textarea {
   background-color: #586ae9;
   align-items: center;
   height: 40px;
+  padding: 0 20px;
   color: #fff;
   border: none;
   cursor: pointer;

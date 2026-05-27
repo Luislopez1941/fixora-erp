@@ -12,7 +12,7 @@ class ApiService {
 //     });
 //   }
 
-  constructor(baseURL: string = 'http://localhost:3000') {
+  constructor(baseURL: string = 'http://localhost:4000') {
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
@@ -50,6 +50,16 @@ class ApiService {
   public put<T>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('PUT', url, data, config);
+  }
+
+  public patch<T>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+    const url = `/${path}`;
+    return this.request<T>('PATCH', url, data, config);
+  }
+
+  public delete<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
+    const url = `/${path}`;
+    return this.request<T>('DELETE', url, undefined, config);
   }
 }
 

@@ -8,11 +8,14 @@
     grid-template-rows: auto 1fr;
     height: 100%;
     width: 100%;
+    flex: 1;
+    min-width: 0;
 }
 
 .main {
-    display: grid;
+    display: block;
     overflow: auto;
     height: 100%;
-    
+    min-width: 0;
+    width: 100%;
 }
