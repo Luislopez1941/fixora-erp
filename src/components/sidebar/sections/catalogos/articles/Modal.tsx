@@ -4,9 +4,13 @@ import { modal } from '../../../../../redux/state/modals'
 import { setArticles, updateArticles } from '../../../../../redux/state/Articles'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
-import VariationsManager, { Variation } from '../VariationsManager'
+import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import { Variation } from '../VariationsManager'
 import IOSSwitch from '../shared/IOSSwitch'
 import ImagePickerModal from '../shared/ImagePickerModal'
+import PriceRangesManager from './PriceRangesManager'
+import VariationsModal from './VariationsModal'
+import TempPriceRangesModal from './TempPriceRangesModal'
 import '../shared/IOSSwitch.css'
 import '../shared/ImagePickerModal.css'
 import './Modal.css'
@@ -29,6 +33,7 @@ const Modal = () => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [code, setCode] = useState('')
+  const [branchId, setBranchId] = useState(() => readCategoryBranchId())
   const [categoryId, setCategoryId] = useState<number | null>(null)
   const [availableCategories, setAvailableCategories] = useState<any[]>([])
   const [variations, setVariations] = useState<Variation[]>([])
@@ -36,6 +41,10 @@ const Modal = () => {
   const [isBreakdown, setIsBreakdown] = useState(false)
   const [images, setImages] = useState<string[]>([])
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
+  const [priceRangesOpen, setPriceRangesOpen] = useState(false)
+  const [currentItemId, setCurrentItemId] = useState<number | null>(null)
+  const [tempPriceRanges, setTempPriceRanges] = useState<Array<{minQuantity: number, maxQuantity: number | null, price: number}>>([])
+  const [variationsModalOpen, setVariationsModalOpen] = useState(false)
 
   const token = localStorage.getItem('token-eco')
   const isCreate = modalState === 'articles-modal'
@@ -51,13 +60,15 @@ const Modal = () => {
       setName('')
       setDescription('')
       setCode('')
+      setBranchId(readCategoryBranchId())
       setCategoryId(null)
       setVariations([])
       setIncludesIVA(false)
       setIsBreakdown(false)
       setImages([])
       setImagePickerOpen(false)
-      loadCategories()
+      setTempPriceRanges([])
+      loadCategories(readCategoryBranchId())
     }
   }, [modalState])
 
@@ -68,6 +79,9 @@ const Modal = () => {
       setName(String(u.name ?? ''))
       setDescription(String(u.description ?? ''))
       setCode(String(u.code ?? ''))
+      const parsedBranchId = Number(u.branchId ?? u.storeId ?? readCategoryBranchId())
+      const currentBranchId = !Number.isNaN(parsedBranchId) ? parsedBranchId : readCategoryBranchId()
+      setBranchId(currentBranchId)
       setCategoryId(u.categoryId ?? u.category?.id ?? null)
       
       // Normalizar variaciones: soportar itemVariations o variations
@@ -81,14 +95,19 @@ const Modal = () => {
       setIncludesIVA(Boolean(u.includesIVA))
       setIsBreakdown(Boolean(u.isBreakdown))
       setImages(normalizeImages(u.images))
-      loadCategories()
+      setCurrentItemId(u.id ?? null)
+      loadCategories(currentBranchId)
     }
   }, [modalState, articlesUpdate])
 
-  const loadCategories = async () => {
+  useEffect(() => {
+    if (modalState !== 'articles-modal' && modalState !== 'articles-modal-update') return
+    loadCategories(branchId)
+  }, [branchId, modalState])
+
+  const loadCategories = async (selectedBranchId: number) => {
     try {
-      const branchId = readCategoryBranchId()
-      const res: any = await APIs.getCategoryOptions(branchId, token as string)
+      const res: any = await APIs.getCategoryOptions(selectedBranchId, token as string)
       setAvailableCategories(Array.isArray(res) ? res : [])
     } catch (err) {
       console.error('Error loading categories:', err)
@@ -108,18 +127,52 @@ const Modal = () => {
       return
     }
 
+    // Obtener companyId del localStorage
+    const companyId = Number(localStorage.getItem('categories-picker-company-id'))
+    
+    if (!companyId || Number.isNaN(companyId)) {
+      alert('No se ha seleccionado una empresa. Por favor selecciona una empresa primero.')
+      return
+    }
+
+    // Agrupar variaciones por color para enviar formato optimizado
+    const groupedVariations = variations.reduce((acc: any[], variation: any) => {
+      const existing = acc.find(v => v.color === variation.color)
+      if (existing) {
+        // Agregar talla al grupo existente
+        if (!existing.sizes.includes(variation.size)) {
+          existing.sizes.push(variation.size)
+        }
+      } else {
+        // Crear nuevo grupo de color
+        acc.push({
+          color: variation.color,
+          colorHex: variation.colorHex,
+          sizes: [variation.size],
+          sku: variation.sku,
+          images: variation.images
+        })
+      }
+      return acc
+    }, [])
+
     const body: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim(),
       code: code.trim(),
       type: 'ARTICLE',
-      variations,
+      variations: groupedVariations,
       includesIVA,
       isBreakdown,
       images,
+      companyId,
+      branchId: branchId && branchId > 0 ? branchId : undefined,
     }
     if (categoryId != null) {
       body.categoryId = categoryId
+    }
+    if (isCreate && tempPriceRanges.length > 0) {
+      body.priceRanges = tempPriceRanges
     }
 
     try {
@@ -163,6 +216,20 @@ const Modal = () => {
           </div>
           <form className='articles__modal' onSubmit={handleSubmit}>
             <div className='articles__modal_container'>
+              <div className='articles__modal_field articles__modal_field--full article-modal__stores'>
+                <div className='article-store-picker'>
+                  <CategoriesStorePicker
+                    variant='modal'
+                    branchId={branchId}
+                    onBranchIdChange={(id) => {
+                      setBranchId(id)
+                      localStorage.setItem('categories-store-id', String(id))
+                    }}
+                  />
+                </div>
+                <p className='article-modal__store-hint'>El artículo se guardará en la sucursal seleccionada.</p>
+              </div>
+
               <div className='articles__modal_row articles__modal_row--main'>
                 <div className='articles__modal_field'>
                   <label className='label__general'>Código</label>
@@ -231,15 +298,19 @@ const Modal = () => {
                 <div className='catalog-modal__images-actions'>
                   <button
                     type='button'
-                    className='btn__general-purple'
+                    className='btn__general-purple article-modal__upload-btn'
                     onClick={() => setImagePickerOpen(true)}
                   >
-                    Subir / ver imágenes
+                    <span className='material-symbols-rounded article-modal__upload-icon' aria-hidden>
+                      add_photo_alternate
+                    </span>
+                    <span>{images.length > 0 ? 'Gestionar imágenes' : 'Subir imágenes'}</span>
                   </button>
                   {images.length > 0 ? (
                     <span className='catalog-modal__images-count'>{images.length} imagen{images.length === 1 ? '' : 'es'}</span>
                   ) : null}
                 </div>
+                <p className='article-modal__images-hint'>Formatos recomendados: JPG/PNG. Puedes cargar varias imágenes.</p>
               </div>
 
               <div className='catalog-modal__switches'>
@@ -254,7 +325,28 @@ const Modal = () => {
               </div>
 
               <div className='articles__modal_field articles__modal_field--full'>
-                <VariationsManager variations={variations} onChange={setVariations} />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <button
+                    type='button'
+                    className='btn__general-purple article-modal__action-btn'
+                    onClick={() => setVariationsModalOpen(true)}
+                  >
+                    <span className='material-symbols-rounded article-modal__action-icon' aria-hidden>
+                      palette
+                    </span>
+                    <span>Variaciones {variations.length > 0 && `(${variations.length})`}</span>
+                  </button>
+                  <button
+                    type='button'
+                    className='btn__general-orange article-modal__action-btn'
+                    onClick={() => setPriceRangesOpen(true)}
+                  >
+                    <span className='material-symbols-rounded article-modal__action-icon' aria-hidden>
+                      toll
+                    </span>
+                    <span>Rangos de Precio {tempPriceRanges.length > 0 && `(${tempPriceRanges.length})`}</span>
+                  </button>
+                </div>
               </div>
 
               <div className='articles__modal_actions'>
@@ -274,6 +366,28 @@ const Modal = () => {
         onChange={setImages}
         onClose={() => setImagePickerOpen(false)}
       />
+
+      {!isCreate && priceRangesOpen && currentItemId && (
+        <PriceRangesManager
+          itemId={currentItemId}
+          onClose={() => setPriceRangesOpen(false)}
+        />
+      )}
+
+      <VariationsModal 
+        variations={variations} 
+        onChange={setVariations}
+        isOpen={variationsModalOpen}
+        onClose={() => setVariationsModalOpen(false)}
+      />
+
+      {priceRangesOpen && isCreate && (
+        <TempPriceRangesModal
+          ranges={tempPriceRanges}
+          onChange={setTempPriceRanges}
+          onClose={() => setPriceRangesOpen(false)}
+        />
+      )}
     </>
   )
 }

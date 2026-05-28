@@ -1,0 +1,242 @@
+.temp-price-ranges-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  animation: article-modal-overlay-in 0.3s ease both;
+}
+
+.temp-price-ranges-modal-content {
+  background: #1a1d24;
+  border-radius: 12px;
+  width: min(860px, 94%);
+  max-width: 860px;
+  max-height: 74vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: article-modal-content-in 0.3s ease both;
+}
+
+@keyframes article-modal-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes article-modal-content-in {
+  from {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.temp-price-ranges-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #2a2d35;
+}
+
+.temp-price-ranges-modal-header h2 {
+  color: #fff;
+  font-size: 18px;
+  margin: 0;
+}
+
+.temp-price-ranges-modal-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 32px;
+  cursor: pointer;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.temp-price-ranges-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.temp-price-ranges-modal-body {
+  padding: 14px 16px;
+}
+
+.temp-price-ranges-list {
+  margin-bottom: 32px;
+}
+
+.temp-price-ranges-list h3 {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.temp-price-ranges-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #242730;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.temp-price-ranges-table thead {
+  background: #2a2d35;
+}
+
+.temp-price-ranges-table th {
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.temp-price-ranges-table td {
+  color: #ddd;
+  padding: 12px 16px;
+  border-top: 1px solid #2a2d35;
+}
+
+.temp-price-ranges-delete {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.3s;
+}
+
+.temp-price-ranges-delete:hover {
+  background: #c82333;
+}
+
+.temp-price-ranges-form {
+  background: #242730;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.temp-price-ranges-form h3 {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.temp-price-ranges-form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.temp-price-ranges-form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.temp-price-ranges-form-group label {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.temp-price-ranges-input {
+  background: #1a1d24;
+  border: 1px solid #2a2d35;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.3s;
+}
+
+.temp-price-ranges-input:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.temp-price-ranges-input::placeholder {
+  color: #666;
+}
+
+.temp-price-ranges-add {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.3s;
+  white-space: nowrap;
+}
+
+.temp-price-ranges-add:hover {
+  background: #218838;
+}
+
+.temp-price-ranges-help {
+  margin-top: 20px;
+  padding: 16px;
+  background: rgba(74, 158, 255, 0.1);
+  border-left: 3px solid #4a9eff;
+  border-radius: 6px;
+}
+
+.temp-price-ranges-help p {
+  color: #fff;
+  margin: 0 0 8px 0;
+  font-size: 14px;
+}
+
+.temp-price-ranges-help ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #ddd;
+  font-size: 13px;
+}
+
+.temp-price-ranges-help li {
+  margin-bottom: 4px;
+}
+
+.temp-price-ranges-modal-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #2a2d35;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.temp-price-ranges-modal-footer button {
+  padding: 10px 24px;
+}
+
+@media (max-width: 768px) {
+  .temp-price-ranges-form-row {
+    grid-template-columns: 1fr;
+  }
+}

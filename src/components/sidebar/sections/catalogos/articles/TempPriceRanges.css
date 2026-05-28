@@ -1,0 +1,98 @@
+.temp-price-ranges {
+  margin-top: 16px;
+  padding: 16px;
+  background: #1a1d24;
+  border-radius: 8px;
+  border: 1px solid #2a2d35;
+}
+
+.temp-price-ranges h4 {
+  color: #fff;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.temp-price-ranges__list {
+  margin-bottom: 12px;
+}
+
+.temp-price-ranges__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #242730;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.temp-price-ranges__item span {
+  color: #ddd;
+  font-size: 13px;
+}
+
+.temp-price-ranges__delete {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  transition: background 0.3s;
+}
+
+.temp-price-ranges__delete:hover {
+  background: #c82333;
+}
+
+.temp-price-ranges__form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+}
+
+.temp-price-ranges__input {
+  background: #0f1117;
+  border: 1px solid #2a2d35;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.temp-price-ranges__input:focus {
+  outline: none;
+  border-color: #4a9eff;
+}
+
+.temp-price-ranges__input::placeholder {
+  color: #666;
+  font-size: 12px;
+}
+
+.temp-price-ranges__add {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.3s;
+}
+
+.temp-price-ranges__add:hover {
+  background: #218838;
+}
+
+@media (max-width: 768px) {
+  .temp-price-ranges__form {
+    grid-template-columns: 1fr;
+  }
+}

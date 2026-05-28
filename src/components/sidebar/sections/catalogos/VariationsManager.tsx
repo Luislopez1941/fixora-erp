@@ -22,7 +22,6 @@ export interface Variation {
   colorHex?: string
   size: string
   sku: string
-  price: string
   images?: string[]
 }
 
@@ -53,16 +52,12 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
   const [selectedColor, setSelectedColor] = useState<PaletteColor | null>(null)
   const [customHex, setCustomHex] = useState('#586ae9')
   const [useCustomColor, setUseCustomColor] = useState(false)
-  const [selectedSize, setSelectedSize] = useState<string | null>(null)
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([])
   const [sku, setSku] = useState('')
-  const [price, setPrice] = useState('')
   const [variationImages, setVariationImages] = useState<string[]>([])
 
   const activeColorHex = useCustomColor ? customHex : selectedColor?.hex
   const activeColorName = useCustomColor ? 'Personalizado' : selectedColor?.name
-
-  const resolveColorHex = (variation: Variation) =>
-    variation.colorHex ?? COLOR_HEX[variation.color] ?? '#586ae9'
 
   const handleSelectPaletteColor = (color: PaletteColor) => {
     setUseCustomColor(false)
@@ -75,32 +70,40 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
     setSelectedColor(null)
   }
 
+  const handleToggleSize = (sizeName: string) => {
+    if (selectedSizes.includes(sizeName)) {
+      setSelectedSizes(selectedSizes.filter(s => s !== sizeName))
+    } else {
+      setSelectedSizes([...selectedSizes, sizeName])
+    }
+  }
+
   const handleAddVariation = () => {
     if (!activeColorName || !activeColorHex) {
       alert('Selecciona un color de la paleta')
       return
     }
-    if (!selectedSize) {
-      alert('Selecciona una talla de la paleta')
+    if (selectedSizes.length === 0) {
+      alert('Selecciona al menos una talla')
       return
     }
 
-    const newVariation: Variation = {
+    // Crear una variación por cada talla seleccionada
+    // Las imágenes se guardan en todas las tallas del mismo color
+    const newVariations: Variation[] = selectedSizes.map(size => ({
       color: activeColorName,
       colorHex: activeColorHex,
-      size: selectedSize,
-      sku: sku.trim(),
-      price: price.trim(),
+      size: size,
+      sku: sku.trim() ? `${sku.trim()}-${size}` : '',
       images: variationImages.length > 0 ? variationImages : undefined,
-    }
+    }))
 
-    onChange([...variations, newVariation])
+    onChange([...variations, ...newVariations])
     setSelectedColor(null)
     setUseCustomColor(false)
     setCustomHex('#586ae9')
-    setSelectedSize(null)
+    setSelectedSizes([])
     setSku('')
-    setPrice('')
     setVariationImages([])
   }
   
@@ -115,10 +118,6 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
 
   const handleRemoveVariationImage = (index: number) => {
     setVariationImages(variationImages.filter((_, i) => i !== index))
-  }
-
-  const handleRemoveVariation = (index: number) => {
-    onChange(variations.filter((_, i) => i !== index))
   }
 
   return (
@@ -177,23 +176,35 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
       </div>
 
       <div className='variations-manager__section'>
-        <span className='variations-manager__label'>Paleta de tallas</span>
+        <span className='variations-manager__label'>
+          Paleta de tallas {selectedSizes.length > 0 && `(${selectedSizes.length} seleccionada${selectedSizes.length === 1 ? '' : 's'})`}
+        </span>
         <div className='variations-manager__size-palette'>
           {sizePalette.map((size) => (
             <button
               key={size.id}
               type='button'
-              className={`variations-manager__size-chip ${selectedSize === size.name ? 'is-selected' : ''}`}
-              onClick={() => setSelectedSize(size.name)}
+              className={`variations-manager__size-chip ${selectedSizes.includes(size.name) ? 'is-selected' : ''}`}
+              onClick={() => handleToggleSize(size.name)}
             >
               {size.name}
             </button>
           ))}
         </div>
+        {selectedSizes.length > 0 && (
+          <div className='variations-manager__selected-sizes'>
+            <span style={{ fontSize: '13px', color: '#aaa' }}>Seleccionadas: </span>
+            {selectedSizes.map((size, idx) => (
+              <span key={idx} style={{ fontSize: '13px', color: '#fff', marginRight: '8px' }}>
+                {size}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className='variations-manager__extras'>
-        <div>
+        <div className='variations-manager__extra-field variations-manager__extra-field--sku'>
           <label className='variations-manager__label'>SKU (opcional)</label>
           <input
             className='inputs__general'
@@ -203,52 +214,34 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
             placeholder='Ej: CAM-001-R-M'
           />
         </div>
-        <div>
-          <label className='variations-manager__label'>Precio (opcional)</label>
-          <input
-            className='inputs__general'
-            type='number'
-            step='0.01'
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder='0.00'
-          />
-        </div>
-        <div>
+        <div className='variations-manager__extra-field variations-manager__extra-field--images'>
           <label className='variations-manager__label'>Imágenes del color (opcional)</label>
-          <input
-            type='file'
-            accept='image/*'
-            multiple
-            onChange={(e) => {
-              const files = Array.from(e.target.files || [])
-              files.forEach(handleImageSelect)
-              e.target.value = ''
-            }}
-            className='inputs__general'
-          />
+          <label className='variations-manager__upload-btn'>
+            <span className='material-symbols-rounded variations-manager__upload-icon' aria-hidden>
+              add_photo_alternate
+            </span>
+            <span>{variationImages.length > 0 ? 'Gestionar imágenes' : 'Subir imágenes'}</span>
+            <input
+              type='file'
+              accept='image/*'
+              multiple
+              onChange={(e) => {
+                const files = Array.from(e.target.files || [])
+                files.forEach(handleImageSelect)
+                e.target.value = ''
+              }}
+              className='variations-manager__upload-input'
+            />
+          </label>
           {variationImages.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', flexWrap: 'wrap' }}>
+            <div className='variations-manager__images-grid'>
               {variationImages.map((img, idx) => (
-                <div key={idx} style={{ position: 'relative', width: '60px', height: '60px' }}>
-                  <img src={img} alt={`Variación ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '4px' }} />
+                <div key={idx} className='variations-manager__image-item'>
+                  <img src={img} alt={`Variación ${idx}`} className='variations-manager__image-thumb' />
                   <button
                     type='button'
                     onClick={() => handleRemoveVariationImage(idx)}
-                    style={{
-                      position: 'absolute',
-                      top: '-8px',
-                      right: '-8px',
-                      background: '#e53935',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '50%',
-                      width: '20px',
-                      height: '20px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      lineHeight: '1'
-                    }}
+                    className='variations-manager__image-remove'
                   >
                     ×
                   </button>
@@ -262,72 +255,137 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
           onClick={handleAddVariation}
           className='btn__general-purple variations-manager__add-btn'
         >
-          Agregar
+          {selectedSizes.length > 1 
+            ? `Agregar ${selectedSizes.length} variaciones` 
+            : 'Agregar variación'}
         </button>
       </div>
 
-      {variations.length > 0 && (
-        <div className='variations-manager__list'>
-          <table className='variations-manager__table'>
-            <thead>
-              <tr>
-                <th>Color</th>
-                <th>Talla</th>
-                <th>SKU</th>
-                <th>Precio</th>
-                <th>Imágenes</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {variations.map((variation, index) => (
-                <tr key={index}>
-                  <td>
-                    <div className='variations-manager__color-cell'>
-                      <span
-                        className='variations-manager__color-cell-dot'
-                        style={{ backgroundColor: resolveColorHex(variation) }}
-                      />
-                      <span>{variation.color}</span>
-                    </div>
-                  </td>
-                  <td>{variation.size}</td>
-                  <td>{variation.sku || '—'}</td>
-                  <td>{variation.price ? `$${variation.price}` : '—'}</td>
-                  <td>
-                    {variation.images && variation.images.length > 0 ? (
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {variation.images.slice(0, 3).map((img, idx) => (
-                          <img
-                            key={idx}
-                            src={img}
-                            alt={`${variation.color} ${idx + 1}`}
-                            style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '4px' }}
-                          />
-                        ))}
-                        {variation.images.length > 3 && (
-                          <span style={{ fontSize: '12px', alignSelf: 'center' }}>+{variation.images.length - 3}</span>
-                        )}
-                      </div>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td>
-                    <button
-                      type='button'
-                      onClick={() => handleRemoveVariation(index)}
-                      className='btn__general-danger'
-                    >
-                      Eliminar
-                    </button>
-                  </td>
+      {variations.length > 0 && (() => {
+        // Orden de tallas estándar
+        const sizeOrder = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+        
+        // Función para ordenar tallas
+        const sortSizes = (sizes: string[]) => {
+          return sizes.sort((a, b) => {
+            const indexA = sizeOrder.indexOf(a);
+            const indexB = sizeOrder.indexOf(b);
+            // Si ambas están en el orden estándar, usar ese orden
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            // Si solo una está en el orden estándar, ponerla primero
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            // Si ninguna está, ordenar alfabéticamente
+            return a.localeCompare(b);
+          });
+        };
+
+        // Agrupar variaciones por color
+        const groupedByColor = variations.reduce((acc, variation, index) => {
+          const key = variation.color; // Solo usar el color como key
+          if (!acc[key]) {
+            acc[key] = {
+              color: variation.color,
+              colorHex: variation.colorHex,
+              sizes: [],
+              images: variation.images, // Tomar imágenes de la primera variación
+              indices: []
+            };
+          }
+          acc[key].sizes.push(variation.size);
+          acc[key].indices.push(index);
+          // Si esta variación tiene imágenes y el grupo no las tiene, usarlas
+          if (!acc[key].images && variation.images) {
+            acc[key].images = variation.images;
+          }
+          return acc;
+        }, {} as Record<string, { color: string; colorHex?: string; sizes: string[]; images?: string[]; indices: number[] }>);
+
+        // Ordenar las tallas en cada grupo
+        Object.values(groupedByColor).forEach(group => {
+          group.sizes = sortSizes(group.sizes);
+        });
+
+        return (
+          <div className='variations-manager__list'>
+            <table className='variations-manager__table'>
+              <thead>
+                <tr>
+                  <th>Color</th>
+                  <th>Tallas</th>
+                  <th>Imágenes</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {Object.values(groupedByColor).map((group, groupIndex) => (
+                  <tr key={groupIndex}>
+                    <td>
+                      <div className='variations-manager__color-cell'>
+                        <span
+                          className='variations-manager__color-cell-dot'
+                          style={{ backgroundColor: group.colorHex ?? COLOR_HEX[group.color] ?? '#586ae9' }}
+                        />
+                        <span>{group.color}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                        {group.sizes.map((size, idx) => (
+                          <span 
+                            key={idx}
+                            style={{
+                              background: '#2a2d35',
+                              padding: '4px 10px',
+                              borderRadius: '4px',
+                              fontSize: '13px',
+                              color: '#fff'
+                            }}
+                          >
+                            {size}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td>
+                      {group.images && group.images.length > 0 ? (
+                        <div className='variations-manager__table-images'>
+                          {group.images.slice(0, 3).map((img, idx) => (
+                            <img
+                              key={idx}
+                              src={img}
+                              alt={`${group.color} ${idx + 1}`}
+                              className='variations-manager__table-image-thumb'
+                            />
+                          ))}
+                          {group.images.length > 3 && (
+                            <span className='variations-manager__table-images-more'>+{group.images.length - 3}</span>
+                          )}
+                        </div>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          // Eliminar todas las variaciones de este color
+                          const newVariations = variations.filter((_, i) => !group.indices.includes(i));
+                          onChange(newVariations);
+                        }}
+                        className='btn__general-danger'
+                      >
+                        Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+      })()}
     </div>
   )
 }
