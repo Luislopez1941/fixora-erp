@@ -8,6 +8,11 @@ const Catalogo: React.FC = () => {
     return (
         <div className='options__menu-catalogo'>
             <div className='item'>
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATALOGOS_AREAS_TYPES}`} title="Tipos y áreas" className="tooltip">
+                    <p>Tipos y áreas</p>
+                </Link>
+            </div>
+            <div className='item'>
                 <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATEGORIES}`} title="Payments" className="tooltip">
                     <p>Categorías</p>
                 </Link>

@@ -10,12 +10,18 @@ type OpenKey = 'company' | 'branch' | null
 export interface CategoriesStorePickerProps {
   branchId: number
   onBranchIdChange: (id: number) => void
+  /** Notifica cuando el usuario cambia de empresa (para recargar filtros dependientes). */
+  onCompanyIdChange?: (id: number) => void
   /** 'toolbar' = barra de lista; 'modal' = mismo flujo con estilos de formulario */
   variant?: 'toolbar' | 'modal'
   /** Solo modal: cerrar desplegables al abrir audiencia/género */
   closeStoresSignal?: number
   /** Solo modal: al abrir empresa/sucursal, cerrar audiencia/género */
   onDropdownOpen?: () => void
+  /** Ocultar selector de empresa si solo hay una */
+  hideIfSingleCompany?: boolean
+  /** Ocultar selector de sucursal si hay 0 o 1 real (auto-seleccionar) */
+  hideIfSingleBranch?: boolean
 }
 
 /**
@@ -24,9 +30,12 @@ export interface CategoriesStorePickerProps {
 const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
   branchId,
   onBranchIdChange,
+  onCompanyIdChange,
   variant = 'toolbar',
   closeStoresSignal,
   onDropdownOpen,
+  hideIfSingleCompany,
+  hideIfSingleBranch,
 }) => {
   const userState = useSelector((s: any) => s.user)
   const userId = Number(userState?.id ?? userState?._id)
@@ -65,7 +74,11 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
         const savedCo = Number(localStorage.getItem(LS_COMPANY))
         const co =
           list.some((x: any) => x.id === savedCo) ? savedCo : list[0]?.id ?? null
-        setCompanyId(co != null && !Number.isNaN(co) ? co : null)
+        const resolvedCo = co != null && !Number.isNaN(co) ? co : null
+        setCompanyId(resolvedCo)
+        if (resolvedCo != null) {
+          onCompanyIdChange?.(resolvedCo)
+        }
       } catch {
         if (!cancelled) {
           setCompanies([])
@@ -93,7 +106,12 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
         if (cancelled) return
         setBranches(list)
         const savedBr = Number(localStorage.getItem(LS_BRANCH))
-        const br = list.some((x: any) => x.id === savedBr) ? savedBr : list[0]?.id ?? null
+        let br = list.some((x: any) => x.id === savedBr) ? savedBr : list[0]?.id ?? null
+        // Si hideIfSingleBranch y solo hay 1 real branch, auto-seleccionar la real (no "Sin sucursal")
+        if (hideIfSingleBranch && list.length === 2) {
+          const real = list.find((x: any) => x.id > 0)
+          if (real) br = real.id
+        }
         setSelectedBranchId(br != null && !Number.isNaN(br) ? br : null)
       } catch {
         if (!cancelled) {
@@ -123,6 +141,7 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
   const handleCompany = (c: any) => {
     localStorage.setItem(LS_COMPANY, String(c.id))
     setCompanyId(c.id)
+    onCompanyIdChange?.(c.id)
     setOpen(null)
   }
 
@@ -225,10 +244,13 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
     )
   }
 
+  const showCompany = !hideIfSingleCompany || companies.length > 1
+  const showBranch = !hideIfSingleBranch || branches.length > 2
+
   return (
     <div className={variant === 'modal' ? 'categories-modal__store-row' : 'categories-toolbar__stores'}>
-      {renderSelect('company', 'Empresa', companyName, companies, handleCompany)}
-      {renderSelect('branch', 'Sucursal', branchName, branches, handleBranch)}
+      {showCompany && renderSelect('company', 'Empresa', companyName, companies, handleCompany)}
+      {showBranch && renderSelect('branch', 'Sucursal', branchName, branches, handleBranch)}
     </div>
   )
 }

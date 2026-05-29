@@ -33,9 +33,32 @@ const Login: React.FC = () => {
 
       }
       if (result.status == 'success') {
-        console.log('result', result)
-        dispatch(createUser(result.data))
-        // localStorage.setItem('token-eco', result.token)
+        const payload = result.data?.user ?? result.data;
+        const token = result.data?.token;
+        const companyIds: number[] = (payload.userCompanies ?? []).map((uc: any) => uc.companyId).filter(Boolean);
+        const activeCompanyId = companyIds[0] ?? null;
+        const userPayload = {
+          id: payload.id,
+          _id: payload.id,
+          name: `${payload.firstName ?? ''} ${payload.firstLastName ?? ''}`.trim() || payload.businessName || payload.email,
+          email: payload.email,
+          firstName: payload.firstName,
+          firstLastName: payload.firstLastName,
+          userKind: payload.userKind,
+          role: payload.role,
+          permissions: payload.permissions ?? [],
+          branchId: payload.branchId,
+          branch: payload.branch,
+          companyId: activeCompanyId,
+          companyIds,
+          activeCompanyId,
+          active: payload.active,
+          token,
+        };
+        dispatch(createUser(userPayload));
+        if (token) {
+          localStorage.setItem('token-eco', token);
+        }
         navigate(`/${PrivateRoutes.PRIVATE}`, { replace: true })
       }
 

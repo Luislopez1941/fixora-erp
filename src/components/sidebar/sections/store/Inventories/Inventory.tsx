@@ -1,120 +1,243 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import '../../categories/Categories.css'
 import './Inventory.css'
-import { modal } from '../../../../../redux/state/modals'
-import { useDispatch } from 'react-redux';// Importa la interfaz AppStore
-import ModalInventory from './modal-inventory/ModalAddProduct';
-import APIs from '../../../../../services/APIs';
+import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import APIs from '../../../../../services/APIs'
+import { readCategoryBranchId } from '../../../../../constants/category'
 
+const LS_COMPANY = 'categories-picker-company-id'
+
+const readCompanyId = (): number | null => {
+  const id = Number(localStorage.getItem(LS_COMPANY))
+  return !Number.isNaN(id) && id > 0 ? id : null
+}
+
+type StockStatus = 'disponible' | 'stock_bajo' | 'agotado' | 'sin_rastreo'
+
+const STATUS_LABEL: Record<StockStatus, string> = {
+  disponible: 'En stock',
+  stock_bajo: 'Stock bajo',
+  agotado: 'Desabasto',
+  sin_rastreo: 'Sin rastreo',
+}
+
+const STATUS_CLASS: Record<StockStatus, string> = {
+  disponible: 'inventory-status--ok',
+  stock_bajo: 'inventory-status--low',
+  agotado: 'inventory-status--out',
+  sin_rastreo: 'inventory-status--none',
+}
 
 const Inventory: React.FC = () => {
-  const dispatch = useDispatch();
+  const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  const [companyId, setCompanyId] = useState<number | null>(() => readCompanyId())
+  const [items, setItems] = useState<any[]>([])
+  const [summary, setSummary] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [search, setSearch] = useState('')
+  const [expandedId, setExpandedId] = useState<number | null>(null)
 
-  const [products, setProducts] = useState<any>([])
-
-  const fetch = async () => {
-    // let data = {
-    //     companyId: 0,
-    //     branchId: 0
-    // }
-
-    try {
-      let response: any = await APIs.getProducts('', '')
-      setProducts(response.data)
-    } catch (error) {
-
-    }
-  }
-
-  useEffect(() => {
-    fetch()
+  const persistBranchId = useCallback((id: number) => {
+    setBranchId(id)
+    localStorage.setItem('categories-store-id', String(id))
+    localStorage.setItem('categories-picker-branch-id', String(id))
   }, [])
 
-  const handleModalChange = (value: any) => {
-    dispatch(modal(value));
-  };
+  const fetchInventory = useCallback(async () => {
+    const resolvedCompanyId = companyId ?? readCompanyId()
+    if (!resolvedCompanyId) {
+      setItems([])
+      setSummary(null)
+      return
+    }
 
+    setLoading(true)
+    try {
+      const response: any = await APIs.getInventory({
+        companyId: resolvedCompanyId,
+        branchId: branchId > 0 ? branchId : undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+      })
+      setItems(Array.isArray(response?.data) ? response.data : [])
+      setSummary(response?.summary ?? null)
+    } catch (error) {
+      console.error('Error al cargar inventario:', error)
+      setItems([])
+      setSummary(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [branchId, companyId, statusFilter])
 
+  useEffect(() => {
+    fetchInventory()
+  }, [fetchInventory])
 
+  const filteredItems = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return items
+    return items.filter((item) => {
+      const name = String(item.name ?? '').toLowerCase()
+      const code = String(item.code ?? '').toLowerCase()
+      return name.includes(q) || code.includes(q)
+    })
+  }, [items, search])
 
+  const toggleExpand = (id: number) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }
 
   return (
     <div className='inventory'>
       <div className='inventory__container'>
-        <div className='row__one'>
-          <div>
-            <button className='btn__general-primary' onClick={() => handleModalChange('inventory_modal')}>Agregar producto</button>
+        <div className='inventory__header'>
+          <div className='inventory__toolbar'>
+            <CategoriesStorePicker
+              branchId={branchId}
+              onBranchIdChange={persistBranchId}
+              onCompanyIdChange={(id) => setCompanyId(id)}
+            />
+          </div>
+          <div className='inventory__filters'>
+            <input
+              className='inputs__general'
+              type='text'
+              placeholder='Buscar artículo o código'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <select
+              className='traditional__selector inventory__status-filter'
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value='all'>Todos</option>
+              <option value='stock_bajo'>Stock bajo</option>
+              <option value='agotado'>Desabasto</option>
+            </select>
           </div>
         </div>
-        <div className='table__inventory' >
-          <div>
-            {products ? (
-              <div className='table__numbers'>
-                <p className='text'>Total de administradores</p>
-                <div className='quantities_tables'>{products.length}</div>
-              </div>
-            ) : (
-              <p className='text'>No hay empresas</p>
-            )}
+
+        {summary ? (
+          <div className='inventory__summary'>
+            <div className='inventory__summary-card'>
+              <span>Artículos</span>
+              <strong>{summary.totalItems ?? 0}</strong>
+            </div>
+            <div className='inventory__summary-card inventory__summary-card--ok'>
+              <span>En stock</span>
+              <strong>{summary.disponibles ?? 0}</strong>
+            </div>
+            <div className='inventory__summary-card inventory__summary-card--low'>
+              <span>Stock bajo</span>
+              <strong>{summary.stockBajo ?? 0}</strong>
+            </div>
+            <div className='inventory__summary-card inventory__summary-card--out'>
+              <span>Desabasto</span>
+              <strong>{summary.agotados ?? 0}</strong>
+            </div>
           </div>
+        ) : null}
+
+        <div className='table__inventory'>
           <div className='table__head'>
-            <div className='thead'>
-              <div className='th'>
-                <p className=''>Código</p>
-              </div>
-              <div className='th movil'>
-                <p className=''>Nombre</p>
-              </div>
-              <div className='th movil'>
-                <p className=''>Status</p>
-              </div>
-              <div className='th'>
-              </div>
+            <div className='thead inventory__thead'>
+              <div className='th'><p>Código</p></div>
+              <div className='th'><p>Artículo</p></div>
+              <div className='th'><p>Stock total</p></div>
+              <div className='th'><p>Estado</p></div>
+              <div className='th'><p>Tallas</p></div>
             </div>
           </div>
-          {products?.length > 0 ? (
-            <div className='table__body'>
-              {products?.map((item: any, index: any) => (
-                <div className='tbody__container' key={index}>
-                  <div className='tbody-desk'>
-                    <div className='td'>
-                      {item.code}
-                    </div>
-                    <div className='td movil'>
-                      {item.name}
-                    </div>
-                    <div className='td movil'>
-                      {item.status}
-                    </div>
-                    <div className='td edit'>
-                      <div className='edit-icon'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div className='tbody-response'>
-                    <div className='td'>
-                      {item.code}
-                    </div>
-                    <div className='td movil'>
-                      {item.name}
-                    </div>
-                    <div className='td movil'>
-                      {item.status}
-                    </div>
-                    <div className='td edit'>
-                      <div className='edit-icon'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+          {loading ? (
+            <p className='inventory__empty'>Cargando inventario...</p>
+          ) : filteredItems.length === 0 ? (
+            <p className='inventory__empty'>No hay artículos para mostrar</p>
           ) : (
-            <p className='text'>No hay máximos y mínimos que mostrar</p>
+            <div className='table__body inventory__body'>
+              {filteredItems.map((item) => {
+                const status = (item.status ?? 'sin_rastreo') as StockStatus
+                const canExpand = item.hasVariations || (item.generalStock ?? 0) > 0
+                const isExpanded = expandedId === item.itemId
+                const variations = item.variations ?? []
+
+                return (
+                  <div className='inventory__row-wrap' key={item.itemId}>
+                    <div
+                      className={`inventory__row ${canExpand ? 'inventory__row--expandable' : ''}`}
+                      onClick={() => canExpand && toggleExpand(item.itemId)}
+                      role={canExpand ? 'button' : undefined}
+                    >
+                      <div className='td'>{item.code || '—'}</div>
+                      <div className='td'>{item.name}</div>
+                      <div className='td'>{item.trackInventory ? item.totalStock : '—'}</div>
+                      <div className='td'>
+                        <span className={`inventory-status ${STATUS_CLASS[status]}`}>
+                          {STATUS_LABEL[status]}
+                        </span>
+                      </div>
+                      <div className='td'>
+                        {item.hasVariations ? (
+                          <span className='inventory__sizes-hint'>
+                            {variations.length} tallas
+                            {item.outOfStockCount > 0 ? ` · ${item.outOfStockCount} agotadas` : ''}
+                            {item.lowStockCount > 0 ? ` · ${item.lowStockCount} bajas` : ''}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </div>
+                    </div>
+
+                    {isExpanded && (variations.length > 0 || (item.generalStock ?? 0) > 0) ? (
+                      <div className='inventory__sizes-panel'>
+                        <p className='inventory__sizes-title'>Existencias por talla</p>
+                        <div className='inventory__sizes-grid'>
+                          {(item.generalStock ?? 0) > 0 ? (
+                            <div className={`inventory__size-card ${STATUS_CLASS.disponible}`}>
+                              <div className='inventory__size-card__header'>
+                                <span>Sin talla asignada</span>
+                              </div>
+                              <div className='inventory__size-card__size'>General</div>
+                              <div className='inventory__size-card__stock'>{item.generalStock} pzs</div>
+                              <div className={`inventory-status ${STATUS_CLASS.disponible}`}>
+                                Entradas sin talla
+                              </div>
+                            </div>
+                          ) : null}
+                          {variations.map((v: any) => {
+                            const vStatus = (v.status ?? 'agotado') as StockStatus
+                            return (
+                              <div
+                                className={`inventory__size-card ${STATUS_CLASS[vStatus]}`}
+                                key={v.id}
+                              >
+                                <div className='inventory__size-card__header'>
+                                  <span
+                                    className='inventory__size-color'
+                                    style={{ backgroundColor: v.colorHex || '#586ae9' }}
+                                  />
+                                  <span>{v.color}</span>
+                                </div>
+                                <div className='inventory__size-card__size'>{v.size}</div>
+                                <div className='inventory__size-card__stock'>{v.stock} pzs</div>
+                                <div className={`inventory-status ${STATUS_CLASS[vStatus]}`}>
+                                  {STATUS_LABEL[vStatus]}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )
+              })}
+            </div>
           )}
         </div>
-        <ModalInventory />
       </div>
     </div>
   )

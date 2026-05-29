@@ -6,7 +6,7 @@
 
 
 .overlay__store_modal {
-    background: rgba(0, 0, 0, .3);
+    background: rgba(0, 0, 0, .55);
     position: fixed;
     top: 0;
     bottom: 0;
@@ -16,7 +16,8 @@
     justify-content: center;
     display: flex;
     visibility: hidden;
-    z-index: 1;
+    z-index: 1100;
+    padding: 16px;
 }
 
 .overlay__store_modal.active {
@@ -36,13 +37,14 @@
 
 .popup__store_modal {
     background-color: #17191b;
-    border-radius: 5px;
-    width: 60vw;
+    border-radius: 8px;
+    width: min(720px, 92vw);
     max-height: 90vh;
     transition: .3s ease all;
     transform: scale(0.7);
     opacity: 0;
-    overflow: hidden;
+    overflow: visible;
+    position: relative;
 }
 
 .administrator-modal {
@@ -82,23 +84,143 @@
     padding: 20px;
 }
 
-.store_modal_container>.row__one {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 20px;
+.store_modal--saving {
+    pointer-events: none;
+    opacity: 0.85;
 }
 
-
-.store_modal_container>.row__one .row__two {
+.store-store-picker__row .categories-modal__store-row {
     display: grid;
-    grid-template-columns: repeat(2, 1fr) auto auto;
-    gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 20px;
+    align-items: end;
 }
 
+.store-store-picker .cat-modal-select {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
 
-
-.store_modal_container>.row__one .search .inputs__general_icons {
+.store-store-picker .cat-modal-select__label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e8eaed;
     margin: 0;
+}
+
+.store-store-picker .cat-modal-select__control {
+    position: relative;
+}
+
+.store-store-picker .cat-modal-select__trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 44px;
+    padding: 0 16px;
+    margin: 0;
+    border: 1px solid rgba(88, 106, 233, 0.45);
+    border-radius: 8px;
+    background: linear-gradient(180deg, #252830 0%, #1a1d24 100%);
+    color: #f5f6f7;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.store-store-picker .cat-modal-select__trigger.is-open {
+    border-radius: 8px 8px 0 0;
+    border-bottom-color: transparent;
+}
+
+.store-store-picker .cat-modal-select__trigger.is-open .cat-modal-select__chev {
+    transform: rotate(-180deg);
+}
+
+.store-store-picker .cat-modal-select__value {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.store-store-picker .cat-modal-select__chev {
+    flex-shrink: 0;
+    margin-left: 10px;
+    transition: transform 0.25s ease;
+}
+
+.store-store-picker .cat-modal-select__menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 30;
+    margin-top: -1px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    border: 1px solid rgba(88, 106, 233, 0.45);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: #1f2228;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.store-store-picker .cat-modal-select__menu.is-open {
+    max-height: 240px;
+    opacity: 1;
+    visibility: visible;
+    overflow-y: auto;
+}
+
+.store-store-picker .cat-modal-select__list {
+    list-style: none;
+    margin: 0;
+    padding: 6px 0;
+}
+
+.store-store-picker .cat-modal-select__option {
+    display: block;
+    width: 100%;
+    padding: 12px 16px;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #f5f6f7;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.store-store-picker .cat-modal-select__option:hover {
+    background: rgba(88, 106, 233, 0.35);
+}
+
+.store-store-picker .cat-modal-select--open {
+    z-index: 25;
+}
+
+.store_modal__field .inputs__general {
+    margin-top: 0;
+}
+
+.store_modal__actions {
+    display: flex;
+    justify-content: center;
+}
+
+@media (max-width: 720px) {
+    .store-store-picker__row .categories-modal__store-row {
+        grid-template-columns: 1fr;
+    }
 }
 
 

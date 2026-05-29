@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import './Familias.css'
 import { useDispatch } from "react-redux";
 import { modal } from '../../../../../redux/state/modals';
@@ -7,13 +7,20 @@ import APIs from '../../../../../services/APIs';
 import { readCategoryBranchId } from '../../../../../constants/category';
 import CategoriesStorePicker from '../../categories/CategoriesStorePicker';
 
+const LS_COMPANY = 'categories-picker-company-id'
+
 const Familias: React.FC = () => {
   const [familias, setFamilias] = useState<any[]>([])
   const [selectedFamilia, setSelectedFamilia] = useState<any>(null)
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  const [companyId, setCompanyId] = useState<number | null>(() => {
+    const saved = localStorage.getItem(LS_COMPANY)
+    return saved ? Number(saved) : null
+  })
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'ARTICLE' | 'SERVICE'>('ALL')
+  const [isLoading, setIsLoading] = useState(false)
   const dispatch = useDispatch();
 
   const handleModalChange = (value: any) => {
@@ -25,6 +32,11 @@ const Familias: React.FC = () => {
     localStorage.setItem('categories-store-id', String(id))
   }, [])
 
+  const persistCompanyId = useCallback((id: number) => {
+    setCompanyId(id)
+    localStorage.setItem(LS_COMPANY, String(id))
+  }, [])
+
   // Debounce para la búsqueda (espera 500ms después de que el usuario deja de escribir)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -34,15 +46,22 @@ const Familias: React.FC = () => {
     return () => clearTimeout(timer)
   }, [search])
 
+  const fetchingRef = useRef(false)
+
   const fetchFamilias = useCallback(async () => {
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+    setIsLoading(true)
     try {
       const token = localStorage.getItem('token-eco')
       if (!token) return
 
       const filters: Record<string, unknown> = {}
 
-      if (branchId && !isNaN(branchId)) {
+      if (branchId && !isNaN(branchId) && branchId >= 1) {
         filters.branchId = branchId
+      } else if (companyId != null && !isNaN(companyId)) {
+        filters.companyId = companyId
       }
 
       if (typeFilter !== 'ALL') {
@@ -63,8 +82,11 @@ const Familias: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar familias:', error)
       setFamilias([])
+    } finally {
+      setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [branchId, typeFilter, debouncedSearch])
+  }, [branchId, companyId, typeFilter, debouncedSearch])
 
   useEffect(() => {
     fetchFamilias()
@@ -76,7 +98,7 @@ const Familias: React.FC = () => {
         <div className='familias__header'>
           <div className='familias__toolbar'>
             <div className='familias__toolbar-left'>
-              <CategoriesStorePicker branchId={branchId} onBranchIdChange={persistBranchId} />
+              <CategoriesStorePicker branchId={branchId} onBranchIdChange={persistBranchId} onCompanyIdChange={persistCompanyId} />
             </div>
             <div className='familias__toolbar-right'>
             <div className='familias__search-field'>
@@ -148,7 +170,12 @@ const Familias: React.FC = () => {
           </div>
 
           <div className='table__body'>
-            {familias.length > 0 ? (
+            {isLoading ? (
+              <div className='familias__loading'>
+                <div className='familias__spinner' />
+                <p>Cargando familias...</p>
+              </div>
+            ) : familias.length > 0 ? (
               familias.map((familia: any, index: number) => (
                 <div className='tbody__container' key={index}>
                   <div className='tbody'>

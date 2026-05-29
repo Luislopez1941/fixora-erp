@@ -1,178 +1,282 @@
-.sale__sheet {
-
-}
-
 .sale__sheet_container {
-    padding: 20px;
+  padding: 20px;
 }
 
-.sale__sheet_container > .row__one {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 20px;
+.sale__sheet-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
-.sale__sheet_container .row__one .row__one .inputs__general_icons {
-    margin: 0;
+.sale__sheet-toolbar-left {
+  flex: 1;
+  min-width: 280px;
 }
 
-.sale__sheet_container .row__one .row__one .inputs__general_icons svg {
-    color: #fff;
+.sale__sheet-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.sale__sheet_container .row__one > .row__one {
-    display: flex;
-    justify-content: space-between;
-   
+.sale__sheet-search .inputs__general_icons {
+  margin: 0;
+  min-width: 260px;
 }
 
-.sale__sheet_container .row__one > .row__one .search {
-    display: flex;
-    gap: 20px;
-   
+.sale__sheet-search .inputs__general_icons svg {
+  color: #fff;
 }
 
-
-
-
-
-
-
-
-
-
-
-.table__administrators {
-    margin-top: 20px;
-    border-radius: 10px;
-    text-align: justify;
-    overflow: hidden;
-    width: 100%;
-    
+.sale__sheet-loading,
+.sale__sheet-empty {
+  padding: 24px 12px;
 }
 
-
-.table__administrators .table__head {
-    display: flex;
-    width: 100%;
-    background-color: #1f2124;
-    color: #f5f6f7;
-    border-radius: 5px 5px 0 0;
+.table__sales-sheet {
+  margin-top: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.table__administrators .table__head .thead {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(4, 1fr) 100px 100px;
-    padding: 10px;
-    font-weight: 600;
+.sales-sheet-list__row {
+  display: grid;
+  grid-template-columns:
+    108px minmax(130px, 0.9fr) minmax(220px, 1.6fr) 108px 118px 108px minmax(120px, 1fr)
+    112px;
+  gap: 12px 14px;
+  align-items: center;
+  width: 100%;
+  min-width: 980px;
 }
 
-.table__administrators .table__body {
-    height: 100%;
-    overflow: auto;
-    transition-delay: 0.0s;
-    &::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: #1F319D;
-        border-radius: 5px;
-        height: 100px;
-    }
-
-    &::-webkit-scrollbar-track {
-        /* Para modificar el background */
-    }
+.table__sales-sheet .table__head {
+  width: 100%;
+  background-color: #1f2124;
+  color: #a8adb8;
+  overflow-x: auto;
 }
 
-
-.table__administrators .tbody__container:nth-child(even) {
-    background-color: #13171f;
-    color: #f5f6f7;
+.table__sales-sheet .table__head .thead {
+  padding: 13px 16px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
 }
 
-.table__administrators .tbody__container:nth-child(odd) {
-    background-color: var(--two-table-color);
-    color: #f5f6f7;
-
+.table__sales-sheet .table__head .th p {
+  margin: 0;
 }
 
-.table__administrators .table__body .tbody {
-    display: flex;
+.sales-sheet-list__col--money,
+.sales-sheet-list__col--status {
+  text-align: right;
 }
 
-.table__administrators .table__body .tbody {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr) 100px 100px;
-    padding: 10px;
+.sales-sheet-list__col--articles {
+  text-align: left;
 }
 
-.table__administrators .table__body .tbody:hover {
-    background-color: var(--secundary-color);
-    color: #fff;
+.table__sales-sheet .table__body {
+  max-height: calc(100vh - 280px);
+  overflow: auto;
 }
 
-
-
-
-
-.pagination__container {
-    display: flex;
+.table__sales-sheet .table__body::-webkit-scrollbar,
+.table__sales-sheet .table__head::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
 }
 
-.pagination__container>.item {
-    background-color: #586ae9;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
+.table__sales-sheet .table__body::-webkit-scrollbar-thumb,
+.table__sales-sheet .table__head::-webkit-scrollbar-thumb {
+  background-color: #1f319d;
+  border-radius: 5px;
 }
 
+.sales-sheet-list__item {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
 
+.sales-sheet-list__item:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
 
+.sales-sheet-list__item:hover {
+  background: rgba(88, 106, 233, 0.08);
+  box-shadow: inset 3px 0 0 #586ae9;
+}
+
+.table__sales-sheet .table__body .tbody {
+  padding: 14px 16px;
+  min-height: 72px;
+}
+
+.table__sales-sheet .table__body .td {
+  min-width: 0;
+  color: #e8eaed;
+  font-size: 0.88rem;
+}
+
+.sales-sheet-list__folio {
+  display: flex;
+  align-items: center;
+}
+
+.sale__folio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(88, 106, 233, 0.16);
+  color: #dbe1ff;
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.sales-sheet-list__date {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sale__date-main {
+  color: #f5f6f7;
+  font-size: 0.86rem;
+}
+
+.sale__date-sub {
+  color: #a8adb8;
+  font-size: 0.76rem;
+}
+
+.sales-sheet-list__articles {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sale__items-count {
+  color: #c4c8d0;
+  font-size: 0.8rem;
+}
+
+.sale__lines-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sale__line-chip {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(88, 106, 233, 0.18);
+  color: #d7dcff;
+  font-size: 0.74rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sales-sheet-list__col--money {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.sale__money {
+  font-variant-numeric: tabular-nums;
+  color: #c4c8d0;
+}
+
+.sale__money--total {
+  font-weight: 700;
+  color: #fff;
+  font-size: 0.95rem;
+}
+
+.sales-sheet-list__payment,
+.sales-sheet-list__cashier {
+  color: #d4d7dd;
+  font-size: 0.86rem;
+}
+
+.sales-sheet-list__col--status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sale__status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sale__status--completed {
+  background: rgba(34, 197, 94, 0.15);
+  color: #86efac;
+}
+
+.sale__status--draft {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+}
+
+.sale__status--cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+@media screen and (max-width: 1100px) {
+  .sales-sheet-list__row {
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    min-width: 0;
+  }
+
+  .table__sales-sheet .table__head .thead .th.movil,
+  .table__sales-sheet .table__body .tbody .td.movil {
+    display: none;
+  }
+
+  .sales-sheet-list__col--money,
+  .sales-sheet-list__col--status {
+    text-align: left;
+  }
+
+  .sales-sheet-list__col--status {
+    justify-content: flex-start;
+  }
+}
 
 @media screen and (max-width: 768px) {
-    .administrator__container>.row__one {
-        display: block;
-    }
+  .sale__sheet-toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
 
-    .administrator__container>.row__one>.input__search>div:nth-child(odd) {
-        width: 100%;
-    }
+  .sale__sheet-search .inputs__general_icons {
+    min-width: 0;
+    width: 100%;
+  }
 
-
-    .btn__create-user__container {
-        margin-top: 20px;
-        display: flex;
-        justify-content: center;
-    }
-
-    .table__administrators .table__head .thead {
-        grid-template-columns: 1fr;
-    }
-
-    .table__administrators .table__head .thead .th.movil {
-        display: none;
-    }
-
-    .table__administrators .table__body .tbody .td.movil {
-        display: none;
-    }
-
-    .table__administrators .table__body .tbody {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .table__administrators .table__body .tbody .td.update {
-        display: flex;
-        justify-content: end;
-    }
-
-
-
+  .sales-sheet-list__row {
+    grid-template-columns: 1fr 1fr;
+  }
 }

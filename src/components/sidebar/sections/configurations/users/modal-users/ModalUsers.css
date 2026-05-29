@@ -1,130 +1,557 @@
+/* ===== Modal Usuarios — Mismo estilo que Almacén ===== */
 
-
-
-/*=================================================
- 
-  Modal de precios del modal del articulo 
-  
-=================================================*/
-
-
-.overlay__companies_modal {
-	background: rgba(0,0,0,.3);
-	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-	align-items: center;
-	justify-content: center;
-	display: flex;
-	visibility: hidden;
-	z-index: 1;
+.overlay__users_modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+  z-index: 1000;
 }
 
-.overlay__companies_modal.active {
-	visibility: visible;
+.overlay__users_modal.active {
+  visibility: visible;
 }
 
+.popup__users_modal {
+  width: min(680px, 90vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #17191b;
+  border-radius: 5px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  transition: .3s ease all;
+  transform: scale(0.7);
+  opacity: 0;
+  position: relative;
+}
+
+.popup__users_modal.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* ── Header ── */
 .header__modal {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-
-
+  display: flex;
+  width: 100%;
+  height: 40px;
+  justify-content: center;
+  align-items: center;
 }
 
-
-.popup__companies_modal {
-	background-color: #17191b;  
-	border-radius: 5px;
-	width: 40vw;
-    height: auto;
-	transition: .3s ease all;
-	transform: scale(0.7);
-	opacity: 0;
-    overflow: hidden;
+.title__modals {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f5f6f7;
+  margin: 0;
 }
 
-.administrator-modal {
-    padding: 10px 20px 20px 20px;
+.btn-cerrar-popup__companies_modal {
+  font-size: 16px;
+  display: block;
+  transition: .3s ease all;
+  color: #BBBBBB;
+  position: absolute;
+  right: 15px;
+  top: 13px;
+  text-decoration: none;
 }
 
-
-.popup__companies_modal .btn-cerrar-popup__companies_modal {
-	font-size: 16px;
-	display: block;
-	transition: .3s ease all;
-	color: #BBBBBB;
-    position: absolute;
-    right: 15px;
-    top: 13px;
+.btn-cerrar-popup__companies_modal:hover {
+  color: #f5f6f7;
 }
 
-/* ------------------------- */
-/* ANIMACIONES */
-/* ------------------------- */
-.popup__companies_modal.active {	transform: scale(1); opacity: 1; }
-
-.companies_modal_container {
-	display: grid;
-	gap: 20px;
-	padding: 20px;
+/* ── Form ── */
+.users_modal {
+  padding: 10px 20px 20px;
 }
 
-.companies_modal_container > .row__one {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 20px;
-
+.users_modal_container {
+  display: grid;
+  gap: 20px;
+  padding: 20px;
 }
 
-.companies_modal_container > .row__two {
-    
+.users_modal .hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #BBBBBB;
+  line-height: 1.5;
 }
 
-.companies_modal_container > .row__three {
-    display: flex;
-    justify-content: center;
+/* Rows */
+.users_modal .row__one,
+.users_modal .row__two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
 }
 
-
-.companies_modal_container > .row__one .search .inputs__general_icons {
-	margin: 0;
+.users_modal .row__three {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.companies_modal_container > .row__two .dropzone {
-	border: 2px dashed #888;
-	padding: 20px;
-	text-align: center;
-	border-radius: 10px;
-	cursor: pointer;
-	background-color: #1e1f21;
-	color: #bbb;
+/* Labels & inputs estilo Almacén */
+.users_modal .label__general {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #BBBBBB;
+  margin-bottom: 6px;
+}
+
+.users_modal .inputs__general {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  background: #1f2124;
+  border: 1px solid #2a2d33;
+  border-radius: 5px;
+  color: #f5f6f7;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.users_modal .inputs__general::placeholder {
+  color: #666;
+}
+
+.users_modal .inputs__general:focus {
+  border-color: #586ae9;
+}
+
+.users_modal select.inputs__general {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 512 512'%3E%3Cpath fill='%23BBBBBB' d='M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+
+.users_modal select.inputs__general option {
+  background: #17191b;
+  color: #f5f6f7;
+}
+
+.users_modal .inputs__general:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .users_modal .row__one,
+  .users_modal .row__two {
+    grid-template-columns: 1fr;
   }
-  
-.companies_modal_container > .row__two  .dropzone:hover {
-	border-color: var(--primary-color);
-	border-color: var(--primary-color);
-  }
-  
-.companies_modal_container > .row__two  .dropzone__text {
-	font-size: 14px;
-  }
-  
-.companies_modal_container > .row__two .preview-image {
-	max-width: 100%;
-	height: auto;
-	border-radius: 8px;
-	margin-top: 10px;
-  }
-  
+}
 
+/* ===== Permisos — estilo idéntico a Roles ===== */
+/* ===== Tabs ===== */
+.users-modal__tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0 20px;
+  background: #17191b;
+}
 
+.users-modal__tab {
+  padding: 12px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
 
+.users-modal__tab:hover {
+  color: #d1d5db;
+}
 
+.users-modal__tab.active {
+  color: #f5f6f7;
+  border-bottom-color: #586ae9;
+}
 
+/* ===== Tab de permisos con modulos (igual que Roles) ===== */
+.users-modal__permissions-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
+.users-modal__module {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.05);
+}
 
+.users-modal__module-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.04);
+  border: none;
+}
+
+/* Checkbox "Ver" en el header del módulo */
+.users-modal__module-view {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.users-modal__module-view:hover {
+  color: #e5e7eb;
+}
+
+.users-modal__module-view.checked {
+  color: #818cf8;
+}
+
+.users-modal__module-view.denied {
+  color: #f87171;
+}
+
+.users-modal__module-view input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4b5563;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.users-modal__module-view input[type='checkbox']:checked {
+  background: #586ae9;
+  border-color: #586ae9;
+}
+
+.users-modal__module-view input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 3.5px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Botón expandir módulo */
+.users-modal__module-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #f5f6f7;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  transition: color 0.12s;
+  text-align: left;
+}
+
+.users-modal__module-toggle:hover {
+  color: #e5e7eb;
+}
+
+.users-modal__module-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.users-modal__module-arrow {
+  display: inline-flex;
+  transition: transform 0.2s ease;
+  color: #6b7280;
+}
+
+.users-modal__module-arrow.open {
+  transform: rotate(90deg);
+}
+
+.users-modal__module-body {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px 10px;
+  gap: 4px;
+  background: rgba(0,0,0,0.15);
+}
+
+/* Fila de permiso */
+.users-modal__perm-row {
+  display: grid;
+  grid-template-columns: 26px 110px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid transparent;
+  color: #9ca3af;
+  position: relative;
+}
+
+.users-modal__perm-row:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+/* Estados: heredado, concedido, denegado */
+.users-modal__perm-row.inherited {
+  color: #9ca3af;
+}
+
+.users-modal__perm-row.granted {
+  background: rgba(52, 211, 153, 0.10);
+  border-color: rgba(52, 211, 153, 0.25);
+  color: #34d399;
+}
+
+.users-modal__perm-row.denied {
+  background: rgba(248, 113, 113, 0.10);
+  border-color: rgba(248, 113, 113, 0.25);
+  color: #f87171;
+}
+
+/* Checkbox custom */
+.users-modal__perm-row input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #4b5563;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.users-modal__perm-row input[type='checkbox']:checked {
+  background: #586ae9;
+  border-color: #586ae9;
+}
+
+.users-modal__perm-row input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 3.5px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.users-modal__perm-action {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.users-modal__perm-desc {
+  font-size: 11px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-modal__perm-row.granted .users-modal__perm-desc,
+.users-modal__perm-row.denied .users-modal__perm-desc,
+.users-modal__perm-row.inherited .users-modal__perm-desc {
+  color: inherit;
+  opacity: 0.7;
+}
+
+/* Leyenda de permisos */
+.users-modal__perm-hint {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.users-modal__perm-grant { color: #34d399; }
+.users-modal__perm-deny  { color: #f87171; }
+
+/* Submódulos dropdown */
+.users-modal__submodule {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.users-modal__submodule:first-of-type {
+  border-top: none;
+}
+
+.users-modal__submodule-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+}
+
+/* Checkbox "Ver" en el header del submódulo */
+.users-modal__submodule-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.users-modal__submodule-view:hover {
+  color: #e5e7eb;
+}
+
+.users-modal__submodule-view.checked {
+  color: #818cf8;
+}
+
+.users-modal__submodule-view.denied {
+  color: #f87171;
+}
+
+.users-modal__submodule-view input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #4b5563;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.users-modal__submodule-view input[type='checkbox']:checked {
+  background: #586ae9;
+  border-color: #586ae9;
+}
+
+.users-modal__submodule-view input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 3px;
+  height: 5.5px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Botón expandir submódulo */
+.users-modal__submodule-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+  padding: 4px 0;
+  transition: color 0.15s ease;
+  text-align: left;
+}
+
+.users-modal__submodule-toggle:hover {
+  color: #e5e7eb;
+}
+
+.users-modal__submodule-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.users-modal__submodule-arrow {
+  display: inline-flex;
+  transition: transform 0.2s ease;
+  color: #6b7280;
+}
+
+.users-modal__submodule-arrow.open {
+  transform: rotate(90deg);
+  color: #586ae9;
+}
+
+.users-modal__submodule-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 12px 8px 52px;
+}
+
+/* Fila deshabilitada */
+.users-modal__perm-row.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.users-modal__perm-row.disabled input[type='checkbox'] {
+  border-color: #374151;
+  background: transparent;
+}
+
+.users-modal__perm-row.disabled .users-modal__perm-action,
+.users-modal__perm-row.disabled .users-modal__perm-desc {
+  color: #4b5563;
+}

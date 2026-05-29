@@ -3,9 +3,12 @@ import { UserInfo } from '../../models/user.model';
 import { clearLocalStorage, persistLocalStorage } from '../../utils/localStorage.utility';
 
 export const EmptyUserState: UserInfo = {
+  id: null,
   _id: null,
   name: '',
-  email: ''
+  email: '',
+  companyIds: [],
+  activeCompanyId: null,
 };
 
 export const UserKey = 'user';
@@ -27,10 +30,15 @@ export const userSlice = createSlice({
     resetUser: () => {
       clearLocalStorage(UserKey);
       return EmptyUserState;
-    }
+    },
+    setActiveCompany: (state, action: { payload: number }) => {
+      const result = { ...state, activeCompanyId: action.payload };
+      persistLocalStorage(UserKey, result);
+      return result;
+    },
   }
 });
 
-export const { createUser, updateUser, resetUser } = userSlice.actions;
+export const { createUser, updateUser, resetUser, setActiveCompany } = userSlice.actions;
 
 export default userSlice.reducer;

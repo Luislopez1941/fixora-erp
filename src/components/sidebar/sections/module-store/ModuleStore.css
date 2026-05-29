@@ -1,0 +1,410 @@
+/* ===== Tienda de Módulos — Dark theme ===== */
+
+.ms-page {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1200px;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+/* ── Header ── */
+.ms-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.ms-header-text h1 {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.5px;
+}
+
+.ms-header-text h1 svg {
+  color: #a78bfa;
+}
+
+.ms-header-text p {
+  font-size: 13px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.ms-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(167, 139, 250, 0.15);
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(167, 139, 250, 0.3);
+  letter-spacing: 0.3px;
+}
+
+/* ── Summary cards ── */
+.ms-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .ms-summary { grid-template-columns: 1fr; }
+}
+
+.ms-stat {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px 22px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s;
+}
+
+.ms-stat:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.ms-stat-label {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 8px;
+}
+
+.ms-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+  color: #fff;
+  line-height: 1;
+}
+
+.ms-stat-sub {
+  font-size: 11px;
+  color: #4b5563;
+  margin-top: 5px;
+}
+
+/* ── Sections ── */
+.ms-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ms-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 2px;
+}
+
+.ms-section-head h2 {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #4b5563;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ms-section-head--active h2 {
+  color: #34d399;
+}
+
+.ms-section-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #374151;
+  flex-shrink: 0;
+}
+
+.ms-section-dot--active {
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.6);
+}
+
+.ms-section-count {
+  background: rgba(255, 255, 255, 0.06);
+  color: #6b7280;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.ms-section-head--active .ms-section-count {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+}
+
+/* ── Grid ── */
+.ms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 14px;
+}
+
+/* ── Card ── */
+.ms-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  cursor: default;
+}
+
+.ms-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  border-color: rgba(167, 139, 250, 0.25);
+}
+
+.ms-card--active {
+  background: linear-gradient(145deg, rgba(124, 58, 237, 0.18) 0%, rgba(255,255,255,0.03) 100%);
+  border-color: rgba(124, 58, 237, 0.45);
+  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.2), 0 8px 32px rgba(124, 58, 237, 0.12);
+}
+
+.ms-card--active:hover {
+  border-color: rgba(167, 139, 250, 0.65);
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.4), 0 16px 48px rgba(124, 58, 237, 0.25);
+}
+
+/* Card top row */
+.ms-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.ms-card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.07);
+  color: #a78bfa;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ms-card--active .ms-card-icon {
+  background: rgba(124, 58, 237, 0.3);
+  color: #c4b5fd;
+  border-color: rgba(124, 58, 237, 0.5);
+}
+
+.ms-card-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ms-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ms-card-name {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #f3f4f6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ms-card-desc {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Price block */
+.ms-card-price {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ms-price-item {
+  flex: 1;
+  padding: 10px 14px;
+}
+
+.ms-price-label {
+  font-size: 9px;
+  color: #4b5563;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.ms-price-value {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #e5e7eb;
+}
+
+.ms-price-value.ms-free {
+  color: #34d399;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.ms-price-divider {
+  width: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  align-self: stretch;
+}
+
+/* Action button */
+.ms-card-action {
+  margin-top: 2px;
+}
+
+.ms-btn-activate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  color: #fff;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  transition: all 0.18s ease;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
+}
+
+.ms-btn-activate:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55);
+  transform: translateY(-1px);
+}
+
+.ms-btn-deactivate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #6b7280;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 11px 20px;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  transition: all 0.18s ease;
+}
+
+.ms-btn-deactivate:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}
+
+.ms-btn-activate:disabled,
+.ms-btn-deactivate:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Loading / Error ── */
+@keyframes ms-spin { to { transform: rotate(360deg); } }
+.ms-spinner {
+  display: inline-block;
+  animation: ms-spin 0.7s linear infinite;
+}
+
+.ms-loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.ms-error {
+  text-align: center;
+  padding: 48px 20px;
+  color: #f87171;
+  font-size: 14px;
+}
+
+/* ── Toast ── */
+.ms-toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: rgba(30, 30, 46, 0.95);
+  color: #fff;
+  padding: 13px 20px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.06);
+  animation: ms-toast-in 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(12px);
+}
+
+.ms-toast--ok  {
+  border-left: 3px solid #34d399;
+}
+.ms-toast--err {
+  border-left: 3px solid #f87171;
+}
+
+@keyframes ms-toast-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

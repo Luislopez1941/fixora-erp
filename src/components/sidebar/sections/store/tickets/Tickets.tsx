@@ -1,209 +1,134 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import ModalTickets from './modal-tickets/ModalTickets'
 import { useDispatch } from 'react-redux';
 import { modal } from '../../../../../redux/state/modals'
 import APIs from '../../../../../services/APIs';
-import { useSelector } from 'react-redux';
+import { readCategoryBranchId } from '../../../../../constants/category';
+import CategoriesStorePicker from '../../categories/CategoriesStorePicker';
+import '../../categories/Categories.css';
+import Swal from 'sweetalert2';
 import './Tickets.css'
 import Flatpickr from "react-flatpickr";
 import 'flatpickr/dist/flatpickr.min.css';
 import { Spanish } from 'flatpickr/dist/l10n/es.js';
 
+const LS_COMPANY = 'categories-picker-company-id';
+
+const readCompanyId = (): number | null => {
+  const id = Number(localStorage.getItem(LS_COMPANY));
+  return !Number.isNaN(id) && id > 0 ? id : null;
+};
+
+const formatDate = (value: string) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+};
+
 const Tickets: React.FC = () => {
-  const userState = useSelector((store: any) => store.user);
   const dispatch = useDispatch();
+  const [dates, setDates] = useState<any>({})
+  const [tickets, setTickets] = useState<any[]>([])
+  const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  const [loading, setLoading] = useState(false)
+  const [selectedTicket, setSelectedTicket] = useState<any | null>(null)
 
   const handleModalChange = (value: any) => {
     dispatch(modal(value));
   };
 
-  const [dates, setDates] = useState<any>([])
-  const [tickets, setTickets] = useState<any>([])
+  const persistBranchId = useCallback((id: number) => {
+    setBranchId(id);
+    localStorage.setItem('categories-store-id', String(id));
+  }, []);
 
-  const [companies, setCompanies] = useState<any>([])
-  const [branch, setBranch] = useState<any>([])
-
-  const fetch = async () => {
-    try {
-      let response: any = await APIs.getCompanies(userState.id)
-      let dataG = {
-        companyId: response.data[0].id,
-        branchId: 0
-      }
-      let tickets: any = await APIs.getTickets(dataG)
-
-      setTickets(tickets.data)
-
-      setCompanies(response.data)
-      setSelectCompany((prevState: any) => ({
-        ...prevState,
-        companies: response.data,
-      }));
-
-      let data = {
-        userId: userState.id,
-        companyId: response.data[0].id
-      }
-      let result: any = await APIs.getBranch(data)
-      setBranch(result.data)
-      result.data.unshift({
-        id: 0,
-        name: "Sin sucursal"
-      });
-      setSelectBranch((prevState: any) => ({
-        ...prevState,
-        branch: result.data,
-      }));
-      setFields((prevState: any) => ({
-        ...prevState,
-        companyId: response.data[0].id,
-        branchId: result.data[0].id,
-        companyName: response.data[0].name,
-        branchName: result.data[0].name,
-      }));
-
-    } catch (error) {
-
+  const fetchTickets = useCallback(async () => {
+    const companyId = readCompanyId();
+    if (!companyId) {
+      setTickets([]);
+      return;
     }
-  }
+
+    setLoading(true);
+    try {
+      const response: any = await APIs.getTickets({
+        companyId,
+        branchId: branchId > 0 ? branchId : undefined,
+      });
+      const list = Array.isArray(response?.data) ? response.data : [];
+      setTickets(list);
+    } catch (error) {
+      console.error('Error al cargar entradas:', error);
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [branchId]);
 
   useEffect(() => {
-    fetch()
-  }, [])
+    fetchTickets();
+  }, [fetchTickets]);
 
+  const handleEdit = (ticket: any) => {
+    setSelectedTicket(ticket);
+    dispatch(modal('tickets_modal_update'));
+  };
 
-  // Estado inicial para los campos del formulario
-  const [fields, setFields] = useState<any>({
-    companyId: null,
-    branchId: null,
-    companyName: '',
-    branchName: '',
-  })
-
-  const [selectCompany, setSelectCompany] = useState<any>({
-    selectCompany: false,
-    companies: []
-  })
-
-  const openSelectCompany = () => {
-    setSelectCompany((prevState: any) => ({
-      ...prevState,
-      selectCompany: !prevState.selectCompany, // Close the dropdown on selection
-    }));
-  }
-
-  const handleCompanyChange = async (company: any) => {
-    setSelectCompany((prevState: any) => ({
-      ...prevState,
-      selectCompany: !prevState.selectCompany,
-    }));
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      companyId: company.id,
-      companyName: company.name,
-
-    }));
-
-    let data = {
-      userId: userState.id,
-      companyId: company.id
-    }
-    let response: any = await APIs.getBranch(data)
-    response.data.unshift({
-      id: 0,
-      name: "Sin sucursal"
+  const handleDelete = async (ticket: any) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar entrada?',
+      text: `Se eliminará la entrada ${ticket.serie}-${ticket.folio}. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
     });
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      branch: response.data, // Close the dropdown on selection
-    }));
 
-    setFields((prevState: any) => ({
-      ...prevState,
-      companyId: company.id,
-      companyName: company.name,
-      branchId: response.data[0].id,
-      branchName: response.data[0].name,
-    }));
-  }
+    if (!result.isConfirmed) return;
 
-  const [selectBranch, setSelectBranch] = useState<any>({
-    selectBranch: false,
-    branch: []
-  })
+    try {
+      const response: any = await APIs.deleteTicket(ticket.id);
+      Swal.fire({
+        icon: 'success',
+        title: 'Entrada eliminada',
+        text: response.message ?? 'La entrada se eliminó correctamente.',
+      });
+      fetchTickets();
+    } catch (error) {
+      console.error('Error al eliminar entrada:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'No se pudo eliminar la entrada. Inténtalo de nuevo.',
+      });
+    }
+  };
 
-  const openSelectBranch = () => {
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      selectBranch: !prevState.selectBranch, // Close the dropdown on selection
-    }));
-  }
-
-  const handleBranchChange = (branch: any) => {
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      selectBranch: !prevState.selectBranch
-    }));
-
-    setFields((prevState: any) => ({
-      ...prevState,
-      branchId: branch.id,
-      branchName: branch.name,
-    }));
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-
+  const filteredTickets = tickets.filter((item) => {
+    if (!dates?.startDate && !dates?.endDate) return true;
+    const created = item.createdAt?.slice(0, 10);
+    if (dates?.startDate && created < dates.startDate) return false;
+    if (dates?.endDate && created > dates.endDate) return false;
+    return true;
+  });
 
   return (
     <div className='tickets'>
       <div className='tickets__container'>
-        <div className='row__one'>
-          <div className='select__container'>
-            <label className='label__general'>Empresa</label>
-            <div className='select-btn__general'>
-              <div className={`select-btn ${selectCompany.selectCompany ? 'active' : ''}`} onClick={openSelectCompany}>
-                <p>{fields.companyId !== null ? selectCompany.companies.find((s: { id: number }) => s.id === fields.companyId)?.name : 'selecciona'}</p>
-                <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-              </div>
-              <div className={`content ${selectCompany.selectCompany ? 'active' : ''}`}>
-                <ul className={`options ${selectCompany.selectCompany ? 'active' : ''}`} style={{ opacity: selectCompany.selectCompany ? '1' : '0' }}>
-                  {selectCompany?.companies?.map((company: any) => (
-                    <li key={company.id} onClick={() => handleCompanyChange(company)}>
-                      {company.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className='select__container'>
-            <label className='label__general'>Sucursal</label>
-            <div className='select-btn__general'>
-              <div className={`select-btn ${selectBranch.selectBranch ? 'active' : ''}`} onClick={openSelectBranch}>
-                <p>{fields.branchId !== null ? selectBranch.branch.find((s: { id: number }) => s.id === fields.branchId)?.name : 'selecciona'}</p>
-                <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-              </div>
-              <div className={`content ${selectBranch.selectBranch ? 'active' : ''}`}>
-                <ul className={`options ${selectBranch.selectBranch ? 'active' : ''}`} style={{ opacity: selectBranch.selectBranch ? '1' : '0' }}>
-                  {selectBranch?.branch?.map((branch: any) => (
-                    <li key={branch.id} onClick={() => handleBranchChange(branch)}>
-                      {branch.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+        <div className='row__one tickets__filters'>
+          <div className='tickets__store-picker'>
+            <CategoriesStorePicker
+              branchId={branchId}
+              onBranchIdChange={persistBranchId}
+              onCompanyIdChange={() => fetchTickets()}
+            />
           </div>
           <div>
             <label className="label__general">Desde</label>
@@ -212,7 +137,7 @@ const Tickets: React.FC = () => {
                 className="date"
                 options={{ locale: Spanish, dateFormat: "Y-m-d" }}
                 value={dates?.startDate}
-                onChange={(e) => setDates({ startDate: e[0]?.toISOString().split("T")[0] || "" })}
+                onChange={(e) => setDates((prev: any) => ({ ...prev, startDate: e[0]?.toISOString().split("T")[0] || "" }))}
               />
             </div>
           </div>
@@ -223,26 +148,30 @@ const Tickets: React.FC = () => {
                 className="date"
                 options={{ locale: Spanish, dateFormat: "Y-m-d" }}
                 value={dates?.endDate}
-                onChange={(e) => setDates({ endDate: e[0]?.toISOString().split("T")[0] || "" })}
+                onChange={(e) => setDates((prev: any) => ({ ...prev, endDate: e[0]?.toISOString().split("T")[0] || "" }))}
               />
             </div>
           </div>
         </div>
         <div className='row__two'>
           <div>
-            <button className='btn__general-primary' onClick={() => handleModalChange('tickets_modal')}>Nueva entrada</button>
+            <button
+              className='btn__general-primary'
+              onClick={() => {
+                setSelectedTicket(null);
+                handleModalChange('tickets_modal');
+              }}
+            >
+              Nueva entrada
+            </button>
           </div>
         </div>
         <div className='table__tickets' >
           <div>
-            {tickets ? (
-              <div className='table__numbers'>
-                <p className='text'>Total de entradas</p>
-                <div className='quantities_tables'>{tickets.length}</div>
-              </div>
-            ) : (
-              <p className='text'>No hay empresas</p>
-            )}
+            <div className='table__numbers'>
+              <p className='text'>Total de entradas</p>
+              <div className='quantities_tables'>{filteredTickets.length}</div>
+            </div>
           </div>
           <div className='table__head'>
             <div className='thead'>
@@ -267,16 +196,18 @@ const Tickets: React.FC = () => {
               </div>
             </div>
           </div>
-          {tickets?.length > 0 ? (
+          {loading ? (
+            <p className='text'>Cargando entradas...</p>
+          ) : filteredTickets.length > 0 ? (
             <div className='table__body'>
-              {tickets?.map((item: any, index: any) => (
-                <div className='tbody__container' key={index}>
+              {filteredTickets.map((item: any) => (
+                <div className='tbody__container' key={item.id}>
                   <div className='tbody-desk'>
                     <div className='td'>
                       <p className='code-folio-identifier'>{item.serie}-{item.folio}</p>
                     </div>
                     <div className='td'>
-                      <p className='date-identifier'>{item.createdAt}</p>
+                      <p className='date-identifier'>{formatDate(item.createdAt)}</p>
                     </div>
                     <div className='td'>
                       <p className='user-identifier'>{item.user}</p>
@@ -287,12 +218,12 @@ const Tickets: React.FC = () => {
                     <div className='td movil'>
                       {item.branchName}
                     </div>
-                    <div className='td edit'>
+                    <div className='td edit' onClick={() => handleEdit(item)} role='button' tabIndex={0}>
                       <div className='edit-icon'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
                       </div>
                     </div>
-                    <div className='td delete'>
+                    <div className='td delete' onClick={() => handleDelete(item)} role='button' tabIndex={0}>
                       <div className='delete-icon'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className=" icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
                       </div>
@@ -303,7 +234,7 @@ const Tickets: React.FC = () => {
                       <p className='code-folio-identifier'>{item.serie}-{item.folio}</p>
                     </div>
                     <div className='td'>
-                      <p className='date-identifier'>{item.createdAt}</p>
+                      <p className='date-identifier'>{formatDate(item.createdAt)}</p>
                     </div>
                     <div className='td'>
                       <p className='user-identifier'>{item.user}</p>
@@ -314,12 +245,12 @@ const Tickets: React.FC = () => {
                     <div className='td movil'>
                       {item.branchName}
                     </div>
-                    <div className='td edit'>
+                    <div className='td edit' onClick={() => handleEdit(item)} role='button' tabIndex={0}>
                       <div className='edit-icon'>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
                       </div>
                     </div>
-                    <div className='td delete'>
+                    <div className='td delete' onClick={() => handleDelete(item)} role='button' tabIndex={0}>
                       <div className='delete-icon'>
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className=" icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
                       </div>
@@ -329,10 +260,10 @@ const Tickets: React.FC = () => {
               ))}
             </div>
           ) : (
-            <p className='text'>No hay máximos y mínimos que mostrar</p>
+            <p className='text'>No hay entradas que mostrar</p>
           )}
         </div>
-        <ModalTickets companies={companies} branch={branch} />
+        <ModalTickets onSaved={fetchTickets} selectedTicket={selectedTicket} />
       </div>
     </div>
   )

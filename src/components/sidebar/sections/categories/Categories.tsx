@@ -16,6 +16,17 @@ import {
   readCategoryBranchId,
 } from '../../../../constants/category'
 
+const formatCategoryDate = (value?: string) => {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
+}
+
 const Categories: React.FC = () => {
   const dispatch = useDispatch()
   const categories = useSelector((state: any) => state.categories.categories)
@@ -187,48 +198,49 @@ const Categories: React.FC = () => {
                 return (
                   <div className='tbody__container' key={id ?? index}>
                     <div className='tbody'>
-                      <div className='td'>
-                        <p />
-                        {item.title}
-                        <p>{item.createdAt}</p>
+                      <div className='td td--name'>
+                        <span className='td__title'>{item.title}</span>
+                        {formatCategoryDate(item.createdAt) && (
+                          <span className='td__meta'>{formatCategoryDate(item.createdAt)}</span>
+                        )}
                       </div>
-                      <div className='td'>
+                      <div className='td td--image'>
                         {item.image ? (
                           <img
+                            className='td__thumb'
                             src={item.image}
                             alt={item.title}
-                            style={{ width: '50px', height: '50px', objectFit: 'cover', borderRadius: '4px' }}
                           />
                         ) : (
-                          <span style={{ color: '#999' }}>—</span>
+                          <span className='td__empty'>—</span>
                         )}
                       </div>
-                      <div className='td'>
+                      <div className='td td--status'>
                         {active ? (
-                          <div className='activated-status'>
-                            <p>{CATEGORY_STATUS_LABELS.ACTIVE}</p>
-                          </div>
+                          <span className='activated-status'>
+                            {CATEGORY_STATUS_LABELS.ACTIVE}
+                          </span>
                         ) : (
-                          <div className='idle-status'>
-                            <p>{CATEGORY_STATUS_LABELS.INACTIVE}</p>
-                          </div>
+                          <span className='idle-status'>
+                            {CATEGORY_STATUS_LABELS.INACTIVE}
+                          </span>
                         )}
                       </div>
-                      <div className='td'>{subCount}</div>
-                      <div className='td'>
-                        <button className='btn__general-purple' type='button' onClick={() => updateModalCategories(item)}>
+                      <div className='td td--count'>{subCount}</div>
+                      <div className='td td--actions'>
+                        <button
+                          className='btn__edit-table_button'
+                          type='button'
+                          onClick={() => updateModalCategories(item)}
+                        >
                           Editar
                         </button>
-                        <button 
-                          className='btn__general-danger' 
-                          type='button' 
+                        <button
+                          className='btn__general-danger categories__delete-btn'
+                          type='button'
                           onClick={() => handleDelete(item)}
-                          style={{ marginLeft: '8px' }}
                           title='Eliminar categoría'
                         >
-                          <svg xmlns='http://www.w3.org/2000/svg' height='16' width='14' viewBox='0 0 448 512' style={{ marginRight: '4px', verticalAlign: 'middle' }}>
-                            <path fill='currentColor' d='M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64S14.3 96 32 96H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32L53.2 467c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z'/>
-                          </svg>
                           Eliminar
                         </button>
                       </div>

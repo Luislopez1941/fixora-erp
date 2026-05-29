@@ -226,28 +226,30 @@
 
 .table__categories {
   margin-top: 4px;
-  border-radius: 10px;
+  border-radius: 12px;
   width: 100%;
   min-width: 0;
   text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .table__categories .table__head {
   display: flex;
   width: 100%;
   min-width: 0;
-  background-color: #1f2124;
-  color: #f5f6f7;
-  border-radius: 5px 5px 0 0;
+  background-color: #1f2228;
+  color: #a8adb8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .table__categories .table__head .thead {
   display: grid;
   width: 100%;
-  grid-template-columns:
-    minmax(100px, 1.2fr) minmax(72px, 0.75fr) minmax(72px, 0.75fr) minmax(64px, 0.55fr) minmax(48px, 0.45fr) minmax(100px, auto);
-  gap: 8px;
-  padding: 12px 14px;
+  grid-template-columns: minmax(140px, 1.5fr) 80px 100px 90px 150px;
+  gap: 12px;
+  padding: 12px 16px;
   font-weight: 600;
   align-items: center;
 }
@@ -258,56 +260,135 @@
 
 .table__categories .table__head .th p {
   margin: 0;
-  font-size: 0.9rem;
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
 }
 
 .table__categories .table__body {
-  max-height: min(500px, 60vh);
+  max-height: min(560px, 65vh);
   overflow: auto;
 }
 
 .table__categories .table__body::-webkit-scrollbar {
-  width: 5px;
+  width: 6px;
 }
 
 .table__categories .table__body::-webkit-scrollbar-thumb {
-  background-color: #1f319d;
-  border-radius: 5px;
+  background-color: rgba(88, 106, 233, 0.45);
+  border-radius: 6px;
 }
 
 .table__categories .tbody__container:nth-child(even) {
-  background-color: #13171f;
+  background-color: rgba(255, 255, 255, 0.015);
   color: #f5f6f7;
 }
 
 .table__categories .tbody__container:nth-child(odd) {
-  background-color: var(--two-table-color, #1a1d24);
+  background-color: transparent;
   color: #f5f6f7;
 }
 
 .table__categories .table__body .tbody {
   display: grid;
-  grid-template-columns:
-    minmax(100px, 1.2fr) minmax(72px, 0.75fr) minmax(72px, 0.75fr) minmax(64px, 0.55fr) minmax(48px, 0.45fr) minmax(100px, auto);
-  gap: 8px;
-  padding: 12px 14px;
+  grid-template-columns: minmax(140px, 1.5fr) 80px 100px 90px 150px;
+  gap: 12px;
+  padding: 12px 16px;
   align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .table__categories .table__body .tbody:hover {
-  background-color: var(--secundary-color, #2a3350);
+  background-color: rgba(88, 106, 233, 0.08);
   color: #fff;
 }
 
 .table__categories .table__body .td {
   min-width: 0;
-  word-break: break-word;
+}
+
+.table__categories .table__body .td--name {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.table__categories .td__title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #f5f6f7;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table__categories .td__meta {
+  font-size: 0.74rem;
+  color: #8b919c;
+}
+
+.table__categories .td__thumb {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.table__categories .td__empty {
+  color: #6b7280;
+}
+
+.table__categories .td--count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: #d5d8de;
+}
+
+.table__categories .td--actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.table__categories .td--actions .btn__edit-table_button,
+.table__categories .td--actions .categories__delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.table__categories .activated-status,
+.table__categories .idle-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.table__categories .activated-status {
+  background: rgba(76, 175, 80, 0.15);
+  color: #66bb6a;
+}
+
+.table__categories .idle-status {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
 }
 
 .table__categories .table__body .td p {
-  margin: 0.2em 0 0;
-  font-size: 0.8rem;
-  opacity: 0.75;
+  margin: 0;
 }
 
 .table__categories > .text {
@@ -325,7 +406,7 @@
 
   .table__categories .table__head .thead,
   .table__categories .table__body .tbody {
-    min-width: 720px;
+    min-width: 680px;
   }
 
   .table__categories .table__body {

@@ -1,92 +1,218 @@
+/* ===== Roles — Dark theme ===== */
+
 .roles {
-
+  width: 100%;
+  min-width: 0;
 }
 
 .roles__container {
-
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.roles__container > .row__one {
-    display: flex;
-    justify-content: center;
+.roles__header-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-
-.roles__container {
-    padding: 20px;
+/* ── Count bar ── */
+.roles__count-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
 }
 
-
-
-.table__roles {
-    margin-top: 20px;
-    border-radius: 10px;
-	text-align: justify;
-    width: 100%;
+.roles__count-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(88, 106, 233, 0.18);
+  color: #818cf8;
+  font-size: 12px;
+  font-weight: 800;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
 }
 
-
-.table__roles .table__head {
-    display: flex;
-    width: 100%;
-    background-color: #1f2124;
-    color: #f5f6f7;
-    border-radius: 5px 5px 0 0;
+/* ── Table ── */
+.roles__table {
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.07);
 }
 
-.table__roles .table__head .thead {
-    display: grid;
-	width: 100%;
-    grid-template-columns: repeat(2, 1fr) 100px 100px;
-	
-    padding: 10px;
-    font-weight: 600;
+.roles__thead {
+  display: grid;
+  grid-template-columns: 1.5fr 80px 90px 2fr 100px;
+  background: rgba(255,255,255,0.05);
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
 }
 
-.table__roles .table__body {
-	height: 500px;
-    overflow: hidden;
-    overflow: auto;
-    transition-delay: 0.0s;
-    &::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: #1F319D; 
-        border-radius: 5px;
-        height: 100px;
-    }
-
-    &::-webkit-scrollbar-track {
-    /* Para modificar el background */
-    }
+.roles__th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
 }
 
-
-.table__roles .tbody__container:nth-child(even) {
-    background-color: var(--first-body-table-color);
-    color: #f5f6f7;
-  }
-  
-  .table__roles .tbody__container:nth-child(odd) {
-    background-color: var(--second-body-table-color);
-    color: #f5f6f7;
-   
-  }
-
-  .table__roles .table__body .tbody {
-    display: flex;
-} 
-
-.table__roles .table__body .tbody {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr) 100px 100px;
-    padding: 10px;
+.roles__tbody {
+  display: flex;
+  flex-direction: column;
 }
 
-.table__roles .table__body .tbody:hover {
-    background-color: var(--hover-body-table-color);
-    color: #fff;
+.roles__row {
+  display: grid;
+  grid-template-columns: 1.5fr 80px 90px 2fr 100px;
+  padding: 12px 16px;
+  align-items: flex-start;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.12s ease;
+}
+
+.roles__row:last-child {
+  border-bottom: none;
+}
+
+.roles__row:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.roles__td {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-right: 10px;
+  font-size: 13px;
+  color: #d1d5db;
+}
+
+.roles__td--name {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.roles__name {
+  font-weight: 700;
+  color: #f3f4f6;
+  font-size: 14px;
+}
+
+.roles__sub {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+/* ── Permission chips ── */
+.roles__permissions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.roles__chip {
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #9ca3af;
+  border: 1px solid rgba(255,255,255,0.04);
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  transition: transform 0.1s ease;
+}
+
+.roles__chip:hover {
+  transform: translateY(-1px);
+}
+
+/* Colores por módulo */
+.roles__chip--users {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.roles__chip--roles {
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+  border-color: rgba(139, 92, 246, 0.2);
+}
+
+.roles__chip--sales {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.roles__chip--store,
+.roles__chip--inventory {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.2);
+}
+
+.roles__chip--production {
+  background: rgba(236, 72, 153, 0.12);
+  color: #f472b6;
+  border-color: rgba(236, 72, 153, 0.2);
+}
+
+.roles__chip--delivery {
+  background: rgba(14, 165, 233, 0.12);
+  color: #38bdf8;
+  border-color: rgba(14, 165, 233, 0.2);
+}
+
+.roles__chip--reports {
+  background: rgba(99, 102, 241, 0.12);
+  color: #818cf8;
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.roles__chip--configurations {
+  background: rgba(107, 114, 128, 0.12);
+  color: #d1d5db;
+  border-color: rgba(107, 114, 128, 0.2);
+}
+
+.roles__chip--default {
+  background: rgba(255,255,255,0.06);
+  color: #9ca3af;
+  border-color: rgba(255,255,255,0.04);
+}
+
+.roles__chip-more {
+  background: rgba(88, 106, 233, 0.12);
+  color: #818cf8;
+  border-color: rgba(88, 106, 233, 0.2);
+}
+
+.roles__td--actions {
+  justify-content: flex-end;
+}
+
+/* ── Loading / Empty ── */
+.roles__loading,
+.roles__empty {
+  padding: 48px 24px;
+  text-align: center;
+  color: #4b5563;
+  font-size: 14px;
 }
 

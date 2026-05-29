@@ -21,10 +21,25 @@ export const PrivateRoutes = {
   QUOTATION: 'quotation',
   SALESORDER: 'salesorder',
 
+  ///////////////////////////COBRANZA///////////////////////////////
+  COBRANZA: 'cobranza',
+  CREDIT_ACCOUNTS: 'credit-accounts',
+  DEBTORS: 'debtors',
+  CREDIT_PAYMENTS: 'credit-payments',
+  MENU_COBRANZA: 'menu-cobranza',
+
   ///////////////////////////SHOPPING///////////////////////////////
   SHOPPING: 'shopping',
   PURCHASEORDERS: 'purchaseorders',
   REQUISITION: 'requisitions',
+
+  ///////////////////////////PRODUCCIÓN///////////////////////////////
+  PRODUCTION: 'production',
+  PRODUCTION_ORDERS: 'orders',
+  PRODUCTION_CATEGORIES: 'categories',
+  PRODUCTION_AREAS: 'areas',
+  PRODUCTION_QUEUE: 'queue',
+  MENU_PRODUCTION: 'menu-production',
 
 
 
@@ -40,12 +55,14 @@ export const PrivateRoutes = {
   COMPANIES: 'companies',
   BRANCH_OFFICES: 'branch-offices',
   ROLES: 'roles',
+  USERS: 'users',
   SERIES: 'series',
   AREAS: 'areas',
 
 
 
   CATALOGOS: 'catalogos',
+  CATALOGOS_AREAS_TYPES: 'tipos-areas',
   CATEGORIES: 'categories',
   UNITS: 'units',
   SERVICES: 'services',
@@ -53,6 +70,7 @@ export const PrivateRoutes = {
 
   INCOME: 'income',
 
+  MODULE_STORE: 'module-store',
 
   PRODUCTS: 'products'
 };

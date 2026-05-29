@@ -2,10 +2,18 @@
     padding: 20px;
 }
 
-.tickets__container>.row__one {
+.tickets__container>.row__one,
+.tickets__container>.tickets__filters {
     display: grid;
-    grid-template-columns: repeat(2, 2fr) repeat(2, 1fr);
+    grid-template-columns: 2fr 1fr 1fr;
     gap: 20px;
+    align-items: end;
+}
+
+.tickets__store-picker .categories-toolbar__stores {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 20px;
 }
 
 .tickets__container > .row__two {
@@ -16,8 +24,9 @@
 
 @media screen and (max-width: 768px) {
 
-    .tickets__container>.row__one {
-        grid-template-columns: repeat(2, 2fr) repeat(2, 1fr);
+    .tickets__container>.row__one,
+    .tickets__container>.tickets__filters {
+        grid-template-columns: 1fr 1fr;
     }
 
 
@@ -25,7 +34,8 @@
 
 @media screen and (max-width: 500px) {
 
-    .tickets__container>.row__one {
+    .tickets__container>.row__one,
+    .tickets__container>.tickets__filters {
         grid-template-columns: repeat(1, 1fr);
     }
 

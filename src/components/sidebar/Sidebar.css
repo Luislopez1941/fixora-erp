@@ -329,6 +329,36 @@
     visibility: visible;
 }
 
+/* Company switcher — visible solo si hay >1 empresa, posicionado al fondo */
+.company-switcher {
+    padding: 0 10px 6px;
+}
+
+.company-switcher select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-link);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    font-family: inherit;
+}
+
+.company-switcher select:hover,
+.company-switcher select:focus {
+    border-color: rgba(89, 107, 239, 0.6);
+    background: rgba(89, 107, 239, 0.08);
+}
+
+.sidebar.collapsed .company-switcher {
+    display: none;
+}
+
 /*? profile part */
 .sidebar__profile {
     margin-top: 1rem;

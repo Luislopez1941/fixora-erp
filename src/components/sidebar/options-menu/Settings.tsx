@@ -28,12 +28,12 @@ const Settings: React.FC = () => {
                 </Link>
             </div>
             <div className='item'>
-                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CONFIGURATIONS}`} title="Payments" className="tooltip">
-                    <p>Usarios</p>
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CONFIGURATIONS}/${PrivateRoutes.USERS}`} title="Usuarios" className="tooltip">
+                    <p>Usuarios</p>
                 </Link>
             </div>
             <div className='item'>
-                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CONFIGURATIONS}`} title="Payments" className="tooltip">
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CONFIGURATIONS}/${PrivateRoutes.ROLES}`} title="Roles" className="tooltip">
                     <p>Roles</p>
                 </Link>
             </div>

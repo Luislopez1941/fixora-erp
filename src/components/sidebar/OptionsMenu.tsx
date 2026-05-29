@@ -27,9 +27,9 @@ const OptionsMenu: React.FC = () => {
                         </Link>
                     </div>
                     <div className='item'>
-                        <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.SHOPPING}`} title="Payments" className="tooltip">
+                        <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.PRODUCTION}/${PrivateRoutes.PRODUCTION_CATEGORIES}`} title="Producción" className="tooltip">
                             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-80q-33 0-56.5-23.5T80-160v-348q0-24 13-44t36-30l175-74q20-8 38 3t18 33v20l145-58q20-8 37.5 4t17.5 33v61h320v400q0 33-23.5 56.5T800-80H160Zm280-160h80v-160h-80v160Zm-160 0h80v-160h-80v160Zm320 0h80v-160h-80v160Zm272-380H687l29-225q2-15 13.5-25t26.5-10h49q15 0 26 10t13 25l28 225Z" /></svg>
-                            <p>Produccion</p>
+                            <p>Producción</p>
                         </Link>
                     </div>
                     <div className='item'>

@@ -8,6 +8,7 @@ import Articles from '../../../components/sidebar/sections/catalogos/articles/Ar
 import Familias from '../../../components/sidebar/sections/catalogos/familias/Familias';
 import Contenedores from '../../../components/sidebar/sections/catalogos/contenedores/Contenedores';
 import PriceRanges from '../../../components/sidebar/sections/catalogos/price-ranges/PriceRanges';
+import CatalogAreasTypes from '../../../components/sidebar/sections/catalogos/areas-types/CatalogAreasTypes';
 
 
 const RoutescCatalogos: React.FC = () => {
@@ -16,6 +17,7 @@ const RoutescCatalogos: React.FC = () => {
         <Route path="/familias" element={<Familias />} />
         <Route path="/contenedores" element={<Contenedores />} />
         <Route path="/price-ranges" element={<PriceRanges />} />
+        <Route path={`/${PrivateRoutes.CATALOGOS_AREAS_TYPES}`} element={<CatalogAreasTypes />} />
         <Route path={`/${PrivateRoutes.CATEGORIES}`} element={<Categories />} />
         <Route path={`/${PrivateRoutes.UNITS}`} element={<Units />} />
         <Route path={`/${PrivateRoutes.SERVICES}`} element={<Services />} />

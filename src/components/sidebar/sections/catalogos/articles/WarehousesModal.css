@@ -1,0 +1,131 @@
+.article-warehouses-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 20px;
+}
+
+.article-warehouses-modal-content {
+  width: min(560px, 100%);
+  max-height: min(80vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: #1a1d24;
+  border: 1px solid rgba(88, 106, 233, 0.35);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.article-warehouses-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.article-warehouses-modal-header h2 {
+  margin: 0;
+  color: #f5f6f7;
+  font-size: 1.1rem;
+}
+
+.article-warehouses-modal-close {
+  border: none;
+  background: transparent;
+  color: #f5f6f7;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.article-warehouses-modal-body {
+  padding: 20px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.article-warehouses-modal-hint {
+  margin: 0;
+  color: rgba(245, 246, 247, 0.65);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.article-warehouses-modal-add {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.article-warehouses-modal-add .inputs__general {
+  margin: 0;
+  min-height: 38px;
+}
+
+.article-warehouses-modal-add .btn__general-primary {
+  height: 38px;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+
+.article-warehouses-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.article-warehouses-modal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #13171f;
+  border: 1px solid rgba(88, 106, 233, 0.2);
+}
+
+.article-warehouses-modal-item__name {
+  margin: 0;
+  color: #f5f6f7;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.article-warehouses-modal-item__meta {
+  margin: 4px 0 0;
+  color: rgba(245, 246, 247, 0.55);
+  font-size: 0.8rem;
+}
+
+.article-warehouses-modal-item__remove {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.article-warehouses-modal-empty {
+  margin: 0;
+  padding: 24px 12px;
+  text-align: center;
+  color: rgba(245, 246, 247, 0.55);
+}
+
+.article-warehouses-modal-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: flex-end;
+}

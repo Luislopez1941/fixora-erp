@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from "react-redux";
 import { modal } from '../../../../../redux/state/modals';
+import { getSeriesTypeLabel } from '../../../../../constants/catalogTypes';
 import './Series.css'
 import ModalSeries from './modal-series/ModalSeries';
 import { setSeries } from '../../../../../redux/state/Configurations/Series';
@@ -75,7 +76,7 @@ console.log('series', series)
                                 <p className=''>Nombre</p>
                             </div>
                             <div className='th movil'>
-                                <p className=''>Status</p>
+                                <p className=''>Tipo</p>
                             </div>
                             <div className='th'>
                             </div>
@@ -93,7 +94,7 @@ console.log('series', series)
                                             {item.name}
                                         </div>
                                         <div className='td movil'>
-                                            {item.status}
+                                            {getSeriesTypeLabel(item.type)}
                                         </div>
                                         <div className='td edit'>
                                             <div className='edit-icon'>
@@ -109,7 +110,7 @@ console.log('series', series)
                                             {item.name}
                                         </div>
                                         <div className='td movil'>
-                                            {item.status}
+                                            {getSeriesTypeLabel(item.type)}
                                         </div>
                                         <div className='td edit'>
                                             <div className='edit-icon'>

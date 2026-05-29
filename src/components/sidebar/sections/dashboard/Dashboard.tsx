@@ -1,372 +1,726 @@
-import type React from "react"
-import "./Dashboard.css"
+import type React from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import '../categories/Categories.css'
+import './Dashboard.css'
 import {
-    AreaChart,
-    Area,
-    BarChart,
-    Bar,
-    PieChart,
-    Pie,
-    Cell,
-    ResponsiveContainer,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-} from "recharts"
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from 'recharts'
+import APIs from '../../../../services/APIs'
+import { readCategoryBranchId } from '../../../../constants/category'
+import CategoriesStorePicker from '../categories/CategoriesStorePicker'
+
+const LS_COMPANY = 'categories-picker-company-id'
+
+const readCompanyId = (): number | null => {
+  const id = Number(localStorage.getItem(LS_COMPANY))
+  return !Number.isNaN(id) && id > 0 ? id : null
+}
+
+const formatMoney = (value: number | string) => {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return '$0.00'
+  return new Intl.NumberFormat('es-MX', {
+    style: 'currency',
+    currency: 'MXN',
+    minimumFractionDigits: 2,
+  }).format(parsed)
+}
+
+const formatRelativeTime = (value?: string) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+
+  const diffMs = Date.now() - date.getTime()
+  const diffMin = Math.floor(diffMs / 60000)
+  if (diffMin < 1) return 'Hace un momento'
+  if (diffMin < 60) return `Hace ${diffMin} minuto${diffMin === 1 ? '' : 's'}`
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return `Hace ${diffHours} hora${diffHours === 1 ? '' : 's'}`
+  const diffDays = Math.floor(diffHours / 24)
+  return `Hace ${diffDays} día${diffDays === 1 ? '' : 's'}`
+}
+
+const formatDate = (value?: string) => {
+  if (!value) return '—'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleDateString('es-MX', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  })
+}
+
+const formatPeriodLabel = (year?: number, month?: number) => {
+  if (!year || !month) return 'Mes actual'
+  const date = new Date(year, month - 1, 1)
+  return date.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })
+}
+
+const statusLabel: Record<string, string> = {
+  DRAFT: 'Borrador',
+  COMPLETED: 'Completada',
+  CANCELLED: 'Cancelada',
+}
+
+const STOCK_COLORS = ['#586ae9', '#14b8a6', '#bf6903', '#4CAF50', '#df4941', '#9b59b6']
+
+const CHART_GRID = 'rgba(255, 255, 255, 0.06)'
+const CHART_TICK = '#8b919c'
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const raw = payload[0].value
+    const isCount = payload[0].dataKey === 'ventas'
+    return (
+      <div className="dashboard-tooltip">
+        <p className="dashboard-tooltip__label">
+          {label}: {isCount ? raw : formatMoney(raw)}
+        </p>
+      </div>
+    )
+  }
+  return null
+}
 
 const Dashboard: React.FC = () => {
-    // Datos simulados para el dashboard
-    const areaData = [
-        { name: "Ene", value: 4000 },
-        { name: "Feb", value: 3000 },
-        { name: "Mar", value: 5000 },
-        { name: "Abr", value: 2780 },
-        { name: "May", value: 1890 },
-        { name: "Jun", value: 2390 },
-        { name: "Jul", value: 3490 },
-    ]
+  const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [ingresos, setIngresos] = useState(0)
+  const [totalVentas, setTotalVentas] = useState(0)
+  const [gananciaMensual, setGananciaMensual] = useState(0)
+  const [periodLabel, setPeriodLabel] = useState('Mes actual')
+  const [historico, setHistorico] = useState<
+    { label: string; ganancia: number; ingresos: number; totalVentas: number }[]
+  >([])
+  const [stockWarehouses, setStockWarehouses] = useState<
+    { name: string; value: number; color: string }[]
+  >([])
+  const [stockResumen, setStockResumen] = useState({
+    totalAlmacenes: 0,
+    totalUnidades: 0,
+    stockBajo: 0,
+    agotados: 0,
+  })
+  const [operaciones, setOperaciones] = useState({
+    cancelaciones: { count: 0, monto: 0 },
+    devoluciones: { count: 0, monto: 0 },
+  })
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [recentSales, setRecentSales] = useState<any[]>([])
+  const [lastOrders, setLastOrders] = useState<any[]>([])
 
-    const salesData = [
-        { day: "Lun", value: 42 },
-        { day: "Mar", value: 78 },
-        { day: "Mié", value: 85 },
-        { day: "Jue", value: 45 },
-        { day: "Vie", value: 52 },
-        { day: "Sáb", value: 72 },
-        { day: "Dom", value: 58 },
-    ]
+  const persistBranchId = useCallback((id: number) => {
+    setBranchId(id)
+    localStorage.setItem('categories-store-id', String(id))
+  }, [])
 
-    const pieData = [
-        { name: "Giveaway", value: 60, color: "#586ae9" },
-        { name: "Direct Sales", value: 24, color: "#14b8a6" },
-        { name: "Referral", value: 16, color: "#bf6903" },
-    ]
+  const percentChange = useMemo(() => {
+    if (historico.length < 2) return null
+    const prev = historico[historico.length - 2]?.ingresos ?? 0
+    const curr = historico[historico.length - 1]?.ingresos ?? 0
+    if (prev <= 0) return curr > 0 ? 100 : 0
+    return ((curr - prev) / prev) * 100
+  }, [historico])
 
-    const recentSales = [
-        {
-            id: 1,
-            name: "Steven Summer",
-            time: "23 minutos atrás",
-            amount: 52.0,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 2,
-            name: "Jordan Mateo",
-            time: "29 minutos atrás",
-            amount: 83.0,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 3,
-            name: "Jessica Alba",
-            time: "45 minutos atrás",
-            amount: 55.6,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 4,
-            name: "Anna Armas",
-            time: "52 minutos atrás",
-            amount: 2251.0,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        { id: 5, name: "Angelina Boo", time: "1 hora atrás", amount: 152.0, avatar: "/placeholder.svg?height=40&width=40" },
-        {
-            id: 6,
-            name: "Anastasia Kors",
-            time: "2 horas atrás",
-            amount: 542.0,
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-    ]
+  const formatPercent = (value: number | null) => {
+    if (value == null || !Number.isFinite(value)) return ''
+    const sign = value >= 0 ? '+' : ''
+    return `${sign}${value.toFixed(0)}%`
+  }
 
-    const lastOrders = [
-        {
-            id: 1,
-            name: "David Astee",
-            amount: 1456,
-            status: "Pendiente",
-            date: "11 Sep 2023",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 2,
-            name: "Maria Hufana",
-            amount: 542.78,
-            status: "Completado",
-            date: "11 Sep 2023",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-        {
-            id: 3,
-            name: "Arnold Swarz",
-            amount: 53.12,
-            status: "Completado",
-            date: "11 Sep 2023",
-            avatar: "/placeholder.svg?height=40&width=40",
-        },
-    ]
-
-    // Función para determinar el color del estado
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case "Completado":
-                return "#4CAF50"
-            case "Pendiente":
-                return "var(--orange-color)"
-            default:
-                return "#9E9E9E"
-        }
+  const fetchDashboard = useCallback(async () => {
+    const companyId = readCompanyId()
+    if (!companyId) {
+      setError('Selecciona una empresa en el catálogo para ver el dashboard.')
+      setIngresos(0)
+      setTotalVentas(0)
+      setGananciaMensual(0)
+      setHistorico([])
+      setStockWarehouses([])
+      setOperaciones({
+        cancelaciones: { count: 0, monto: 0 },
+        devoluciones: { count: 0, monto: 0 },
+      })
+      setNotifications([])
+      setRecentSales([])
+      setLastOrders([])
+      return
     }
 
-    // Tooltip personalizado para gráficos
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="custom-tooltip">
-                    <p className="label">{`${label} : $${payload[0].value.toLocaleString()}`}</p>
-                </div>
-            )
-        }
-        return null
+    setLoading(true)
+    setError(null)
+
+    try {
+      const branchFilter = branchId > 0 ? branchId : undefined
+
+      const [summaryRes, gananciaRes, salesRes]: any[] = await Promise.all([
+        APIs.getDashboard({ companyId, branchId: branchFilter }),
+        APIs.getDashboardGanancia({ companyId, branchId: branchFilter }),
+        APIs.getSales({ companyId, branchId: branchFilter }),
+      ])
+
+      const summary = summaryRes?.data ?? {}
+      setIngresos(Number(summary.ingresos) || 0)
+      setTotalVentas(Number(summary.totalVentas) || 0)
+      setGananciaMensual(Number(summary.gananciaMensual) || 0)
+      setPeriodLabel(
+        formatPeriodLabel(summary.period?.year, summary.period?.month),
+      )
+
+      const hist = Array.isArray(gananciaRes?.data?.historico)
+        ? gananciaRes.data.historico
+        : []
+      setHistorico(
+        hist.map((row: any) => ({
+          label: row.label ?? `${row.month}/${row.year}`,
+          ganancia: Number(row.ganancia) || 0,
+          ingresos: Number(row.ingresos) || 0,
+          totalVentas: Number(row.totalVentas) || 0,
+        })),
+      )
+
+      const stock = summary.stock ?? {}
+      const almacenes = Array.isArray(stock.almacenes) ? stock.almacenes : []
+      setStockResumen({
+        totalAlmacenes: Number(stock.resumen?.totalAlmacenes) || almacenes.length,
+        totalUnidades: Number(stock.resumen?.totalUnidades) || 0,
+        stockBajo: Number(stock.resumen?.stockBajo) || 0,
+        agotados: Number(stock.resumen?.agotados) || 0,
+      })
+
+      setOperaciones({
+        cancelaciones: {
+          count: Number(summary.operaciones?.cancelaciones?.count) || 0,
+          monto: Number(summary.operaciones?.cancelaciones?.monto) || 0,
+        },
+        devoluciones: {
+          count: Number(summary.operaciones?.devoluciones?.count) || 0,
+          monto: Number(summary.operaciones?.devoluciones?.monto) || 0,
+        },
+      })
+
+      setNotifications(Array.isArray(summary.notifications) ? summary.notifications : [])
+
+      setStockWarehouses(
+        almacenes.map((row: any, index: number) => ({
+          name: row.storeName ?? `Almacén ${row.storeId}`,
+          value: Number(row.totalUnidades) || 0,
+          color: STOCK_COLORS[index % STOCK_COLORS.length],
+        })),
+      )
+
+      const sales = Array.isArray(salesRes?.data) ? salesRes.data : []
+
+      setRecentSales(
+        sales.slice(0, 6).map((sale: any) => {
+          const customer = sale.customer
+          const name = customer
+            ? `${customer.firstName ?? ''} ${customer.lastLastName ?? ''}`.trim() ||
+              customer.businessName ||
+              'Cliente'
+            : sale.createdBy
+              ? `${sale.createdBy.firstName ?? ''} ${sale.createdBy.firstLastName ?? ''}`.trim()
+              : 'Venta mostrador'
+
+          const isCancelled = sale.status === 'CANCELLED'
+          const isRefund = false
+
+          return {
+            id: sale.id,
+            name,
+            time: formatRelativeTime(sale.completedAt ?? sale.updatedAt ?? sale.createdAt),
+            amount: Number(sale.total) || 0,
+            status: statusLabel[sale.status] ?? sale.status,
+            isNegative: isCancelled || isRefund,
+          }
+        }),
+      )
+
+      setLastOrders(
+        sales.slice(0, 10).map((sale: any) => {
+          const customer = sale.customer
+          const name = customer
+            ? `${customer.firstName ?? ''} ${customer.lastLastName ?? ''}`.trim() ||
+              customer.businessName ||
+              'Cliente'
+            : 'Mostrador'
+
+          return {
+            id: sale.id,
+            name,
+            amount: Number(sale.total) || 0,
+            status: statusLabel[sale.status] ?? sale.status,
+            date: formatDate(sale.completedAt ?? sale.updatedAt ?? sale.createdAt),
+            folio: `${sale.series?.name ?? 'VENT'}-${sale.folio ?? sale.id}`,
+          }
+        }),
+      )
+    } catch (err) {
+      console.error('Error al cargar dashboard:', err)
+      setError('No se pudo cargar el dashboard. Verifica que el backend esté activo.')
+    } finally {
+      setLoading(false)
     }
+  }, [branchId])
 
+  useEffect(() => {
+    fetchDashboard()
+  }, [fetchDashboard])
 
+  const areaData = useMemo(
+    () =>
+      historico.map((row) => ({
+        name: row.label,
+        value: row.ingresos,
+      })),
+    [historico],
+  )
 
-    return (
-        <div className="dashboard">
-            <div className="dashboard__container">
-                <div className="dashboard__content">
-                    <div className="dashboard__cards">
-                        <div className="card card--balance">
-                            <div className="card__header">
-                                <span className="card__label">Total de ingresos</span>
-                                <span className="card__percent positive">+17%</span>
-                            </div>
-                            <div className="card__value">$56,874</div>
-                            <div className="card__chart">
-                                <ResponsiveContainer width="100%" height={60}>
-                                    <AreaChart data={areaData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#4CAF50" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="#4CAF50" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <Area type="monotone" dataKey="value" stroke="#4CAF50" fillOpacity={1} fill="url(#colorBalance)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+  const salesChartData = useMemo(
+    () =>
+      historico.map((row) => ({
+        name: row.label,
+        ventas: row.totalVentas,
+        ganancia: row.ganancia,
+      })),
+    [historico],
+  )
 
-                        <div className="card card--sales">
-                            <div className="card__header">
-                                <span className="card__label">Total de ventas</span>
-                                <span className="card__percent positive">+24%</span>
-                            </div>
-                            <div className="card__value">$ 24,575</div>
-                            <div className="card__chart">
-                                <ResponsiveContainer width="100%" height={60}>
-                                    <AreaChart data={areaData} margin={{ top: 5, right: 0, left: 0, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#FF9800" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="#FF9800" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <Area type="monotone" dataKey="value" stroke="#FF9800" fillOpacity={1} fill="url(#colorSales)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+  const totalStockUnits = stockWarehouses.reduce((acc, row) => acc + row.value, 0)
 
-                        <div className="card card--upgrade">
-                            <div className="card__content">
-                                <h3>Actualizar</h3>
-                                <p>Explora funciones y oportunidades premium</p>
-                                <button className="btn-upgrade">Hazte premium</button>
-                            </div>
-                        </div>
-                    </div>
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'SALE_CANCELLED':
+      case 'PRODUCTION_CANCELLED':
+        return 'cancel'
+      case 'REFUND':
+        return 'undo'
+      case 'STOCK_OUT':
+        return 'inventory_2'
+      case 'STOCK_LOW':
+        return 'warning'
+      case 'PRODUCTION_OVERDUE':
+        return 'schedule'
+      case 'PRODUCTION_URGENT':
+        return 'priority_high'
+      default:
+        return 'notifications'
+    }
+  }
 
-                    <div className="dashboard__stats">
-                        <div className="stats__weekly">
-                            <div className="stats__header">
-                                <h3>Usuario en la última semana</h3>
-                                <div className="stats__percent">+ 3.2%</div>
-                            </div>
-                            <div className="stats__chart">
-                                <ResponsiveContainer width="100%" height={250}>
-                                    <BarChart data={salesData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                        <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                                        <YAxis hide={true} />
-                                        <Tooltip content={<CustomTooltip />} />
-                                        <Bar dataKey="value" fill="#bf6903" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
+  const unreadCount = notifications.length
 
-                        <div className="stats__monthly">
-                            <div className="stats__header">
-                                <h3>Ganancias mensuales</h3>
-                                <p>Rendimiento total 25%</p>
-                            </div>
-                            <div className="stats__donut">
-                                <ResponsiveContainer width="100%" height={200}>
-                                    <PieChart>
-                                        <Pie
-                                            data={pieData}
-                                            cx="50%"
-                                            cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={80}
-                                            paddingAngle={5}
-                                            dataKey="value"
-                                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                            labelLine={false}
-                                        >
-                                            {pieData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.color} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="donut-center">$76,556</div>
-                                <div className="donut-legend">
-                                    {pieData.map((entry, index) => (
-                                        <div className="legend-item" key={`legend-${index}`}>
-                                            <span className="legend-color" style={{ backgroundColor: entry.color }}></span>
-                                            <span className="legend-label">{entry.name}</span>
-                                            <span className="legend-value">{entry.value}%</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+  const getStatusClass = (status: string) => {
+    switch (status) {
+      case 'Completada':
+        return 'dashboard-status dashboard-status--ok'
+      case 'Borrador':
+        return 'dashboard-status dashboard-status--draft'
+      case 'Cancelada':
+        return 'dashboard-status dashboard-status--cancel'
+      default:
+        return 'dashboard-status'
+    }
+  }
 
-                    <div className="dashboard__tables">
-                        <div className="recent-sales">
-                            <div className="table__header">
-                                <h3>Recent Sales</h3>
-                                <a href="#" className="link-all">
-                                    See All
-                                </a>
-                            </div>
-                            <div className="table__content">
-                                {recentSales.map((sale) => (
-                                    <div className="table__row" key={sale.id}>
-                                        <div className="row__user">
-                                            <img src={sale.avatar || "/placeholder.svg"} alt={sale.name} className="user__avatar" />
-                                            <div className="user__info">
-                                                <div className="user__name">{sale.name}</div>
-                                                <div className="user__time">{sale.time}</div>
-                                            </div>
-                                        </div>
-                                        <div className="row__amount">+ ${sale.amount.toFixed(2)}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                        <div className='table__dashboard_orders' >
-                            <div className='table__head'>
-                                <div className='thead'>
-                                    <div className='th'>
-                                        <p className=''>Cliente</p>
-                                    </div>
-                                    <div className='th'>
-                                        <p className=''>Monto</p>
-                                    </div>
-                                    <div className='th'>
-                                        <p className=''>Status</p>
-                                    </div>
-                                    <div className='th'>
-                                        <p className=''>Fecha</p>
-                                    </div>
-                                </div>
-                            </div>
-                            {lastOrders?.length > 0 ? (
-                                <div className='table__body'>
-                                    {lastOrders?.map((item: any, index: any) => (
-                                        <div className='tbody__container' key={index}>
-                                            <div className='tbody'>
-                                                <div className='td'>
-                                                    <p>{item.amount}</p>
-                                                </div>
-                                                <div className='td'>
-                                                    {item.amount.toFixed(2)}
-                                                </div>
-                                                <div className='td'>
-                                                    {item.status}
-                                                </div>
-                                                <div className="td">
-                                                <span className="status" style={{ backgroundColor: getStatusColor(item.status) }}>
-                                                        {item.status}
-                                                    </span>
-                                                </div>
-                                                <div className='td'>
-                                                    {item.date}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className='text'>No hay máximos y mínimos que mostrar</p>
-                            )}
-                        </div>
-                        {/* <div className="last-orders">
-                            <div className="table__header">
-                                <h3>Last Orders</h3>
-                                <div className="table__actions">
-                                    <span className="table__update">Data Updated Every 3 Hours</span>
-                                    <a href="#" className="link-all">
-                                        View All Orders
-                                    </a>
-                                </div>
-                            </div>
-                            <div className="table__content">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Customer</th>
-                                            <th>Amount</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {lastOrders.map((order) => (
-                                            <tr key={order.id}>
-                                                <td>
-                                                    <div className="row__user">
-                                                        <img src={order.avatar || "/placeholder.svg"} alt={order.name} className="user__avatar" />
-                                                        <div className="user__name">{order.name}</div>
-                                                    </div>
-                                                </td>
-                                                <td>${order.amount.toFixed(2)}</td>
-                                                <td>
-                                                    <span className="status" style={{ backgroundColor: getStatusColor(order.status) }}>
-                                                        {order.status}
-                                                    </span>
-                                                </td>
-                                                <td>{order.date}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div> */}
-                    </div>
-                </div>
+  const getNotificationSeverityClass = (severity: string) =>
+    `dashboard-notify__item dashboard-notify__item--${severity ?? 'low'}`
+
+  return (
+    <div className="dashboard">
+      <div className="dashboard__container">
+        <header className="dashboard__hero">
+          <div className="dashboard__hero-text">
+            <span className="dashboard__eyebrow">Panel general</span>
+            <h1 className="dashboard__title">Dashboard</h1>
+            <p className="dashboard__subtitle">
+              Resumen de ventas e inventario · {periodLabel}
+            </p>
+          </div>
+          <div className="dashboard__hero-actions">
+            <CategoriesStorePicker
+              branchId={branchId}
+              onBranchIdChange={persistBranchId}
+              onCompanyIdChange={() => fetchDashboard()}
+            />
+            <button
+              type="button"
+              className="dashboard__refresh"
+              onClick={fetchDashboard}
+              disabled={loading}
+              title="Actualizar datos"
+            >
+              {loading ? 'Actualizando…' : 'Actualizar'}
+            </button>
+          </div>
+        </header>
+
+        {error && <p className="dashboard__error">{error}</p>}
+
+        <div className={`dashboard__content ${loading ? 'dashboard__content--loading' : ''}`}>
+          <section className="dashboard__summary">
+            <article className="dashboard-kpi dashboard-kpi--income">
+              <span className="dashboard-kpi__label">Ingresos del mes</span>
+              <strong className="dashboard-kpi__value">{formatMoney(ingresos)}</strong>
+              {percentChange != null && (
+                <small
+                  className={`dashboard-kpi__delta ${
+                    percentChange >= 0 ? 'dashboard-kpi__delta--up' : 'dashboard-kpi__delta--down'
+                  }`}
+                >
+                  {formatPercent(percentChange)} vs mes anterior
+                </small>
+              )}
+              <div className="dashboard-kpi__spark">
+                {areaData.length > 0 && (
+                  <ResponsiveContainer width="100%" height={48}>
+                    <AreaChart data={areaData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="dashIncome" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#586ae9" stopOpacity={0.5} />
+                          <stop offset="95%" stopColor="#586ae9" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#586ae9"
+                        strokeWidth={2}
+                        fillOpacity={1}
+                        fill="url(#dashIncome)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </article>
+
+            <article className="dashboard-kpi dashboard-kpi--sales">
+              <span className="dashboard-kpi__label">Ventas completadas</span>
+              <strong className="dashboard-kpi__value">{totalVentas}</strong>
+              <small className="dashboard-kpi__hint">Tickets del periodo</small>
+            </article>
+
+            <article className="dashboard-kpi dashboard-kpi--profit">
+              <span className="dashboard-kpi__label">Ganancia mensual</span>
+              <strong className="dashboard-kpi__value">{formatMoney(gananciaMensual)}</strong>
+              <small className="dashboard-kpi__hint">Venta neta sin IVA</small>
+            </article>
+
+            <article className="dashboard-kpi dashboard-kpi--stock">
+              <span className="dashboard-kpi__label">Inventario</span>
+              <strong className="dashboard-kpi__value">
+                {stockResumen.totalUnidades.toLocaleString('es-MX')}
+              </strong>
+              <small className="dashboard-kpi__hint">
+                {stockResumen.totalAlmacenes} almacén
+                {stockResumen.totalAlmacenes === 1 ? '' : 'es'}
+              </small>
+              <div className="dashboard-kpi__badges">
+                {stockResumen.stockBajo > 0 && (
+                  <span className="dashboard-badge dashboard-badge--low">
+                    Bajo: {stockResumen.stockBajo}
+                  </span>
+                )}
+                {stockResumen.agotados > 0 && (
+                  <span className="dashboard-badge dashboard-badge--out">
+                    Agotados: {stockResumen.agotados}
+                  </span>
+                )}
+                {stockResumen.stockBajo === 0 && stockResumen.agotados === 0 && (
+                  <span className="dashboard-badge dashboard-badge--ok">Sin alertas</span>
+                )}
+              </div>
+            </article>
+
+            <article className="dashboard-kpi dashboard-kpi--cancel">
+              <span className="dashboard-kpi__label">Cancelaciones</span>
+              <strong className="dashboard-kpi__value">{operaciones.cancelaciones.count}</strong>
+              <small className="dashboard-kpi__hint">
+                {formatMoney(operaciones.cancelaciones.monto)} del mes
+              </small>
+            </article>
+
+            <article className="dashboard-kpi dashboard-kpi--refund">
+              <span className="dashboard-kpi__label">Devoluciones</span>
+              <strong className="dashboard-kpi__value">{operaciones.devoluciones.count}</strong>
+              <small className="dashboard-kpi__hint">
+                {formatMoney(operaciones.devoluciones.monto)} del mes
+              </small>
+            </article>
+          </section>
+
+          <section className="dashboard-panel dashboard-panel--notifications">
+            <div className="dashboard-panel__head">
+              <div>
+                <span className="dashboard-panel__eyebrow">Alertas</span>
+                <h3>Notificaciones importantes</h3>
+              </div>
+              <span className="dashboard-panel__meta">
+                {unreadCount > 0 ? `${unreadCount} pendientes` : 'Sin alertas activas'}
+              </span>
             </div>
+            <div className="dashboard-notify">
+              {notifications.length === 0 ? (
+                <p className="dashboard-panel__empty">
+                  No hay cancelaciones, devoluciones ni alertas de stock en este periodo.
+                </p>
+              ) : (
+                notifications.map((item) => (
+                  <article
+                    key={item.id}
+                    className={getNotificationSeverityClass(item.severity)}
+                  >
+                    <span className="material-symbols-rounded dashboard-notify__icon" aria-hidden>
+                      {getNotificationIcon(item.type)}
+                    </span>
+                    <div className="dashboard-notify__body">
+                      <strong>{item.title}</strong>
+                      <p>{item.message}</p>
+                      <small>{formatRelativeTime(item.createdAt)}</small>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="dashboard__charts">
+            <article className="dashboard-panel dashboard-panel--wide">
+              <div className="dashboard-panel__head">
+                <div>
+                  <span className="dashboard-panel__eyebrow">Histórico</span>
+                  <h3>Ventas por mes</h3>
+                </div>
+                <span className="dashboard-panel__meta">
+                  Últimos {historico.length || 6} meses
+                </span>
+              </div>
+              <div className="dashboard-panel__chart">
+                {salesChartData.length === 0 ? (
+                  <p className="dashboard-panel__empty">Sin datos para mostrar</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart
+                      data={salesChartData}
+                      margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: CHART_TICK, fontSize: 12 }}
+                      />
+                      <YAxis hide />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar dataKey="ventas" fill="#bf6903" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </article>
+
+            <article className="dashboard-panel">
+              <div className="dashboard-panel__head">
+                <div>
+                  <span className="dashboard-panel__eyebrow">Utilidad</span>
+                  <h3>Ganancias mensuales</h3>
+                </div>
+              </div>
+              <div className="dashboard-panel__chart">
+                {salesChartData.length === 0 ? (
+                  <p className="dashboard-panel__empty">Sin datos para mostrar</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={260}>
+                    <BarChart
+                      data={salesChartData}
+                      margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
+                      <XAxis
+                        dataKey="name"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: CHART_TICK, fontSize: 12 }}
+                      />
+                      <YAxis hide />
+                      <Tooltip
+                        formatter={(value: number) => formatMoney(value)}
+                        labelFormatter={(label) => label}
+                        contentStyle={{
+                          background: '#1f2228',
+                          border: '1px solid rgba(88, 106, 233, 0.25)',
+                          borderRadius: 8,
+                          color: '#f5f6f7',
+                        }}
+                      />
+                      <Bar dataKey="ganancia" fill="#14b8a6" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </article>
+          </section>
+
+          {stockWarehouses.length > 0 && (
+            <section className="dashboard-panel dashboard-panel--stock">
+              <div className="dashboard-panel__head">
+                <div>
+                  <span className="dashboard-panel__eyebrow">Almacenes</span>
+                  <h3>Distribución de stock</h3>
+                </div>
+                <span className="dashboard-panel__meta">
+                  {totalStockUnits.toLocaleString('es-MX')} unidades totales
+                </span>
+              </div>
+              <div className="dashboard-stock-donut">
+                <div className="dashboard-stock-donut__chart">
+                  <ResponsiveContainer width="100%" height={220}>
+                    <PieChart>
+                      <Pie
+                        data={stockWarehouses}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={58}
+                        outerRadius={82}
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {stockWarehouses.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => `${value} u.`}
+                        contentStyle={{
+                          background: '#1f2228',
+                          border: '1px solid rgba(88, 106, 233, 0.25)',
+                          borderRadius: 8,
+                          color: '#f5f6f7',
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="dashboard-stock-donut__center">
+                    <strong>{totalStockUnits.toLocaleString('es-MX')}</strong>
+                    <span>unidades</span>
+                  </div>
+                </div>
+                <div className="dashboard-stock-legend">
+                  {stockWarehouses.map((entry, index) => {
+                    const pct =
+                      totalStockUnits > 0
+                        ? ((entry.value / totalStockUnits) * 100).toFixed(0)
+                        : '0'
+                    return (
+                      <div className="dashboard-stock-legend__item" key={`legend-${index}`}>
+                        <span
+                          className="dashboard-stock-legend__dot"
+                          style={{ backgroundColor: entry.color }}
+                        />
+                        <span className="dashboard-stock-legend__name">{entry.name}</span>
+                        <span className="dashboard-stock-legend__value">
+                          {entry.value.toLocaleString('es-MX')} u. · {pct}%
+                        </span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </section>
+          )}
+
+          <section className="dashboard__bottom">
+            <article className="dashboard-panel dashboard-panel--recent">
+              <div className="dashboard-panel__head">
+                <div>
+                  <span className="dashboard-panel__eyebrow">Actividad</span>
+                  <h3>Ventas recientes</h3>
+                </div>
+              </div>
+              <div className="dashboard-recent">
+                {recentSales.length === 0 ? (
+                  <p className="dashboard-panel__empty">No hay ventas recientes</p>
+                ) : (
+                  recentSales.map((sale) => (
+                    <div className="dashboard-recent__row" key={sale.id}>
+                      <div className="dashboard-recent__user">
+                        <div className="dashboard-recent__avatar">
+                          {sale.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="dashboard-recent__name">{sale.name}</div>
+                          <div className="dashboard-recent__time">{sale.time}</div>
+                        </div>
+                      </div>
+                      <div
+                        className={`dashboard-recent__amount ${
+                          sale.isNegative ? 'dashboard-recent__amount--negative' : ''
+                        }`}
+                      >
+                        {sale.isNegative ? '− ' : '+ '}
+                        {formatMoney(sale.amount)}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </article>
+
+            <article className="dashboard-panel dashboard-panel--orders">
+              <div className="dashboard-panel__head">
+                <div>
+                  <span className="dashboard-panel__eyebrow">Detalle</span>
+                  <h3>Últimas ventas</h3>
+                </div>
+              </div>
+              {lastOrders.length === 0 ? (
+                <p className="dashboard-panel__empty">No hay ventas que mostrar</p>
+              ) : (
+                <div className="dashboard-orders">
+                  <div className="dashboard-orders__head">
+                    <span>Folio</span>
+                    <span>Cliente</span>
+                    <span>Monto</span>
+                    <span>Estado</span>
+                    <span>Fecha</span>
+                  </div>
+                  <div className="dashboard-orders__body">
+                    {lastOrders.map((item) => (
+                      <div className="dashboard-orders__row" key={item.id}>
+                        <span className="dashboard-orders__folio">{item.folio}</span>
+                        <span className="dashboard-orders__client">{item.name}</span>
+                        <span className="dashboard-orders__amount">{formatMoney(item.amount)}</span>
+                        <span>
+                          <span className={getStatusClass(item.status)}>{item.status}</span>
+                        </span>
+                        <span className="dashboard-orders__date">{item.date}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </article>
+          </section>
         </div>
-    )
+      </div>
+    </div>
+  )
 }
 
 export default Dashboard

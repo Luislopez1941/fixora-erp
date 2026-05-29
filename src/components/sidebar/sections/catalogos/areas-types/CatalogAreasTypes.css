@@ -1,0 +1,119 @@
+.catalog-areas-types__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.catalog-areas-types__card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.catalog-areas-types__card.is-active {
+  background: rgba(88, 106, 233, 0.08);
+}
+
+.catalog-areas-types__card p {
+  margin: 0;
+  color: #a8adb8;
+  font-size: 0.82rem;
+  min-height: 38px;
+}
+
+.catalog-areas-types__card-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.catalog-areas-types__card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.catalog-areas-types__series {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.catalog-areas-types__series h2 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: #f5f6f7;
+}
+
+.catalog-areas-types__series p {
+  margin: 0 0 12px;
+  color: #8b919c;
+  font-size: 0.84rem;
+}
+
+.catalog-areas-types__series-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.catalog-areas-types__series-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #1f2228;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.catalog-areas-types__series-item strong {
+  display: block;
+  color: #f5f6f7;
+  font-size: 0.86rem;
+}
+
+.catalog-areas-types__series-item small {
+  color: #8b919c;
+  font-size: 0.72rem;
+}
+
+.catalog-areas-types__series-id {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(88, 106, 233, 0.18);
+  color: #c5cbff;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.catalog-areas-types__head,
+.catalog-areas-types__row {
+  grid-template-columns: 1.2fr 0.9fr 1fr 120px;
+}
+
+@media (max-width: 1100px) {
+  .catalog-areas-types__grid,
+  .catalog-areas-types__series-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .catalog-areas-types__grid,
+  .catalog-areas-types__series-grid {
+    grid-template-columns: 1fr;
+  }
+}

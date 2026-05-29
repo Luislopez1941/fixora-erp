@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import './Contenedores.css'
 import { useDispatch } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
@@ -7,14 +7,21 @@ import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
 
+const LS_COMPANY = 'categories-picker-company-id'
+
 const Contenedores: React.FC = () => {
   const [contenedores, setContenedores] = useState<any[]>([])
   const [familias, setFamilias] = useState<any[]>([])
   const [selectedContenedor, setSelectedContenedor] = useState<any>(null)
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  const [companyId, setCompanyId] = useState<number | null>(() => {
+    const saved = localStorage.getItem(LS_COMPANY)
+    return saved ? Number(saved) : null
+  })
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [familiaFilter, setFamiliaFilter] = useState<string>('ALL')
+  const [isLoading, setIsLoading] = useState(false)
   const dispatch = useDispatch()
 
   const handleModalChange = (value: string) => {
@@ -24,6 +31,11 @@ const Contenedores: React.FC = () => {
   const persistBranchId = useCallback((id: number) => {
     setBranchId(id)
     localStorage.setItem('categories-store-id', String(id))
+  }, [])
+
+  const persistCompanyId = useCallback((id: number) => {
+    setCompanyId(id)
+    localStorage.setItem(LS_COMPANY, String(id))
   }, [])
 
   useEffect(() => {
@@ -37,7 +49,11 @@ const Contenedores: React.FC = () => {
       if (!token) return
 
       const filters: Record<string, unknown> = {}
-      if (branchId && !isNaN(branchId)) filters.branchId = branchId
+      if (branchId && !isNaN(branchId) && branchId >= 1) {
+        filters.branchId = branchId
+      } else if (companyId != null && !isNaN(companyId)) {
+        filters.companyId = companyId
+      }
 
       const response: any = await APIs.filterFamilias(filters, token)
       const list = Array.isArray(response?.data)
@@ -49,7 +65,7 @@ const Contenedores: React.FC = () => {
     } catch {
       setFamilias([])
     }
-  }, [branchId])
+  }, [branchId, companyId])
 
   const flattenContenedores = (roots: any[]): any[] => {
     const list: any[] = []
@@ -66,13 +82,19 @@ const Contenedores: React.FC = () => {
     return list
   }
 
+  const fetchingRef = useRef(false)
+
   const fetchContenedores = useCallback(async () => {
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+    setIsLoading(true)
     try {
       const token = localStorage.getItem('token-eco')
       if (!token) return
 
       const response: any = await APIs.getCategoryList(
-        branchId && !isNaN(branchId) ? branchId : undefined,
+        branchId && !isNaN(branchId) && branchId >= 1 ? branchId : undefined,
+        companyId != null && !isNaN(companyId) ? companyId : undefined,
         token
       )
       const roots = Array.isArray(response?.data)
@@ -84,8 +106,11 @@ const Contenedores: React.FC = () => {
     } catch (error) {
       console.error('Error al cargar contenedores:', error)
       setContenedores([])
+    } finally {
+      setIsLoading(false)
+      fetchingRef.current = false
     }
-  }, [branchId])
+  }, [branchId, companyId])
 
   useEffect(() => {
     fetchFamilias()
@@ -112,7 +137,7 @@ const Contenedores: React.FC = () => {
         <div className='contenedores__header'>
           <div className='contenedores__toolbar'>
             <div className='contenedores__toolbar-left'>
-              <CategoriesStorePicker branchId={branchId} onBranchIdChange={persistBranchId} />
+              <CategoriesStorePicker branchId={branchId} onBranchIdChange={persistBranchId} onCompanyIdChange={persistCompanyId} />
             </div>
             <div className='contenedores__toolbar-right'>
               <div className='contenedores__search-field'>
@@ -181,7 +206,12 @@ const Contenedores: React.FC = () => {
           </div>
 
           <div className='table__body'>
-            {filteredContenedores.length > 0 ? (
+            {isLoading ? (
+              <div className='contenedores__loading'>
+                <div className='contenedores__spinner' />
+                <p>Cargando contenedores...</p>
+              </div>
+            ) : filteredContenedores.length > 0 ? (
               filteredContenedores.map((contenedor: any, index: number) => (
                 <div className='tbody__container' key={contenedor.id ?? index}>
                   <div className='tbody'>

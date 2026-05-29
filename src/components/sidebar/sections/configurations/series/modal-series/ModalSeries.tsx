@@ -5,6 +5,7 @@ import { modal } from '../../../../../../redux/state/modals';
 import APIs from '../../../../../../services/APIs';
 import Select from '../../../../../general/Select';
 import Swal from 'sweetalert2';
+import { SERIES_MODULE_TYPES } from '../../../../../../constants/catalogTypes';
 import { setSeries } from '../../../../../../redux/state/Configurations/Series';
 
 
@@ -19,24 +20,10 @@ const ModalSeries: React.FC = () => {
     dispatch(modal(value));
   };
 
-  const [nameModules] = useState<any>([
-    {
-        id: 1,
-        name: 'Requisiscion'
-    },
-    {
-        id: 2,
-        name: 'Orden de compra'
-    },
-    {
-        id: 3,
-        name: 'Entrada'
-    },
-    {
-        id: 2,
-        name: 'Pedido'
-    }
-])
+  const [nameModules] = useState<any>(SERIES_MODULE_TYPES.map((item) => ({
+    id: item.id,
+    name: item.label,
+  })))
 
 
   const [tickets, setTickets] = useState<any>([])

@@ -1,0 +1,83 @@
+.web-order-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.web-order-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.web-order-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid #ececec;
+}
+
+.web-order-modal__header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.web-order-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.web-order-modal__body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.web-order-modal__body p {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.web-order-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.web-order-modal__field span {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.web-order-modal__field select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+}
+
+.web-order-modal__error {
+  color: #b91c1c;
+  font-size: 0.88rem;
+}
+
+.web-order-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px 18px;
+}
