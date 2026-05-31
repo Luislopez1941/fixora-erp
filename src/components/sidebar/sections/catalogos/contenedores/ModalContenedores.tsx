@@ -27,7 +27,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [branchId, setBranchId] = useState(readCategoryBranchId)
-  const [companyId, setCompanyId] = useState<number | null>(() => {
+  const [_companyId, setCompanyId] = useState<number | null>(() => {
     const saved = localStorage.getItem(LS_COMPANY)
     return saved ? Number(saved) : null
   })

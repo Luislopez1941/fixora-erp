@@ -12,7 +12,7 @@ class ApiService {
 //     });
 //   }
 
-  constructor(baseURL: string = 'http://localhost:4000') {
+  constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000') {
     this.axiosInstance = axios.create({
       baseURL,
       headers: {

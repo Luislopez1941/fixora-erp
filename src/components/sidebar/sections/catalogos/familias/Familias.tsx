@@ -4,8 +4,9 @@ import { useDispatch } from "react-redux";
 import { modal } from '../../../../../redux/state/modals';
 import ModalFamilias from './ModalFamilias';
 import APIs from '../../../../../services/APIs';
-import { readCategoryBranchId } from '../../../../../constants/category';
+import { readCategoryBranchId, categoryId } from '../../../../../constants/category';
 import CategoriesStorePicker from '../../categories/CategoriesStorePicker';
+import Swal from 'sweetalert2'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -26,6 +27,51 @@ const Familias: React.FC = () => {
   const handleModalChange = (value: any) => {
     dispatch(modal(value));
   };
+
+  const handleDelete = async (familia: any) => {
+    const id = categoryId(familia)
+    if (id == null) {
+      Swal.fire({ icon: 'warning', title: 'Familia sin ID' })
+      return
+    }
+
+    const result = await Swal.fire({
+      title: '¿Eliminar familia?',
+      text: `Se eliminará "${familia.title}" y todas sus subcategorías. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#5869e9',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      const token = localStorage.getItem('token-eco')
+      if (!token) {
+        Swal.fire({ icon: 'warning', title: 'Sesión', text: 'No hay token de autenticación' })
+        return
+      }
+      await APIs.deleteCategory(id, token)
+      Swal.fire({
+        icon: 'success',
+        title: 'Familia eliminada',
+        text: 'La familia se eliminó correctamente.',
+        confirmButtonColor: '#5869e9',
+      })
+      fetchFamilias()
+    } catch (err: any) {
+      console.error('Error al eliminar familia:', err)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar la familia',
+        confirmButtonColor: '#5869e9',
+      })
+    }
+  }
 
   const persistBranchId = useCallback((id: number) => {
     setBranchId(id)
@@ -222,9 +268,7 @@ const Familias: React.FC = () => {
                         className='familias__btn-delete'
                         title='Eliminar familia'
                         aria-label='Eliminar familia'
-                        onClick={() => {
-                          // TODO: Implementar eliminación
-                        }}
+                        onClick={() => handleDelete(familia)}
                       >
                         <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' aria-hidden>
                           <path

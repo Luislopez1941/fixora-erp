@@ -416,7 +416,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
           quantity: Math.trunc(Number(c.quantity)),
           unitId: Number(c.unitId),
           storeId: Number(c.storeId),
-          itemVariationId: c.itemVariationId ? Number(c.itemVariationId) : undefined,
+          itemVariationId: c.itemVariationId != null ? Number(c.itemVariationId) : null,
           code: c.code,
           name: c.name,
         })),

@@ -357,6 +357,15 @@
   margin-bottom: 8px;
 }
 
+.table__familias .table__head .th {
+  display: flex;
+  align-items: center;
+}
+
+.table__familias .table__head .th:last-child {
+  justify-content: flex-end;
+}
+
 .table__familias .table__head .th p {
   font-weight: 600;
   color: #f5f6f7;

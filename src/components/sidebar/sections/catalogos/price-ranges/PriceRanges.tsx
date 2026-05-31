@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { modal } from '../../../../../redux/state/modals';
 import ConfigurationAPIs from '../../../../../services/configurationAPIs';
@@ -22,7 +22,7 @@ interface PriceRange {
 const PriceRanges = () => {
   const dispatch = useDispatch();
   const [items, setItems] = useState<Item[]>([]);
-  const [priceRanges, setPriceRanges] = useState<PriceRange[]>([]);
+  const [_priceRanges, setPriceRanges] = useState<PriceRange[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');

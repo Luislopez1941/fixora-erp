@@ -4,8 +4,9 @@ import { useDispatch } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import ModalContenedores from './ModalContenedores'
 import APIs from '../../../../../services/APIs'
-import { readCategoryBranchId } from '../../../../../constants/category'
+import { readCategoryBranchId, categoryId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import Swal from 'sweetalert2'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -26,6 +27,51 @@ const Contenedores: React.FC = () => {
 
   const handleModalChange = (value: string) => {
     dispatch(modal(value))
+  }
+
+  const handleDelete = async (contenedor: any) => {
+    const id = categoryId(contenedor)
+    if (id == null) {
+      Swal.fire({ icon: 'warning', title: 'Contenedor sin ID' })
+      return
+    }
+
+    const result = await Swal.fire({
+      title: '¿Eliminar contenedor?',
+      text: `Se eliminará "${contenedor.title}" y todas sus subcategorías. Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#5869e9',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    })
+
+    if (!result.isConfirmed) return
+
+    try {
+      const token = localStorage.getItem('token-eco')
+      if (!token) {
+        Swal.fire({ icon: 'warning', title: 'Sesión', text: 'No hay token de autenticación' })
+        return
+      }
+      await APIs.deleteCategory(id, token)
+      Swal.fire({
+        icon: 'success',
+        title: 'Contenedor eliminado',
+        text: 'El contenedor se eliminó correctamente.',
+        confirmButtonColor: '#5869e9',
+      })
+      fetchContenedores()
+    } catch (err: any) {
+      console.error('Error al eliminar contenedor:', err)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar el contenedor',
+        confirmButtonColor: '#5869e9',
+      })
+    }
   }
 
   const persistBranchId = useCallback((id: number) => {
@@ -256,6 +302,7 @@ const Contenedores: React.FC = () => {
                         className='contenedores__btn-delete'
                         title='Eliminar contenedor'
                         aria-label='Eliminar contenedor'
+                        onClick={() => handleDelete(contenedor)}
                       >
                         <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' aria-hidden>
                           <path

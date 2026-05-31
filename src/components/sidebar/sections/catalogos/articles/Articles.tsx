@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './Articles.css'
 import Modal from './Modal'
 import './Modal.css'
@@ -52,6 +52,7 @@ const Articles: React.FC = () => {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [loading, setLoading] = useState(false)
+  const fetchingRef = useRef(false)
 
   const setModal = (value: string) => {
     dispatch(modal(value))
@@ -63,15 +64,24 @@ const Articles: React.FC = () => {
     localStorage.setItem('categories-picker-branch-id', String(id))
   }, [])
 
+  const persistCompanyId = useCallback((id: number) => {
+    setCompanyId(id)
+    localStorage.setItem('categories-picker-company-id', String(id))
+  }, [])
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 500)
     return () => clearTimeout(timer)
   }, [search])
 
   const fetchArticles = useCallback(async () => {
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+
     const resolvedCompanyId = companyId ?? readCompanyId()
     if (!token || !resolvedCompanyId) {
       dispatch(setArticles([]))
+      fetchingRef.current = false
       return
     }
 
@@ -88,6 +98,7 @@ const Articles: React.FC = () => {
       dispatch(setArticles([]))
     } finally {
       setLoading(false)
+      fetchingRef.current = false
     }
   }, [branchId, companyId, dispatch, token])
 
@@ -177,7 +188,7 @@ const Articles: React.FC = () => {
             <div className='articles-page__toolbar-left'>
               <CategoriesStorePicker
                 branchId={branchId}
-                onCompanyIdChange={setCompanyId}
+                onCompanyIdChange={persistCompanyId}
                 onBranchIdChange={persistBranchId}
               />
             </div>
@@ -212,29 +223,27 @@ const Articles: React.FC = () => {
 
         <div className='table__articles-page'>
           <div>
-            {loading ? (
-              <p className='text articles-page__loading'>Cargando artículos...</p>
-            ) : filteredArticles.length > 0 ? (
+            {!loading && filteredArticles.length > 0 ? (
               <div className='table__numbers'>
                 <p className='text'>Total de artículos</p>
                 <div className='quantities_tables'>{filteredArticles.length}</div>
               </div>
-            ) : (
+            ) : !loading ? (
               <p className='text'>
                 {readCompanyId() || companyId
                   ? 'No hay artículos registrados'
                   : 'Selecciona una empresa para ver artículos'}
               </p>
-            )}
+            ) : null}
           </div>
 
           <div className='table__head'>
             <div className='thead'>
               <div className='th'>
-                <p>Artículo</p>
+                <p>Código</p>
               </div>
               <div className='th'>
-                <p>Código</p>
+                <p>Artículo</p>
               </div>
               <div className='th'>
                 <p>Categoría</p>
@@ -255,33 +264,25 @@ const Articles: React.FC = () => {
           </div>
 
           <div className='table__body'>
-            {!loading && filteredArticles.length > 0 ? (
+            {loading ? (
+              <div className='articles-page__loading'>
+                <div className='articles-page__spinner' />
+                <p>Cargando artículos...</p>
+              </div>
+            ) : filteredArticles.length > 0 ? (
               filteredArticles.map((item: any) => (
                 <div className='tbody__container' key={item.id}>
                   <div className='tbody'>
+                    <div className='td'>
+                      <span className='articles-page__code'>{item.code || '—'}</span>
+                    </div>
                     <div className='td articles-page__name-cell'>
-                      {item.images?.[0] ? (
-                        <img
-                          src={item.images[0]}
-                          alt=''
-                          className='articles-page__thumb'
-                        />
-                      ) : (
-                        <div className='articles-page__thumb articles-page__thumb--empty' aria-hidden>
-                          <svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='currentColor'>
-                            <path d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z' />
-                          </svg>
-                        </div>
-                      )}
                       <div className='articles-page__info'>
                         <p className='articles-page__name'>{item.name}</p>
                         {item.description ? (
                           <p className='articles-page__desc'>{item.description}</p>
                         ) : null}
                       </div>
-                    </div>
-                    <div className='td'>
-                      <span className='articles-page__code'>{item.code || '—'}</span>
                     </div>
                     <div className='td'>
                       <p>{item.category?.title ?? item.category?.name ?? 'Sin categoría'}</p>
@@ -327,7 +328,7 @@ const Articles: React.FC = () => {
                   </div>
                 </div>
               ))
-            ) : !loading ? (
+            ) : (
               <div className='empty__state'>
                 <p>
                   {debouncedSearch.trim()
@@ -335,7 +336,7 @@ const Articles: React.FC = () => {
                     : 'No hay artículos registrados para esta empresa'}
                 </p>
               </div>
-            ) : null}
+            )}
           </div>
         </div>
       </div>

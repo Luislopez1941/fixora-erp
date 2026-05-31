@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
 import './Sidebar.css'
 import astra from '../../assets/astra.svg'
 import { Link } from 'react-router-dom'
@@ -7,7 +6,6 @@ import { PrivateRoutes } from '../../models/routes'
 import { useModules } from '../../core/modules/useModules'
 import type { ModuleManifest } from '../../core/modules/module.types'
 import { renderIcon, ChevronIcon } from '../../core/modules/icons'
-import { setActiveCompany } from '../../redux/state/user'
 
 /**
  * Sidebar data-driven.
@@ -26,10 +24,6 @@ const buildPath = (path?: string): string => {
 const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState<boolean>(true)
   const [activeMenu, setActiveMenu] = useState<string>('')
-  const dispatch = useDispatch()
-
-  const companyIds: number[] = useSelector((state: any) => state.user?.companyIds ?? [])
-  const activeCompanyId: number | null = useSelector((state: any) => state.user?.activeCompanyId ?? null)
 
   const { modules } = useModules()
 
@@ -117,19 +111,6 @@ const Sidebar: React.FC = () => {
           </ul>
         </div>
 
-        {companyIds.length > 1 && (
-          <div className="company-switcher">
-            <select
-              value={activeCompanyId ?? ''}
-              onChange={(e) => dispatch(setActiveCompany(Number(e.target.value)))}
-              title="Cambiar empresa"
-            >
-              {companyIds.map((id) => (
-                <option key={id} value={id}>Empresa #{id}</option>
-              ))}
-            </select>
-          </div>
-        )}
         <div className="divider"></div>
         <div className="sidebar__profile">
           <div className="btn__logout_close">

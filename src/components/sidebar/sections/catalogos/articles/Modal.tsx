@@ -7,6 +7,7 @@ import { PrivateRoutes } from '../../../../../models/routes'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import Swal from 'sweetalert2'
 import { Variation } from '../VariationsManager'
 import IOSSwitch from '../shared/IOSSwitch'
 import ImagePickerModal from '../shared/ImagePickerModal'
@@ -68,11 +69,13 @@ const Modal = () => {
   const [warehousesModalOpen, setWarehousesModalOpen] = useState(false)
   const [stockModalOpen, setStockModalOpen] = useState(false)
   const [warehouses, setWarehouses] = useState<ArticleWarehouse[]>([])
+  const [isSaving, setIsSaving] = useState(false)
 
   const token = localStorage.getItem('token-eco')
   const isCreate = modalState === 'articles-modal'
 
   const closeModal = () => {
+    if (isSaving) return
     dispatch(modal(''))
     dispatch(updateArticles('reset'))
     setImagePickerOpen(false)
@@ -81,7 +84,12 @@ const Modal = () => {
 
   const openStockModal = () => {
     if (isCreate || !currentItemId) {
-      window.alert('Guarda el artículo primero para consultar existencias.')
+      Swal.fire({
+        icon: 'info',
+        title: 'Guarda primero',
+        text: 'Guarda el artículo primero para consultar existencias.',
+        confirmButtonColor: '#5869e9',
+      })
       return
     }
     setStockModalOpen(true)
@@ -272,18 +280,33 @@ const Modal = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!token) {
-      alert('No hay token de autenticación')
+      Swal.fire({
+        icon: 'warning',
+        title: 'Sesión',
+        text: 'No hay token de autenticación',
+        confirmButtonColor: '#5869e9',
+      })
       return
     }
 
     if (!name.trim()) {
-      alert('El nombre es obligatorio')
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validación',
+        text: 'El nombre es obligatorio',
+        confirmButtonColor: '#5869e9',
+      })
       return
     }
 
     // Obtener companyId del estado / picker
     if (!companyId || Number.isNaN(companyId)) {
-      alert('No se ha seleccionado una empresa. Por favor selecciona una empresa primero.')
+      Swal.fire({
+        icon: 'warning',
+        title: 'Validación',
+        text: 'No se ha seleccionado una empresa. Por favor selecciona una empresa primero.',
+        confirmButtonColor: '#5869e9',
+      })
       return
     }
 
@@ -328,16 +351,15 @@ const Modal = () => {
       body.priceRanges = tempPriceRanges
     }
 
+    setIsSaving(true)
     try {
       let itemId = currentItemId
       if (isCreate) {
         const created: any = await APIs.createItem(body, token)
         itemId = created?.data?.id ?? created?.id ?? null
-        alert('Artículo creado')
       } else {
         await APIs.updateItem(articlesUpdate.id, body, token)
         itemId = articlesUpdate.id
-        alert('Artículo actualizado')
       }
 
       if (itemId && !trackInventory) {
@@ -353,9 +375,28 @@ const Modal = () => {
       const list = Array.isArray(result) ? result : Array.isArray(result?.data) ? result.data : []
       const filtered = list.filter((item: any) => item.type === 'ARTICLE')
       dispatch(setArticles(filtered))
+
+      // Quitar estado de carga inmediatamente
+      setIsSaving(false)
+
+      // Cerrar modal antes de Swal para evitar z-index conflict
       closeModal()
+
+      Swal.fire({
+        icon: 'success',
+        title: isCreate ? '¡Creado!' : '¡Actualizado!',
+        text: `El artículo "${name.trim()}" se ${isCreate ? 'creó' : 'actualizó'} correctamente.`,
+        confirmButtonColor: '#5869e9',
+      })
     } catch (err: any) {
-      alert('Error: ' + (err?.response?.data?.message ?? err?.message))
+      console.error('Error al guardar artículo:', err)
+      setIsSaving(false)
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: err?.response?.data?.message ?? err?.message ?? 'No se pudo guardar el artículo',
+        confirmButtonColor: '#5869e9',
+      })
     }
   }
 
@@ -470,9 +511,19 @@ const Modal = () => {
                     onChange={(e) => setDiscountPercent(e.target.value)}
                     placeholder='0'
                   />
-                  <p className='article-modal__store-hint'>
-                    Porcentaje de descuento automático al vender este artículo.
-                  </p>
+                </div>
+                <div className='articles__modal_field'>
+                  <label className='label__general'>Imágenes</label>
+                  <button
+                    type='button'
+                    className='btn__general-purple article-modal__images-trigger'
+                    onClick={() => setImagePickerOpen(true)}
+                  >
+                    <span className='material-symbols-rounded' aria-hidden>
+                      add_photo_alternate
+                    </span>
+                    <span>{images.length > 0 ? `Imágenes (${images.length})` : 'Imágenes'}</span>
+                  </button>
                 </div>
               </div>
 
@@ -485,40 +536,6 @@ const Modal = () => {
                   placeholder='Descripción del artículo'
                   rows={3}
                 />
-              </div>
-
-              <div className='articles__modal_field articles__modal_field--full catalog-modal__images'>
-                <label className='label__general'>Imágenes</label>
-                <div className='catalog-modal__images-preview'>
-                  {images.length > 0 ? (
-                    images.slice(0, 6).map((src, index) => (
-                      <img
-                        key={`${index}-${src.slice(0, 20)}`}
-                        src={src}
-                        alt={`Vista ${index + 1}`}
-                        className='catalog-modal__images-preview-thumb'
-                      />
-                    ))
-                  ) : (
-                    <span className='catalog-modal__images-empty'>Sin imágenes cargadas</span>
-                  )}
-                </div>
-                <div className='catalog-modal__images-actions'>
-                  <button
-                    type='button'
-                    className='btn__general-purple article-modal__upload-btn'
-                    onClick={() => setImagePickerOpen(true)}
-                  >
-                    <span className='material-symbols-rounded article-modal__upload-icon' aria-hidden>
-                      add_photo_alternate
-                    </span>
-                    <span>{images.length > 0 ? 'Gestionar imágenes' : 'Subir imágenes'}</span>
-                  </button>
-                  {images.length > 0 ? (
-                    <span className='catalog-modal__images-count'>{images.length} imagen{images.length === 1 ? '' : 'es'}</span>
-                  ) : null}
-                </div>
-                <p className='article-modal__images-hint'>Formatos recomendados: JPG/PNG. Puedes cargar varias imágenes.</p>
               </div>
 
               <div className='catalog-modal__switches'>
@@ -663,8 +680,10 @@ const Modal = () => {
               </div>
 
               <div className='articles__modal_actions'>
-                <button className='btn__general-purple' type='submit'>
-                  {isCreate ? 'Crear artículo' : 'Guardar cambios'}
+                <button className='btn__general-purple' type='submit' disabled={isSaving}>
+                  {isSaving
+                    ? isCreate ? 'Creando...' : 'Actualizando...'
+                    : isCreate ? 'Crear artículo' : 'Guardar cambios'}
                 </button>
               </div>
             </div>
