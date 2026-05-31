@@ -1,0 +1,451 @@
+/* ========================================
+   VISTAS DE CATÁLOGO — Áreas & SubÁreas
+   ======================================== */
+
+/* Material Symbols Rounded — filled helper */
+.catalog-area__tag .material-symbols-rounded,
+.catalog-area__btn .material-symbols-rounded,
+.subareas__action-btn .material-symbols-rounded {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* ========================================
+   BREADCRUMB
+   ======================================== */
+.catalog-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.8rem;
+}
+
+.catalog-breadcrumb__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  color: #8b919c;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.catalog-breadcrumb__link:hover {
+  color: #c5cbff;
+  background: rgba(255,255,255,0.05);
+}
+
+.catalog-breadcrumb__current {
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #f5f6f7;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.catalog-breadcrumb__separator {
+  display: inline-flex;
+  align-items: center;
+  color: #5a5f6a;
+}
+
+/* ----- Grid de cards (Áreas) ----- */
+.catalog-areas__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding: 8px 0 24px;
+}
+
+/* ----- Card de área ----- */
+.catalog-area__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: default;
+  overflow: hidden;
+}
+
+.catalog-area__card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--area-color, #586ae9);
+  opacity: 0.6;
+  transition: opacity 0.2s ease, height 0.2s ease;
+}
+
+.catalog-area__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  border-color: rgba(255,255,255,0.14);
+}
+
+.catalog-area__card:hover::before {
+  opacity: 1;
+  height: 4px;
+}
+
+/* ----- Icono / badge superior ----- */
+.catalog-area__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--area-color, #586ae9);
+  background: var(--area-color-bg, rgba(88,106,233,0.12));
+  border: 1px solid var(--area-color-border, rgba(88,106,233,0.18));
+}
+
+/* ----- Título de la card ----- */
+.catalog-area__title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f5f6f7;
+  letter-spacing: -0.2px;
+}
+
+/* ----- Descripción ----- */
+.catalog-area__desc {
+  margin: 0;
+  font-size: 0.88rem;
+  color: #9aa0ac;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+/* ----- Meta info (contadores, tags) ----- */
+.catalog-area__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.catalog-area__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--area-color, #586ae9);
+  background: var(--area-color-bg, rgba(88,106,233,0.1));
+  border: 1px solid var(--area-color-border, rgba(88,106,233,0.15));
+}
+
+/* ----- Top row: icono + botones ----- */
+.catalog-area__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.catalog-area__actions-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.catalog-area__btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.04);
+  color: #c5cbff;
+  transition: all 0.15s ease;
+}
+
+.catalog-area__btn-icon:hover {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+
+.catalog-area__btn-icon--primary {
+  background: linear-gradient(135deg, #586ae9 0%, #4f5bd5 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(88,106,233,0.25);
+}
+
+.catalog-area__btn-icon--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(88,106,233,0.35);
+}
+
+/* ========================================
+   SUBÁREAS — Tabla y filtros
+   ======================================== */
+
+/* ----- Toolbar ----- */
+.subareas__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  margin: 16px 0 20px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.subareas__toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.subareas__toolbar-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f5f6f7;
+}
+
+.subareas__toolbar-badge {
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--filter-color, #586ae9);
+  background: var(--filter-color-bg, rgba(88,106,233,0.12));
+  border: 1px solid var(--filter-color-border, rgba(88,106,233,0.2));
+}
+
+/* ----- Filtros chips ----- */
+.subareas__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.subareas__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #9aa0ac;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.subareas__chip:hover {
+  background: rgba(255,255,255,0.06);
+  color: #d0d4dc;
+}
+
+.subareas__chip.is-active {
+  color: #fff;
+  background: linear-gradient(135deg, #586ae9 0%, #4f5bd5 100%);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(88,106,233,0.25);
+}
+
+/* ----- Tabla moderna ----- */
+.subareas__table-wrap {
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+  overflow: hidden;
+  background: rgba(255,255,255,0.01);
+}
+
+.subareas__table-head {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 120px;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.subareas__table-head span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #8b919c;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.subareas__table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.subareas__table-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 120px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s ease;
+}
+
+.subareas__table-row:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.subareas__table-row:last-child {
+  border-bottom: none;
+}
+
+/* ----- Celda: nombre ----- */
+.subareas__name {
+  font-weight: 600;
+  color: #f5f6f7;
+  font-size: 0.9rem;
+}
+
+/* ----- Badge de tipo ----- */
+.subareas__type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* ----- Sucursal ----- */
+.subareas__branch {
+  color: #9aa0ac;
+  font-size: 0.85rem;
+}
+
+/* ----- Acciones de fila ----- */
+.subareas__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.subareas__action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.subareas__action-btn--delete {
+  background: rgba(239,83,80,0.1);
+  color: #ef5350;
+}
+
+.subareas__action-btn--delete:hover {
+  background: rgba(239,83,80,0.18);
+  color: #ff6b6b;
+}
+
+/* ----- Estados vacíos / loading ----- */
+.subareas__empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: #8b919c;
+  font-size: 0.92rem;
+}
+
+.subareas__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  color: #8b919c;
+  font-size: 0.9rem;
+}
+
+.subareas__spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.1);
+  border-top-color: #586ae9;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 900px) {
+  .catalog-areas__grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .subareas__table-head,
+  .subareas__table-row {
+    grid-template-columns: 1fr 1fr 100px;
+  }
+  .subareas__table-head span:nth-child(3),
+  .subareas__table-row .subareas__branch {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .catalog-areas__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subareas__toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .subareas__table-head,
+  .subareas__table-row {
+    grid-template-columns: 1fr 100px;
+  }
+  .subareas__table-head span:nth-child(2),
+  .subareas__table-row .subareas__type-badge {
+    display: none;
+  }
+}

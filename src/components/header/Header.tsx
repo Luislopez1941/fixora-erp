@@ -1,19 +1,71 @@
 import React from 'react'
+import { useLocation } from 'react-router-dom'
 import './Header.css'
 import astra from '../../assets/astra.svg'
 
+const ROUTE_LABELS: Record<string, string> = {
+  catalogos: 'Catálogo',
+  areas: 'SubÁreas',
+  types: 'Áreas',
+  familias: 'Familias',
+  contenedores: 'Contenedores',
+  units: 'Unidades',
+  services: 'Servicios',
+  articles: 'Artículos',
+  'price-ranges': 'Rangos de Precio',
+  sales: 'Ventas',
+  cobranza: 'Cobranza',
+  shopping: 'Compras',
+  production: 'Producción',
+  store: 'Almacén',
+  reports: 'Reportes',
+  income: 'Ingresos',
+  users: 'Usuarios',
+  configurations: 'Configuraciones',
+  dashboard: 'Panel',
+  'module-store': 'Tienda de Módulos',
+}
+
+const HeaderBreadcrumb: React.FC = () => {
+  const location = useLocation()
+  const segments = location.pathname.split('/').filter(Boolean)
+  // Skip 'auth' segment
+  const meaningful = segments.filter((s) => s !== 'auth')
+  if (meaningful.length === 0) return null
+
+  return (
+    <nav className='header-breadcrumb'>
+      {meaningful.map((seg, idx) => {
+        const label = ROUTE_LABELS[seg] ?? seg.charAt(0).toUpperCase() + seg.slice(1)
+        return (
+          <React.Fragment key={idx}>
+            {idx > 0 && (
+              <span className='header-breadcrumb__sep'>
+                <span className='material-symbols-rounded' style={{ fontSize: 14, fontVariationSettings: "'FILL' 1" }}>chevron_right</span>
+              </span>
+            )}
+            <span className='header-breadcrumb__item'>{label}</span>
+          </React.Fragment>
+        )
+      })}
+    </nav>
+  )
+}
 
 const Header: React.FC = () => {
   return (
     <div className='hero'>
       <div className='hero__container'>
-        <div className="astra_logo">
-          <a href="#" className="logo__wrapper">
-            <img src={astra} alt="Logo" className="logo-small" />
-            <span className="hide">
-              Astra
-            </span>
-          </a>
+        <div className='hero__left'>
+          <div className="astra_logo">
+            <a href="#" className="logo__wrapper">
+              <img src={astra} alt="Logo" className="logo-small" />
+              <span className="hide">
+                Astra
+              </span>
+            </a>
+          </div>
+          <HeaderBreadcrumb />
         </div>
         <div className='row__one'>
           <div className='sale'>

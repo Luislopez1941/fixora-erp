@@ -77,7 +77,6 @@ export const MODULES: ModuleManifest[] = [
       { key: 'production.orders', label: 'Órdenes de producción', path: 'production/orders', requiredPermission: 'production.orders.view' },
       { key: 'production.queue', label: 'Cola', path: 'production/queue', requiredPermission: 'production.queue.view' },
       { key: 'production.areas', label: 'Áreas', path: 'production/areas', requiredPermission: 'production.areas.view' },
-      { key: 'production.categories', label: 'Categorías', path: 'production/categories', requiredPermission: 'production.categories.view' },
     ],
   },
   {
@@ -101,10 +100,10 @@ export const MODULES: ModuleManifest[] = [
     order: 80,
     requiredPermission: 'catalogos.view',
     children: [
-      { key: 'catalogos.types', label: 'Tipos y áreas', path: 'catalogos/tipos-areas', requiredPermission: 'catalogos.types.view' },
+      { key: 'catalogos.types', label: 'Áreas', path: 'catalogos/types', requiredPermission: 'catalogos.types.view' },
+      { key: 'catalogos.areas', label: 'SubÁreas', path: 'catalogos/areas', requiredPermission: 'catalogos.areas.view' },
       { key: 'catalogos.familias', label: 'Familias', path: 'catalogos/familias', requiredPermission: 'catalogos.familias.view' },
       { key: 'catalogos.containers', label: 'Contenedores', path: 'catalogos/contenedores', requiredPermission: 'catalogos.containers.view' },
-      { key: 'catalogos.categories', label: 'Categorías', path: 'catalogos/categories', requiredPermission: 'catalogos.categories.view' },
       { key: 'catalogos.units', label: 'Unidades', path: 'catalogos/units', requiredPermission: 'catalogos.units.view' },
       { key: 'catalogos.services', label: 'Servicios', path: 'catalogos/services', requiredPermission: 'catalogos.services.view' },
       { key: 'catalogos.articles', label: 'Artículos', path: 'catalogos/articles', requiredPermission: 'catalogos.articles.view' },
