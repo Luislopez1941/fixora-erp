@@ -1,7 +1,6 @@
 import React from 'react'
 import { Route, Routes} from "react-router-dom";
 import { PrivateRoutes } from "../../../models/routes";
-import Categories from '../../../components/sidebar/sections/categories/Categories';
 import Units from '../../../components/sidebar/sections/catalogos/units/Units';
 import Services from '../../../components/sidebar/sections/catalogos/services/Services';
 import Articles from '../../../components/sidebar/sections/catalogos/articles/Articles';
@@ -18,7 +17,6 @@ const RoutescCatalogos: React.FC = () => {
         <Route path="/contenedores" element={<Contenedores />} />
         <Route path="/price-ranges" element={<PriceRanges />} />
         <Route path={`/${PrivateRoutes.CATALOGOS_AREAS_TYPES}`} element={<CatalogAreasTypes />} />
-        <Route path={`/${PrivateRoutes.CATEGORIES}`} element={<Categories />} />
         <Route path={`/${PrivateRoutes.UNITS}`} element={<Units />} />
         <Route path={`/${PrivateRoutes.SERVICES}`} element={<Services />} />
         <Route path={`/${PrivateRoutes.ARTICLES}`} element={<Articles />} />

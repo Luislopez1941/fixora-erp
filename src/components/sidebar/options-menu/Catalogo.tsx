@@ -13,11 +13,6 @@ const Catalogo: React.FC = () => {
                 </Link>
             </div>
             <div className='item'>
-                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATEGORIES}`} title="Payments" className="tooltip">
-                    <p>Categorías</p>
-                </Link>
-            </div>
-            <div className='item'>
                 <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.UNITS}`} title="Payments" className="tooltip">
                     <p>Unidades</p>
                 </Link>
