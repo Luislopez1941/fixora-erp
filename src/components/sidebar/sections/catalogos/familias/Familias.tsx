@@ -41,7 +41,7 @@ const Familias: React.FC = () => {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      cancelButtonColor: '#5869e9',
+      cancelButtonColor: '#586ae9',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
     })
@@ -59,7 +59,7 @@ const Familias: React.FC = () => {
         icon: 'success',
         title: 'Familia eliminada',
         text: 'La familia se eliminó correctamente.',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       fetchFamilias()
     } catch (err: any) {
@@ -68,7 +68,7 @@ const Familias: React.FC = () => {
         icon: 'error',
         title: 'Error',
         text: err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar la familia',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
     }
   }

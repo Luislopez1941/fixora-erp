@@ -88,7 +88,7 @@ const Modal = () => {
         icon: 'info',
         title: 'Guarda primero',
         text: 'Guarda el artículo primero para consultar existencias.',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -284,7 +284,7 @@ const Modal = () => {
         icon: 'warning',
         title: 'Sesión',
         text: 'No hay token de autenticación',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -294,7 +294,7 @@ const Modal = () => {
         icon: 'warning',
         title: 'Validación',
         text: 'El nombre es obligatorio',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -305,7 +305,7 @@ const Modal = () => {
         icon: 'warning',
         title: 'Validación',
         text: 'No se ha seleccionado una empresa. Por favor selecciona una empresa primero.',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -386,7 +386,7 @@ const Modal = () => {
         icon: 'success',
         title: isCreate ? '¡Creado!' : '¡Actualizado!',
         text: `El artículo "${name.trim()}" se ${isCreate ? 'creó' : 'actualizó'} correctamente.`,
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
     } catch (err: any) {
       console.error('Error al guardar artículo:', err)
@@ -395,7 +395,7 @@ const Modal = () => {
         icon: 'error',
         title: 'Error',
         text: err?.response?.data?.message ?? err?.message ?? 'No se pudo guardar el artículo',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
     }
   }

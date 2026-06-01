@@ -274,7 +274,7 @@
 
 .tickets-meta-comments .tickets-meta-input:focus,
 .tickets-meta-comments .tickets-meta-input:hover {
-    outline: 1px solid #5869e9;
+    outline: 1px solid #586ae9;
 }
 
 @media (max-width: 900px) {
@@ -408,7 +408,7 @@
     width: 100%;
     margin: 0;
     padding: 0 10px;
-    background-color: #5869e9fd;
+    background-color: #586ae9fd;
     color: #fff;
     border-radius: 6px;
     font-size: 0.85rem;
@@ -438,7 +438,7 @@
     margin: 0;
     padding: 0 10px;
     text-indent: 0;
-    outline: 1px solid #5869e9;
+    outline: 1px solid #586ae9;
     border-radius: 6px;
     font-size: 0.85rem;
     box-sizing: border-box;
@@ -470,7 +470,7 @@
     height: 32px;
     padding: 0;
     border-radius: 6px;
-    background: #5869e9;
+    background: #586ae9;
     color: #fff;
     font-size: 0.8rem;
     font-weight: 600;

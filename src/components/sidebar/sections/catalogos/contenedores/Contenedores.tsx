@@ -42,7 +42,7 @@ const Contenedores: React.FC = () => {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      cancelButtonColor: '#5869e9',
+      cancelButtonColor: '#586ae9',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
     })
@@ -60,7 +60,7 @@ const Contenedores: React.FC = () => {
         icon: 'success',
         title: 'Contenedor eliminado',
         text: 'El contenedor se eliminó correctamente.',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       fetchContenedores()
     } catch (err: any) {
@@ -69,7 +69,7 @@ const Contenedores: React.FC = () => {
         icon: 'error',
         title: 'Error',
         text: err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar el contenedor',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
     }
   }

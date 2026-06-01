@@ -12,7 +12,9 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
     "axios": "^1.8.4",
+    "date-fns": "^4.4.0",
     "react": "^19.0.0",
+    "react-date-range": "^2.0.1",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
     "react-flatpickr": "^4.0.8",
@@ -27,6 +29,7 @@
   "devDependencies": {
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.1.2",
+    "@types/react-date-range": "^1.4.10",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^9.21.0",

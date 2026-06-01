@@ -1,5 +1,10 @@
 import type React from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { DateRangePicker } from 'react-date-range'
+import { format, startOfMonth } from 'date-fns'
+import { es } from 'date-fns/locale'
+import 'react-date-range/dist/styles.css'
+import 'react-date-range/dist/theme/default.css'
 import '../categories/Categories.css'
 import './Dashboard.css'
 import {
@@ -63,11 +68,6 @@ const formatDate = (value?: string) => {
   })
 }
 
-const formatPeriodLabel = (year?: number, month?: number) => {
-  if (!year || !month) return 'Mes actual'
-  const date = new Date(year, month - 1, 1)
-  return date.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })
-}
 
 const statusLabel: Record<string, string> = {
   DRAFT: 'Borrador',
@@ -75,9 +75,17 @@ const statusLabel: Record<string, string> = {
   CANCELLED: 'Cancelada',
 }
 
-const STOCK_COLORS = ['#586ae9', '#14b8a6', '#bf6903', '#4CAF50', '#df4941', '#9b59b6']
+const STOCK_COLORS = ['#3F7DC0', '#14b8a6', '#F2A541', '#4CAF50', '#ba1a1a', '#9575cd']
 
-const CHART_GRID = 'rgba(255, 255, 255, 0.06)'
+const MOCK_PROJECTS: { name: string; pct: number; accent: 'orange' | 'blue' }[] = [
+  { name: 'Auditoría de inventario', pct: 75, accent: 'orange' },
+  { name: 'Expansión de ventas', pct: 32, accent: 'blue' },
+  { name: 'Migración de plataforma', pct: 92, accent: 'orange' },
+  { name: 'Análisis de clientes UX', pct: 48, accent: 'blue' },
+  { name: 'Cumplimiento de normas', pct: 15, accent: 'blue' },
+]
+
+const CHART_GRID = 'rgba(0, 0, 0, 0.06)'
 const CHART_TICK = '#8b919c'
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -102,7 +110,6 @@ const Dashboard: React.FC = () => {
   const [ingresos, setIngresos] = useState(0)
   const [totalVentas, setTotalVentas] = useState(0)
   const [gananciaMensual, setGananciaMensual] = useState(0)
-  const [periodLabel, setPeriodLabel] = useState('Mes actual')
   const [historico, setHistorico] = useState<
     { label: string; ganancia: number; ingresos: number; totalVentas: number }[]
   >([])
@@ -122,6 +129,34 @@ const Dashboard: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([])
   const [recentSales, setRecentSales] = useState<any[]>([])
   const [lastOrders, setLastOrders] = useState<any[]>([])
+
+  const [dateRange, setDateRange] = useState([{
+    startDate: startOfMonth(new Date()),
+    endDate: new Date(),
+    key: 'selection',
+  }])
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  const dateFrom = format(dateRange[0].startDate!, 'yyyy-MM-dd')
+  const dateTo   = format(dateRange[0].endDate!,   'yyyy-MM-dd')
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setPickerOpen(false)
+      }
+    }
+    if (pickerOpen) document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [pickerOpen])
 
   const persistBranchId = useCallback((id: number) => {
     setBranchId(id)
@@ -177,9 +212,6 @@ const Dashboard: React.FC = () => {
       setIngresos(Number(summary.ingresos) || 0)
       setTotalVentas(Number(summary.totalVentas) || 0)
       setGananciaMensual(Number(summary.gananciaMensual) || 0)
-      setPeriodLabel(
-        formatPeriodLabel(summary.period?.year, summary.period?.month),
-      )
 
       const hist = Array.isArray(gananciaRes?.data?.historico)
         ? gananciaRes.data.historico
@@ -275,7 +307,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [branchId])
+  }, [branchId, dateFrom, dateTo])
 
   useEffect(() => {
     fetchDashboard()
@@ -344,28 +376,58 @@ const Dashboard: React.FC = () => {
     <div className="dashboard">
       <div className="dashboard__container">
         <header className="dashboard__hero">
-          <div className="dashboard__hero-text">
-            <span className="dashboard__eyebrow">Panel general</span>
-            <h1 className="dashboard__title">Dashboard</h1>
-            <p className="dashboard__subtitle">
-              Resumen de ventas e inventario · {periodLabel}
-            </p>
+          <div className="dashboard-date-range" ref={pickerRef}>
+            <button
+              type="button"
+              className="dashboard-date-range__trigger"
+              onClick={() => setPickerOpen(p => !p)}
+            >
+              <span className="material-symbols-rounded dashboard-date-range__icon">calendar_month</span>
+              <div className="dashboard-date-range__display">
+                <span className="dashboard-date-range__label">Período</span>
+                <span className="dashboard-date-range__value">
+                  {format(dateRange[0].startDate!, 'dd MMM yyyy', { locale: es })}
+                  {' — '}
+                  {format(dateRange[0].endDate!, 'dd MMM yyyy', { locale: es })}
+                </span>
+              </div>
+              <span className="material-symbols-rounded dashboard-date-range__caret">
+                {pickerOpen ? 'expand_less' : 'expand_more'}
+              </span>
+            </button>
+            {pickerOpen && (
+              <div className="dashboard-date-range__popup">
+                <DateRangePicker
+                  ranges={dateRange}
+                  onChange={(item: any) => setDateRange([item.selection])}
+                  locale={es}
+                  maxDate={new Date()}
+                  rangeColors={['#3F7DC0']}
+                  showMonthAndYearPickers
+                  months={isMobile ? 1 : 2}
+                  direction={isMobile ? 'vertical' : 'horizontal'}
+                  moveRangeOnFirstSelection={false}
+                  showDateDisplay={false}
+                />
+                <div className="dashboard-date-range__popup-footer">
+                  <button
+                    type="button"
+                    className="dashboard-date-range__apply"
+                    onClick={() => { setPickerOpen(false); fetchDashboard() }}
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="dashboard__hero-actions">
+            <div className="dashboard__hero-divider" aria-hidden />
             <CategoriesStorePicker
               branchId={branchId}
               onBranchIdChange={persistBranchId}
               onCompanyIdChange={() => fetchDashboard()}
             />
-            <button
-              type="button"
-              className="dashboard__refresh"
-              onClick={fetchDashboard}
-              disabled={loading}
-              title="Actualizar datos"
-            >
-              {loading ? 'Actualizando…' : 'Actualizar'}
-            </button>
           </div>
         </header>
 
@@ -374,31 +436,35 @@ const Dashboard: React.FC = () => {
         <div className={`dashboard__content ${loading ? 'dashboard__content--loading' : ''}`}>
           <section className="dashboard__summary">
             <article className="dashboard-kpi dashboard-kpi--income">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">payments</span>
+                </div>
+                {percentChange != null && (
+                  <small className={`dashboard-kpi__trend ${percentChange >= 0 ? 'dashboard-kpi__trend--up' : 'dashboard-kpi__trend--down'}`}>
+                    <span className="material-symbols-rounded">
+                      {percentChange >= 0 ? 'trending_up' : 'trending_down'}
+                    </span>
+                    {formatPercent(percentChange)}
+                  </small>
+                )}
+              </div>
               <span className="dashboard-kpi__label">Ingresos del mes</span>
               <strong className="dashboard-kpi__value">{formatMoney(ingresos)}</strong>
-              {percentChange != null && (
-                <small
-                  className={`dashboard-kpi__delta ${
-                    percentChange >= 0 ? 'dashboard-kpi__delta--up' : 'dashboard-kpi__delta--down'
-                  }`}
-                >
-                  {formatPercent(percentChange)} vs mes anterior
-                </small>
-              )}
               <div className="dashboard-kpi__spark">
                 {areaData.length > 0 && (
                   <ResponsiveContainer width="100%" height={48}>
                     <AreaChart data={areaData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="dashIncome" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#586ae9" stopOpacity={0.5} />
-                          <stop offset="95%" stopColor="#586ae9" stopOpacity={0} />
+                          <stop offset="5%" stopColor="rgb(63,125,192)" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="rgb(63,125,192)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <Area
                         type="monotone"
                         dataKey="value"
-                        stroke="#586ae9"
+                        stroke="rgb(63,125,192)"
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#dashIncome)"
@@ -410,26 +476,40 @@ const Dashboard: React.FC = () => {
             </article>
 
             <article className="dashboard-kpi dashboard-kpi--sales">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">shopping_cart</span>
+                </div>
+              </div>
               <span className="dashboard-kpi__label">Ventas completadas</span>
               <strong className="dashboard-kpi__value">{totalVentas}</strong>
               <small className="dashboard-kpi__hint">Tickets del periodo</small>
             </article>
 
             <article className="dashboard-kpi dashboard-kpi--profit">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">trending_up</span>
+                </div>
+              </div>
               <span className="dashboard-kpi__label">Ganancia mensual</span>
               <strong className="dashboard-kpi__value">{formatMoney(gananciaMensual)}</strong>
               <small className="dashboard-kpi__hint">Venta neta sin IVA</small>
             </article>
 
             <article className="dashboard-kpi dashboard-kpi--stock">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">inventory_2</span>
+                </div>
+                {stockResumen.stockBajo === 0 && stockResumen.agotados === 0 && (
+                  <span className="dashboard-kpi__badge">Healthy</span>
+                )}
+              </div>
               <span className="dashboard-kpi__label">Inventario</span>
               <strong className="dashboard-kpi__value">
-                {stockResumen.totalUnidades.toLocaleString('es-MX')}
+                {stockResumen.totalUnidades.toLocaleString('es-MX')} u.
               </strong>
-              <small className="dashboard-kpi__hint">
-                {stockResumen.totalAlmacenes} almacén
-                {stockResumen.totalAlmacenes === 1 ? '' : 'es'}
-              </small>
               <div className="dashboard-kpi__badges">
                 {stockResumen.stockBajo > 0 && (
                   <span className="dashboard-badge dashboard-badge--low">
@@ -441,23 +521,43 @@ const Dashboard: React.FC = () => {
                     Agotados: {stockResumen.agotados}
                   </span>
                 )}
-                {stockResumen.stockBajo === 0 && stockResumen.agotados === 0 && (
-                  <span className="dashboard-badge dashboard-badge--ok">Sin alertas</span>
-                )}
               </div>
             </article>
 
             <article className="dashboard-kpi dashboard-kpi--cancel">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">cancel</span>
+                </div>
+                {operaciones.cancelaciones.count > 0 && (
+                  <small className="dashboard-kpi__trend dashboard-kpi__trend--down">
+                    <span className="material-symbols-rounded">trending_down</span>
+                    -{((operaciones.cancelaciones.count / (totalVentas || 1)) * 100).toFixed(1)}%
+                  </small>
+                )}
+              </div>
               <span className="dashboard-kpi__label">Cancelaciones</span>
-              <strong className="dashboard-kpi__value">{operaciones.cancelaciones.count}</strong>
+              <strong className="dashboard-kpi__value">
+                {operaciones.cancelaciones.count} órdenes
+              </strong>
               <small className="dashboard-kpi__hint">
                 {formatMoney(operaciones.cancelaciones.monto)} del mes
               </small>
             </article>
 
             <article className="dashboard-kpi dashboard-kpi--refund">
+              <div className="dashboard-kpi__top">
+                <div className="dashboard-kpi__icon-wrap">
+                  <span className="material-symbols-rounded">undo</span>
+                </div>
+                <span className="dashboard-kpi__badge">
+                  {((operaciones.devoluciones.count / (totalVentas || 1)) * 100).toFixed(1)}% tasa
+                </span>
+              </div>
               <span className="dashboard-kpi__label">Devoluciones</span>
-              <strong className="dashboard-kpi__value">{operaciones.devoluciones.count}</strong>
+              <strong className="dashboard-kpi__value">
+                {operaciones.devoluciones.count} items
+              </strong>
               <small className="dashboard-kpi__hint">
                 {formatMoney(operaciones.devoluciones.monto)} del mes
               </small>
@@ -538,41 +638,26 @@ const Dashboard: React.FC = () => {
             <article className="dashboard-panel">
               <div className="dashboard-panel__head">
                 <div>
-                  <span className="dashboard-panel__eyebrow">Utilidad</span>
-                  <h3>Ganancias mensuales</h3>
+                  <span className="dashboard-panel__eyebrow">Proyectos</span>
+                  <h3>Proyectos activos</h3>
                 </div>
+                <button type="button" className="dashboard-panel__viewall">Ver todos</button>
               </div>
-              <div className="dashboard-panel__chart">
-                {salesChartData.length === 0 ? (
-                  <p className="dashboard-panel__empty">Sin datos para mostrar</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart
-                      data={salesChartData}
-                      margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: CHART_TICK, fontSize: 12 }}
+              <div className="dashboard-progress__list">
+                {MOCK_PROJECTS.map((proj) => (
+                  <div className="dashboard-progress__item" key={proj.name}>
+                    <div className="dashboard-progress__item-head">
+                      <span className="dashboard-progress__name">{proj.name}</span>
+                      <span className="dashboard-progress__pct">{proj.pct}%</span>
+                    </div>
+                    <div className="dashboard-progress__track">
+                      <div
+                        className={`dashboard-progress__fill dashboard-progress__fill--${proj.accent}`}
+                        style={{ width: `${proj.pct}%` }}
                       />
-                      <YAxis hide />
-                      <Tooltip
-                        formatter={(value: number) => formatMoney(value)}
-                        labelFormatter={(label) => label}
-                        contentStyle={{
-                          background: '#1f2228',
-                          border: '1px solid rgba(88, 106, 233, 0.25)',
-                          borderRadius: 8,
-                          color: '#f5f6f7',
-                        }}
-                      />
-                      <Bar dataKey="ganancia" fill="#14b8a6" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </article>
           </section>
@@ -668,13 +753,11 @@ const Dashboard: React.FC = () => {
                           <div className="dashboard-recent__time">{sale.time}</div>
                         </div>
                       </div>
-                      <div
-                        className={`dashboard-recent__amount ${
-                          sale.isNegative ? 'dashboard-recent__amount--negative' : ''
-                        }`}
-                      >
-                        {sale.isNegative ? '− ' : '+ '}
-                        {formatMoney(sale.amount)}
+                      <div className="dashboard-recent__right">
+                        <div className={`dashboard-recent__amount ${sale.isNegative ? 'dashboard-recent__amount--negative' : ''}`}>
+                          {sale.isNegative ? '− ' : '+ '}{formatMoney(sale.amount)}
+                        </div>
+                        <div className="dashboard-recent__sale-status">{sale.status}</div>
                       </div>
                     </div>
                   ))

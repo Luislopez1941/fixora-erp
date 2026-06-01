@@ -1,7 +1,8 @@
 :root {
 
   --border-radius-general: 5px;
-  --primary-color: #586ae9;
+  --primary-color: rgb(63, 125, 192);
+  --secondary-color: #F2A541;
 
   --danger-color: #df4941c5;
   --orange-color: #bf6903;
@@ -16,20 +17,115 @@
   --expand-button: #353E47;
   --logout: #FA7575;
 
-/* COLORES DE TABLA */
---table-head-color: #1f2124;
---table-border-color: #1f2124;
---first-body-table-color: #17191b;
---second-body-table-color: #222222;
---hover-body-table-color: #5869e963;
+  /* COLORES DE TABLA */
+  --table-head-color: #1f2124;
+  --table-border-color: #1f2124;
+  --first-body-table-color: #17191b;
+  --second-body-table-color: #222222;
+  --hover-body-table-color: rgba(63, 125, 192, 0.39);
 
---text-color: #fff;
+  --text-color: #fff;
+
+  /* TEMA OSCURO (default) */
+  --body-bg: #17191b;
+  --header-bg: #1a1d20;
+  --header-border: rgba(255, 255, 255, 0.05);
+  --icon-bg: #272727;
+  --icon-color: #e8eaed;
+  --breadcrumb-bg: rgba(255, 255, 255, 0.03);
+  --breadcrumb-border: rgba(255, 255, 255, 0.06);
+  --breadcrumb-text: #9aa0ac;
+  --breadcrumb-text-active: #f5f6f7;
+  --breadcrumb-sep: #5a5f6a;
+  --input-placeholder: #6c6c6e;
+  --surface: #1f2228;
+  --card-bg: #1f2228;
+  --card-background: #1f2228;
+  --card-border: rgba(63, 125, 192, 0.22);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
+  --text-light: #a8adb8;
+  --text-muted: #8b919c;
+  --dashboard-bg-start: #1a1d22;
+  --dashboard-bg-end: #17191b;
+  --sub-menu-bg: #1f2124;
+  --company-select-bg: rgba(255, 255, 255, 0.05);
+  --company-select-border: rgba(255, 255, 255, 0.1);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+  --sidebar-icon-color: rgba(255, 255, 255, 0.45);
+  --sidebar-icon-hover: #ffffff;
+  --sidebar-link-hover-bg: var(--sidebar-primary-hover);
+}
+
+/* ====== MODO CLARO ====== */
+[data-theme="light"] {
+  --primary-color: #3F7DC0;
+  --secondary-color: #F2A541;
+
+  --danger-color: #BA1A1A;
+  --orange-color: #865300;
+
+  --white: #FFFFFF;
+  --sidebar-primary: #2d6aa8;
+  --sidebar-primary-hover: #245a93;
+  --sidebar-background: #3F7DC0;
+  --background: #F7F9FB;
+  --text-link: #FFFFFF;
+  --headline: #414750;
+  --expand-button: #2d6aa8;
+  --logout: #BA1A1A;
+
+  /* COLORES DE TABLA */
+  --table-head-color: #3F7DC0;
+  --table-border-color: #E0E3E5;
+  --first-body-table-color: #FFFFFF;
+  --second-body-table-color: #F2F4F6;
+  --hover-body-table-color: rgba(63, 125, 192, 0.08);
+
+  --text-color: #191C1E;
+
+  /* TEMA CLARO */
+  --body-bg: #F7F9FB;
+  --header-bg: #FFFFFF;
+  --header-border: rgba(0, 0, 0, 0.07);
+  --icon-bg: #EEF2F7;
+  --icon-color: #414750;
+  --breadcrumb-bg: rgba(63, 125, 192, 0.07);
+  --breadcrumb-border: rgba(63, 125, 192, 0.18);
+  --breadcrumb-text: #727781;
+  --breadcrumb-text-active: #191C1E;
+  --breadcrumb-sep: #C1C7D2;
+  --input-placeholder: #9aa0ac;
+  --surface: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --card-background: #FFFFFF;
+  --card-border: rgba(63, 125, 192, 0.15);
+  --panel-border: rgba(0, 0, 0, 0.07);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --text-light: #414750;
+  --text-muted: #727781;
+  --dashboard-bg-start: #F2F4F6;
+  --dashboard-bg-end: #F7F9FB;
+  --sub-menu-bg: #EEF2F7;
+  --company-select-bg: rgba(63, 125, 192, 0.06);
+  --company-select-border: rgba(63, 125, 192, 0.2);
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 9999px;
+  --sidebar-icon-color: rgba(255, 255, 255, 0.75);
+  --sidebar-icon-hover: #ffffff;
+  --sidebar-link-hover-bg: rgba(255, 255, 255, 0.15);
+  --headline: rgba(255, 255, 255, 0.7);
 }
 
 body {
   font-family: "Poppins", sans-serif;
   font-size: 14px;
-  background-color: #17191b;
+  background-color: var(--body-bg);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 html {
@@ -65,7 +161,7 @@ a {
 }
 
 input::placeholder{
-  color: #6c6c6e;
+  color: var(--input-placeholder);
 } 
 
 textarea {
@@ -136,13 +232,13 @@ textarea {
 
 
 .inputs__general:hover {
-  outline: 2px solid #586ae9;
+  outline: 2px solid var(--primary-color);
  
 }
 
 
 .inputs__general:focus {
-  outline: 2px solid #586ae9;
+  outline: 2px solid var(--primary-color);
 }
 
 
@@ -184,7 +280,7 @@ textarea {
 
 .btn__general-purple {
   display: flex;
-  background-color: #586ae9;
+  background-color: var(--primary-color);
   align-items: center;
   height: 40px;
   padding: 0 20px;
@@ -337,7 +433,7 @@ textarea {
 /* STYLES OF SELECT */
 
 ::selection{
-	
+  background: rgba(63, 125, 192, 0.3);
 }
 .select__container {
 width: 100%;
@@ -479,12 +575,12 @@ color: #f5f6f7;
 .select__container .options li:hover, li.selected{
 border-radius: 5px;
 /* background: #f2f2f2; */
-background-color: #586ae9;
+background-color: var(--primary-color);
 color: #f5f6f7;
 }
 
 .select-btn p:focus{
-  background-color: #586ae9;
+  background-color: var(--primary-color);
 }
 
 
@@ -581,11 +677,11 @@ color: #f5f6f7;
 }
 
 input:checked + .slider {
-  background-color: #586ae9;
+  background-color: var(--primary-color);
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #586ae9;
+  box-shadow: 0 0 1px var(--primary-color);
 }
 
 input:checked + .slider:before {
@@ -668,10 +764,10 @@ input:checked + .slider:before {
   padding: 5px;
   justify-content: center;
   align-items: center;
-  background-color: #5869e928;
+  background-color: #586ae928;
   border-radius: 5px;
   font-weight: 600;
-  color: #586ae9;
+  color: var(--primary-color);
   cursor: pointer;
 }
 

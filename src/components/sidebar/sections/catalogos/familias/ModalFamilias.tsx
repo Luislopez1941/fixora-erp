@@ -104,7 +104,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
   const processFile = (file: File) => {
     const error = validateFile(file)
     if (error) {
-      Swal.fire({ title: 'Archivo no válido', text: error, icon: 'warning', confirmButtonColor: '#5869e9' })
+      Swal.fire({ title: 'Archivo no válido', text: error, icon: 'warning', confirmButtonColor: '#586ae9' })
       return
     }
     const reader = new FileReader()
@@ -158,7 +158,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
         title: 'Sesión',
         text: 'No hay token de autenticación',
         icon: 'warning',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -168,7 +168,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
         title: 'Validación',
         text: 'El nombre de la familia es obligatorio',
         icon: 'warning',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -199,7 +199,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
             title: 'Error',
             text: 'No se encontró el ID de la familia a actualizar',
             icon: 'error',
-            confirmButtonColor: '#5869e9',
+            confirmButtonColor: '#586ae9',
           })
           return
         }
@@ -237,7 +237,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
         title: isUpdate ? '¡Actualizada!' : '¡Creada!',
         text: backendMessage || `La familia "${title.trim()}" se ${isUpdate ? 'actualizó' : 'creó'} correctamente`,
         icon: 'success',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       }).then(() => {
         onSaved?.()
       })
@@ -252,7 +252,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
         title: 'Error',
         text: msg,
         icon: 'error',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       }).catch(() => {
         alert('Error: ' + msg)
       })

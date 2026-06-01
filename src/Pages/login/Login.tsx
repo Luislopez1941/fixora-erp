@@ -96,19 +96,19 @@ const Login: React.FC = () => {
 
             <div className="erp__features">
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="#7f5af0" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M3 3h18v2H3V3zm2 4h14v14H5V7zm4 2v2h6V9H9zm0 4v2h6v-2H9z" />
                 </svg>
                 <span>Facturación y ventas simplificadas</span>
               </div>
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="#7f5af0" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M12 4.44L8.34 7h7.32L12 4.44zM4 8v11h16V8H4zm14 9H6v-7h12v7z" />
                 </svg>
                 <span>Control de inventario en tiempo real</span>
               </div>
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="#7f5af0" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm-2 2h4c2.67 0 8 1.34 8 4v2H2v-2c0-2.66 5.33-4 8-4z" />
                 </svg>
                 <span>Gestión de clientes y usuarios</span>

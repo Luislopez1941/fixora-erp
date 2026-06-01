@@ -1,6 +1,3 @@
-:root {
-  
-}
 
 
 .sidebar {
@@ -14,9 +11,8 @@
     color: var(--white);
     flex-direction: column;
     background: var(--sidebar-background);
-    transition: all 0.3s ease-in;
+    transition: background 0.3s ease, all 0.3s ease-in;
     grid-template-rows: auto 1fr;
-    
 }
 
 .sidebar.collapsed {
@@ -165,7 +161,7 @@
     }
 
     &::-webkit-scrollbar-track {
-        /* Para modificar el background */
+        background: transparent;
     }
 }
 
@@ -205,17 +201,18 @@
 }
 
 .sidebar-links li a svg {
-    color: #666666;
+    color: var(--sidebar-icon-color);
+    transition: color 0.2s ease;
 }
 
 
 
 .sidebar-links li a:hover {
-    background: var(--sidebar-primary-hover);
+    background: var(--sidebar-link-hover-bg);
 }
 
 .sidebar-links li a:hover svg {
-    color: #596bef;
+    color: var(--sidebar-icon-hover);
     width: 1.4rem;
     height: 1.4rem;
     min-width: 1.4rem;
@@ -241,7 +238,7 @@
 }
 
 .sidebar-links .item .sub-menu {
-    background-color: #1f2124;
+    background-color: var(--sub-menu-bg);
     opacity: 0;
     max-height: 0;
     overflow: hidden;
@@ -249,7 +246,7 @@
 }
 
 .sidebar-links .item .sub-menu .sub-menu-container {
-    background-color: #1f2124;
+    background-color: var(--sub-menu-bg);
     padding: 0 10px;
     display: none;
     max-height: 0;
@@ -336,9 +333,9 @@
 
 .company-switcher select {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--company-select-bg);
     color: var(--text-link);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--company-select-border);
     border-radius: 8px;
     padding: 8px 10px;
     font-size: 12px;
@@ -351,8 +348,8 @@
 
 .company-switcher select:hover,
 .company-switcher select:focus {
-    border-color: rgba(89, 107, 239, 0.6);
-    background: rgba(89, 107, 239, 0.08);
+    border-color: var(--primary-color);
+    background: var(--company-select-bg);
 }
 
 .sidebar.collapsed .company-switcher {

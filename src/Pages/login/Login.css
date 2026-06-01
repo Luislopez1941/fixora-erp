@@ -57,14 +57,14 @@
     gap: 10px;
     padding: 15px;
     background-color: #2d2e36;
-    border-left: 4px solid #7f5af0;
+    border-left: 4px solid rgb(242, 165, 65);
     border-radius: 8px;
     font-size: 1rem;
     font-weight: 500;
 }
 
 .highlight__icon {
-    color: #7f5af0;
+    color: rgb(242, 165, 65);
 }
 
 .erp__features {
@@ -180,6 +180,7 @@
 .form__login_container .btn__general-purple {
 
     padding: 0 20px;
+    background-color: var(--primary-color) !important;
 
 }
 

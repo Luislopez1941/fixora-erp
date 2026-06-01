@@ -113,7 +113,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
   const processFile = (file: File) => {
     const error = validateFile(file)
     if (error) {
-      Swal.fire({ title: 'Archivo no válido', text: error, icon: 'warning', confirmButtonColor: '#5869e9' })
+      Swal.fire({ title: 'Archivo no válido', text: error, icon: 'warning', confirmButtonColor: '#586ae9' })
       return
     }
     const reader = new FileReader()
@@ -167,7 +167,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
         title: 'Sesión',
         text: 'No hay token de autenticación',
         icon: 'warning',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -177,7 +177,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
         title: 'Validación',
         text: 'El nombre del contenedor es obligatorio',
         icon: 'warning',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -187,7 +187,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
         title: 'Validación',
         text: 'Debes seleccionar una familia padre',
         icon: 'warning',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       })
       return
     }
@@ -217,7 +217,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
             title: 'Error',
             text: 'No se encontró el ID del contenedor a actualizar',
             icon: 'error',
-            confirmButtonColor: '#5869e9',
+            confirmButtonColor: '#586ae9',
           })
           return
         }
@@ -252,7 +252,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
         title: isUpdate ? '¡Actualizado!' : '¡Creado!',
         text: backendMessage || `El contenedor "${title.trim()}" se ${isUpdate ? 'actualizó' : 'creó'} correctamente`,
         icon: 'success',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       }).then(() => {
         onSaved?.()
       })
@@ -267,7 +267,7 @@ const ModalContenedores: React.FC<ModalContenedoresProps> = ({
         title: 'Error',
         text: msg,
         icon: 'error',
-        confirmButtonColor: '#5869e9',
+        confirmButtonColor: '#586ae9',
       }).catch(() => {
         alert('Error: ' + msg)
       })
