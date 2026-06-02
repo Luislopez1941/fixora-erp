@@ -2,6 +2,43 @@
     padding: 20px;
 }
 
+.areas__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.areas__filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.areas__company-select {
+  min-width: 200px;
+}
+
+.areas__count-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.areas__count-num {
+  background: rgba(63, 125, 192, 0.12);
+  color: var(--primary-color);
+  font-weight: 600;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
 
 
 .areas__container > .row__one {

@@ -60,6 +60,19 @@ const Sidebar: React.FC = () => {
           <span className="chevron hide">{ChevronIcon}</span>
           <span className="tooltip__content">{mod.label}</span>
         </a>
+        {/* Popup de submódulos para sidebar colapsado */}
+        <div className="tooltip__sub-popup">
+          <div className="tooltip__sub-popup-title">{mod.label}</div>
+          {mod.children!.map((child, idx) => (
+            <Link
+              to={buildPath(child.path)}
+              className="tooltip__sub-popup-link"
+              key={`${mod.key}-popup-${idx}`}
+            >
+              {child.label}
+            </Link>
+          ))}
+        </div>
         <div className={`sub-menu ${isActive ? 'active' : ''}`}>
           <div className="sub-menu-container">
             {mod.children!.map((child, idx) => (

@@ -107,13 +107,23 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
     setVariationImages([])
   }
   
-  const handleImageSelect = (file: File) => {
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      const base64 = reader.result as string
-      setVariationImages([...variationImages, base64])
-    }
-    reader.readAsDataURL(file)
+  const handleImageSelect = (files: File[]) => {
+    const validFiles = files.filter((f) => f.type.startsWith('image/'))
+    if (!validFiles.length) return
+
+    const readPromises = validFiles.map(
+      (file) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(String(reader.result ?? ''))
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+    )
+
+    Promise.all(readPromises).then((base64Images) => {
+      setVariationImages((prev) => [...prev, ...base64Images])
+    })
   }
 
   const handleRemoveVariationImage = (index: number) => {
@@ -220,14 +230,18 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
             <span className='material-symbols-rounded variations-manager__upload-icon' aria-hidden>
               add_photo_alternate
             </span>
-            <span>{variationImages.length > 0 ? 'Gestionar imágenes' : 'Subir imágenes'}</span>
+            <span>
+              {variationImages.length > 0
+                ? `Agregar más (${variationImages.length} subida${variationImages.length === 1 ? '' : 's'})`
+                : 'Subir imágenes'}
+            </span>
             <input
               type='file'
               accept='image/*'
               multiple
               onChange={(e) => {
                 const files = Array.from(e.target.files || [])
-                files.forEach(handleImageSelect)
+                handleImageSelect(files)
                 e.target.value = ''
               }}
               className='variations-manager__upload-input'
@@ -350,7 +364,7 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
                     <td>
                       {group.images && group.images.length > 0 ? (
                         <div className='variations-manager__table-images'>
-                          {group.images.slice(0, 3).map((img, idx) => (
+                          {group.images.slice(0, 5).map((img, idx) => (
                             <img
                               key={idx}
                               src={img}
@@ -358,8 +372,8 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
                               className='variations-manager__table-image-thumb'
                             />
                           ))}
-                          {group.images.length > 3 && (
-                            <span className='variations-manager__table-images-more'>+{group.images.length - 3}</span>
+                          {group.images.length > 5 && (
+                            <span className='variations-manager__table-images-more'>+{group.images.length - 5}</span>
                           )}
                         </div>
                       ) : (

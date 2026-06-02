@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import { getAreaTypeLabel } from '../../../../../constants/catalogTypes'
 import './Areas.css'
@@ -39,7 +39,7 @@ const TreeRow: React.FC<{
           {area.parent && <span className='areas__parent'>↑ {area.parent.name}</span>}
         </div>
         <div className='areas__td'>{getAreaTypeLabel(area.type)}</div>
-        <div className='areas__td'>{area.branchName}</div>
+        <div className='areas__td'>{area.branchName || '—'}</div>
         <div className='areas__td'>
           {area.leader ? `${area.leader.firstName} ${area.leader.firstLastName}` : '—'}
         </div>
@@ -59,25 +59,49 @@ const TreeRow: React.FC<{
 
 const Areas: React.FC = () => {
   const dispatch = useDispatch()
+  const userState = useSelector((s: any) => s.user)
+  const userId = Number(userState?.id ?? userState?._id)
+
   const [areas, setAreas] = useState<AreaNode[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedArea, setSelectedArea] = useState<AreaNode | null>(null)
+  const [companies, setCompanies] = useState<any[]>([])
+  const [companyId, setCompanyId] = useState<number | null>(null)
 
-  const fetchAreas = useCallback(async () => {
+  const fetchAreas = useCallback(async (cId?: number | null) => {
+    const id = cId ?? companyId
+    if (!id) return
     setLoading(true)
     try {
-      const res: any = await APIs.getAreaTree()
+      const res: any = await APIs.getAreaTree(id)
       setAreas(Array.isArray(res?.data) ? res.data : [])
     } catch {
       setAreas([])
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [companyId])
 
   useEffect(() => {
-    fetchAreas()
-  }, [fetchAreas])
+    const loadCompanies = async () => {
+      try {
+        const res: any = await APIs.getCompanies(userId)
+        const list = Array.isArray(res?.data) ? res.data : []
+        setCompanies(list)
+        if (list.length > 0) {
+          setCompanyId(list[0].id)
+          fetchAreas(list[0].id)
+        }
+      } catch {}
+    }
+    loadCompanies()
+  }, [userId])
+
+  const handleCompanyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const id = Number(e.target.value)
+    setCompanyId(id)
+    fetchAreas(id)
+  }
 
   const handleCreate = () => {
     setSelectedArea(null)
@@ -101,9 +125,21 @@ const Areas: React.FC = () => {
     <div className='areas'>
       <div className='areas__container'>
         <div className='areas__header-row'>
-          <div className='areas__count-bar'>
-            <span>Total de áreas</span>
-            <span className='areas__count-num'>{flatCount(areas)}</span>
+          <div className='areas__filters'>
+            <select
+              className='inputs__general areas__company-select'
+              value={companyId ?? ''}
+              onChange={handleCompanyChange}
+            >
+              <option value=''>Selecciona empresa</option>
+              {companies.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <div className='areas__count-bar'>
+              <span>Total</span>
+              <span className='areas__count-num'>{flatCount(areas)}</span>
+            </div>
           </div>
           <button className='btn__general-primary' onClick={handleCreate}>
             + Crear área
@@ -120,7 +156,9 @@ const Areas: React.FC = () => {
             <div className='areas__th'>Acciones</div>
           </div>
 
-          {loading ? (
+          {!companyId ? (
+            <div className='areas__empty'>Selecciona una empresa para ver sus áreas.</div>
+          ) : loading ? (
             <div className='areas__loading'>Cargando áreas…</div>
           ) : areas.length > 0 ? (
             <div className='areas__tbody'>
@@ -129,11 +167,11 @@ const Areas: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className='areas__empty'>No hay áreas configuradas.</div>
+            <div className='areas__empty'>No hay áreas configuradas para esta empresa.</div>
           )}
         </div>
 
-        <ModalAreas area={selectedArea} onSaved={fetchAreas} />
+        <ModalAreas area={selectedArea} onSaved={() => fetchAreas()} />
       </div>
     </div>
   )

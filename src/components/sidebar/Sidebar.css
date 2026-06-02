@@ -320,10 +320,83 @@
     position: absolute;
     z-index: 1;
     left: 5.625rem;
+    white-space: nowrap;
+    font-size: 0.82rem;
 }
 
 .collapsed .tooltip:hover .tooltip__content {
     visibility: visible;
+}
+
+/* ?tooltip submódulos — popup flotante cuando sidebar está colapsado */
+.tooltip__sub-popup {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    margin-left: 8px;
+    background: var(--sidebar-background);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 6px 0;
+    min-width: 190px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-4px);
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+    pointer-events: none;
+}
+
+.sidebar.collapsed .item:hover .tooltip__sub-popup {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.tooltip__sub-popup::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 16px;
+    width: 10px;
+    height: 10px;
+    background: var(--sidebar-background);
+    border-left: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transform: rotate(45deg);
+}
+
+.tooltip__sub-popup-title {
+    padding: 8px 14px 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #8b919c;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    margin-bottom: 4px;
+}
+
+.tooltip__sub-popup-link {
+    display: block;
+    padding: 8px 14px;
+    color: var(--text-link);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.tooltip__sub-popup-link:hover {
+    background: var(--sidebar-link-hover-bg);
+    color: var(--white);
+}
+
+/* Ocultar popup cuando sidebar NO está colapsado */
+.sidebar:not(.collapsed) .tooltip__sub-popup {
+    display: none !important;
 }
 
 /* Company switcher — visible solo si hay >1 empresa, posicionado al fondo */
