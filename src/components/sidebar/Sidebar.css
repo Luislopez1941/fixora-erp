@@ -328,34 +328,21 @@
     visibility: visible;
 }
 
-/* ?tooltip submódulos — popup flotante cuando sidebar está colapsado */
-.tooltip__sub-popup {
-    position: absolute;
-    left: 100%;
-    top: 0;
-    margin-left: 8px;
+/* ?tooltip submódulos — popup flotante cuando sidebar está colapsado (position: fixed) */
+.tooltip__sub-popup-fixed {
+    position: fixed;
     background: var(--sidebar-background);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 10px;
     padding: 6px 0;
     min-width: 190px;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(-4px);
-    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+    z-index: 10000;
     box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-    pointer-events: none;
-}
-
-.sidebar.collapsed .item:hover .tooltip__sub-popup {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(0);
+    animation: fadeInPopup 0.15s ease;
     pointer-events: auto;
 }
 
-.tooltip__sub-popup::before {
+.tooltip__sub-popup-fixed::before {
     content: '';
     position: absolute;
     left: -6px;
@@ -394,8 +381,13 @@
     color: var(--white);
 }
 
-/* Ocultar popup cuando sidebar NO está colapsado */
-.sidebar:not(.collapsed) .tooltip__sub-popup {
+@keyframes fadeInPopup {
+    from { opacity: 0; transform: translateX(-4px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Ocultar popup viejo (ya no se usa) */
+.tooltip__sub-popup {
     display: none !important;
 }
 

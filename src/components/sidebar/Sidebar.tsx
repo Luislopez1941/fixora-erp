@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import './Sidebar.css'
 import astra from '../../assets/astra.svg'
 import { Link } from 'react-router-dom'
@@ -24,6 +24,37 @@ const buildPath = (path?: string): string => {
 const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState<boolean>(true)
   const [activeMenu, setActiveMenu] = useState<string>('')
+  const [popupData, setPopupData] = useState<{
+    mod: ModuleManifest
+    top: number
+    left: number
+  } | null>(null)
+
+  const popupTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const openPopup = (mod: ModuleManifest, el: HTMLElement) => {
+    if (popupTimerRef.current) {
+      clearTimeout(popupTimerRef.current)
+      popupTimerRef.current = null
+    }
+    const rect = el.getBoundingClientRect()
+    setPopupData({
+      mod,
+      top: rect.top,
+      left: rect.right + 8,
+    })
+  }
+
+  const closePopup = () => {
+    popupTimerRef.current = setTimeout(() => setPopupData(null), 120)
+  }
+
+  const cancelClosePopup = () => {
+    if (popupTimerRef.current) {
+      clearTimeout(popupTimerRef.current)
+      popupTimerRef.current = null
+    }
+  }
 
   const { modules } = useModules()
 
@@ -54,25 +85,14 @@ const Sidebar: React.FC = () => {
         <a
           className="tooltip sub-menu-toggle"
           onClick={() => openSubMenu(mod.key)}
+          onMouseEnter={(e) => collapsed && openPopup(mod, e.currentTarget)}
+          onMouseLeave={closePopup}
         >
           {renderIcon(mod.icon)}
           <span className="link hide">{mod.label}</span>
           <span className="chevron hide">{ChevronIcon}</span>
           <span className="tooltip__content">{mod.label}</span>
         </a>
-        {/* Popup de submódulos para sidebar colapsado */}
-        <div className="tooltip__sub-popup">
-          <div className="tooltip__sub-popup-title">{mod.label}</div>
-          {mod.children!.map((child, idx) => (
-            <Link
-              to={buildPath(child.path)}
-              className="tooltip__sub-popup-link"
-              key={`${mod.key}-popup-${idx}`}
-            >
-              {child.label}
-            </Link>
-          ))}
-        </div>
         <div className={`sub-menu ${isActive ? 'active' : ''}`}>
           <div className="sub-menu-container">
             {mod.children!.map((child, idx) => (
@@ -124,6 +144,26 @@ const Sidebar: React.FC = () => {
           </ul>
         </div>
 
+        {popupData && (
+          <div
+            className="tooltip__sub-popup-fixed"
+            style={{ top: popupData.top, left: popupData.left }}
+            onMouseEnter={cancelClosePopup}
+            onMouseLeave={() => setPopupData(null)}
+          >
+            <div className="tooltip__sub-popup-title">{popupData.mod.label}</div>
+            {popupData.mod.children!.map((child, idx) => (
+              <Link
+                to={buildPath(child.path)}
+                className="tooltip__sub-popup-link"
+                key={`popup-${idx}`}
+                onClick={() => setPopupData(null)}
+              >
+                {child.label}
+              </Link>
+            ))}
+          </div>
+        )}
         <div className="divider"></div>
         <div className="sidebar__profile">
           <div className="btn__logout_close">
