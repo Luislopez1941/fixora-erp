@@ -1,0 +1,480 @@
+.modal-familias-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  animation: modal-overlay-in 0.3s ease both;
+}
+
+.modal-familias-content {
+  background-color: var(--modal-bg, #17191b) !important;
+  color: var(--modal-text, #f5f6f7) !important;
+  border-radius: 12px;
+  border: 1px solid var(--modal-overlay-border);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow: hidden;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: scale(0.9);
+  opacity: 0;
+  z-index: 10002;
+  position: relative;
+  font-family: "Poppins", sans-serif;
+}
+
+.modal-familias-content.active {
+  transform: scale(1);
+  opacity: 1 !important;
+}
+
+/* Header */
+.modal-familias-content .modal-familias-header {
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  padding: 16px 24px;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--modal-overlay-border);
+  flex-shrink: 0;
+}
+
+.modal-familias-content .modal-familias-header h2 {
+  color: var(--modal-text);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-familias-content .modal-familias-close {
+  font-size: 24px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--modal-text-muted);
+  transition: color 0.2s;
+}
+
+.modal-familias-content .modal-familias-close:hover {
+  color: var(--modal-text);
+}
+
+/* Body */
+.modal-familias-content .modal-familias-body {
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.modal-familias-content .modal-familias-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Row Layout - Fixed Overlap */
+.modal-familias-content .modal-familias-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: end;
+}
+
+.modal-familias-content .modal-familias-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.modal-familias-content .modal-familias-field--full {
+  grid-column: span 3;
+}
+
+.modal-familias-content .modal-familias-label {
+  color: var(--modal-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-familias-content .modal-familias-required {
+  color: #ff4d4f;
+  margin-left: 2px;
+}
+
+/* Inputs specific to this modal */
+.modal-familias-content .modal-familias-input {
+  width: 100%;
+  background-color: var(--modal-input-bg);
+  color: var(--modal-text);
+  border: 1px solid var(--modal-input-border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-family: "Poppins", sans-serif;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-familias-content .modal-familias-input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(7, 42, 87, 0.1);
+}
+
+/* Status Group */
+.modal-familias-content .modal-familias-status-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+/* Store Picker Isolation */
+.modal-familias-content .modal-familias-store-picker {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-familias-content .modal-familias-store-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--modal-text-muted);
+}
+
+/* Image Upload */
+.modal-familias-content .modal-familias-image-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px 16px;
+  border: 2px dashed var(--modal-overlay-border);
+  border-radius: 12px;
+  background: var(--modal-recessed-bg);
+  color: var(--modal-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-familias-content .modal-familias-image-dropzone:hover {
+  border-color: var(--primary-color);
+  background: var(--modal-overlay-hover-bg);
+}
+
+.modal-familias-content .modal-familias-image-dropzone--active {
+  border-color: var(--primary-color);
+  background: rgba(88, 106, 233, 0.1);
+}
+
+.modal-familias-content .modal-familias-image-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--modal-text);
+  font-weight: 500;
+}
+
+.modal-familias-content .modal-familias-image-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--modal-text-muted);
+}
+
+.modal-familias-content .modal-familias-image-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.modal-familias-content .modal-familias-image-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-familias-content .modal-familias-image-preview img {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--modal-overlay-border);
+}
+
+.modal-familias-content .modal-familias-image-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-familias-content .modal-familias-image-filename {
+  font-size: 0.85rem;
+  color: var(--modal-text);
+}
+
+.modal-familias-content .modal-familias-image-remove {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.18);
+  color: #ff7b7b;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.modal-familias-content .modal-familias-image-remove:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+/* Actions */
+.modal-familias-content .modal-familias-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-top: 1px solid var(--modal-overlay-border);
+  background-color: var(--modal-bg);
+  flex-shrink: 0;
+}
+
+.modal-familias-content .modal-familias-btn-cancel {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: var(--modal-recessed-bg);
+  color: var(--modal-text);
+  border: 1px solid var(--modal-overlay-border);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-familias-content .modal-familias-btn-cancel:hover {
+  background: var(--modal-overlay-hover-bg);
+}
+
+.modal-familias-content .modal-familias-btn-submit {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(88, 106, 233, 0.2);
+  transition: all 0.2s;
+}
+
+.modal-familias-content .modal-familias-btn-submit:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.modal-familias-content .modal-familias-btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .modal-familias-content .modal-familias-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.modal-familias-content .modal-familias-section-title,
+.modal-familias-section-title {
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.modal-familias-section-title--spaced {
+  margin-top: 12px;
+}
+
+.modal-familias-tabs {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.modal-familias-tab {
+  padding: 8px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modal-familias-tab:hover {
+  border-color: var(--secondary-color);
+}
+
+.modal-familias-tab--active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.modal-familias-tabpane {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-familias-tabpane[hidden] {
+  display: none;
+}
+
+/* Pestañas compactas */
+.modal-familias-tabs {
+  gap: 4px;
+  padding: 3px;
+  width: fit-content;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.modal-familias-tab {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.modal-familias-tab:hover {
+  color: var(--secondary-color);
+}
+
+.modal-familias-tab--active:hover {
+  color: #fff;
+}
+
+/* Pestañas con subrayado (estilo de la ficha de trabajo) */
+.modal-familias-tabs {
+  display: flex;
+  gap: 24px;
+  width: auto;
+  padding: 0;
+  border: none;
+  border-bottom: 2px solid var(--panel-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.modal-familias-tab {
+  margin-bottom: -2px;
+  padding: 6px 2px 8px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.modal-familias-tab:hover {
+  color: var(--text-color);
+  border-color: transparent;
+}
+
+.modal-familias-tab--active,
+.modal-familias-tab--active:hover {
+  background: transparent;
+  border-bottom-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+/* Pestañas pegadas bajo el encabezado, de borde a borde */
+.modal-familias-content .modal-familias-tabs {
+  flex-shrink: 0;
+  padding: 0 24px;
+  margin: 0;
+  border-bottom: 1px solid var(--modal-overlay-border);
+}
+
+.modal-familias-content .modal-familias-tab {
+  margin-bottom: -1px;
+  padding: 10px 2px 9px;
+}
+
+/* Encabezado más bajo */
+.modal-familias-content .modal-familias-header {
+  min-height: 0;
+  padding: 12px 24px;
+}
+
+.modal-familias-content .modal-familias-header h2 {
+  font-size: 1.05rem;
+}
+
+/* Encabezado mínimo */
+.modal-familias-content .modal-familias-header {
+  min-height: 0;
+  padding: 8px 20px;
+}
+
+.modal-familias-content .modal-familias-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.modal-familias-content .modal-familias-close {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-familias-content .modal-familias-tabs {
+  padding: 0 20px;
+}

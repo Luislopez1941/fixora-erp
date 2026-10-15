@@ -15,27 +15,19 @@ const VariationsModal: React.FC<VariationsModalProps> = ({ variations, onChange,
   }
 
   return (
-    <div className='variations-modal-overlay'>
-      <div className='variations-modal-content'>
+    <div className={`variations-modal-overlay ${isOpen ? 'active' : ''}`}>
+      <div className={`variations-modal-content ${isOpen ? 'active' : ''}`}>
         <div className='variations-modal-header'>
           <h2>Gestionar Variaciones</h2>
           <button
             className='variations-modal-close'
             onClick={onClose}
           >
-            ×
+            <span className='material-symbols-rounded'>close</span>
           </button>
         </div>
         <div className='variations-modal-body'>
           <VariationsManager variations={variations} onChange={onChange} />
-        </div>
-        <div className='variations-modal-footer'>
-          <button
-            className='btn__general-purple'
-            onClick={onClose}
-          >
-            Listo
-          </button>
         </div>
       </div>
     </div>

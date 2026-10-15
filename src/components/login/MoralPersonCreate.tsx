@@ -36,7 +36,7 @@ const MoralPersonCreate: React.FC = () => {
 
     const create = async () => {
         try {
-            let response: any = await APIs.cresteUser(fields)
+            let response: any = await APIs.createUser(fields)
             if(response.status == 'warning') {
                return toast.warning(response.message)
             }

@@ -1,0 +1,328 @@
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import APIs from '../../../../services/APIs';
+import './Cash.css';
+import { PrivateRoutes } from '../../../../models/routes';
+
+const CashShifts = () => {
+  const navigate = useNavigate();
+  const userState = useSelector((state: any) => state.user);
+  const [activeShifts, setActiveShifts] = useState<any[]>([]);
+  const [historyShifts, setHistoryShifts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'scheduled'>('active');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showHandoverModal, setShowHandoverModal] = useState({ open: false, shiftId: null as number | null });
+  const [newShiftData, setNewShiftData] = useState({ openingAmount: '' });
+  const [handoverData, setHandoverData] = useState({ newUserId: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const fetchShifts = async () => {
+    try {
+      setLoading(true);
+      const branchId = userState?.branchId || 1;
+
+      const activeRes = await APIs.getActiveCashShifts(branchId);
+      if (activeRes.status === 'success') {
+        setActiveShifts(activeRes.data);
+      }
+
+      setHistoryShifts([
+        { id: 101, user: { firstName: 'Ana', firstLastName: 'Pérez' }, openedAt: '2026-10-01T08:00:00Z', closedAt: '2026-10-01T16:00:00Z', openingAmount: 100, closingAmount: 1250, status: 'CLOSED' },
+        { id: 102, user: { firstName: 'Carlos', firstLastName: 'Ruiz' }, openedAt: '2026-10-02T16:00:00Z', closedAt: '2026-10-03T00:00:00Z', openingAmount: 100, closingAmount: 980, status: 'CLOSED' },
+      ]);
+    } catch (err: any) {
+      setError(err.message || 'Error al cargar la información de turnos.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchShifts();
+  }, [userState]);
+
+  const handleCreateShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsSubmitting(true);
+      const branchId = userState?.branchId || 1;
+      const response = await APIs.openCashShift({
+        branchId,
+        openingAmount: Number(newShiftData.openingAmount),
+      });
+
+      if (response.status === 'success') {
+        await fetchShifts();
+        setShowCreateModal(false);
+        setNewShiftData({ openingAmount: '' });
+      } else {
+        alert(response.message || 'Error al abrir el turno.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error crítico al abrir el turno.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleHandover = async (e: React.FormEvent) => {
+    e.preventDefault();
+    alert(`Relevo procesado: Turno #${showHandoverModal.shiftId} transferido al usuario ${handoverData.newUserId}`);
+    setShowHandoverModal({ open: false, shiftId: null });
+    setHandoverData({ newUserId: '' });
+  };
+
+  if (loading) return <div className="cash-container loading">Cargando gestión de turnos...</div>;
+
+  return (
+    <div className="cash-container">
+      <div className="cash-header">
+        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <h1 style={{ margin: 0 }}>Gestión de Turnos</h1>
+            <div className="cash-badge">Administración Operativa</div>
+          </div>
+          <button
+            className="btn-small"
+            onClick={() => navigate(`/auth/cash/${PrivateRoutes.CASH_CONFIG}`)}
+            style={{ marginLeft: '1rem', height: 'auto', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '5px', border: '1px solid var(--cash-border)', background: 'white', cursor: 'pointer', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 500 }}
+          >
+            <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>settings</span>
+            Configuración de Turnos
+          </button>
+        </div>
+        <button
+          className="btn-primary"
+          onClick={() => setShowCreateModal(true)}
+          style={{ padding: '0.6rem 1.2rem', fontSize: '0.9rem' }}
+        >
+          <span className="material-symbols-rounded" style={{ verticalAlign: 'middle', marginRight: '4px' }}>add_circle</span>
+          Abrir Nuevo Turno
+        </button>
+      </div>
+
+      {error && <div className="cash-error-banner">{error}</div>}
+
+      <div className="cash-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'active' ? 'active' : ''}`}
+          onClick={() => setActiveTab('active')}
+        >
+          Turnos Activos
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Historial
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'scheduled' ? 'active' : ''}`}
+          onClick={() => setActiveTab('scheduled')}
+        >
+          Programados
+        </button>
+      </div>
+
+      <div className="cash-main-content" style={{ marginTop: '1.5rem' }}>
+        {activeTab === 'active' && (
+          <div className="section-content">
+            <div className="section-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-rounded">play_circle</span>
+                <h3>Operaciones en Curso</h3>
+              </div>
+              <span className="text-muted" style={{ fontSize: '0.8rem' }}>Turnos actualmente abiertos por sucursal</span>
+            </div>
+            <table className="cash-table">
+              <thead>
+                <tr style={{ background: '#f8fafc' }}>
+                  <th>ID Turno</th>
+                  <th>Responsable</th>
+                  <th>Hora Apertura</th>
+                  <th>Monto Inicial</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeShifts.length > 0 ? (
+                  activeShifts.map((shift) => (
+                    <tr key={shift.id}>
+                      <td style={{ fontWeight: 600 }}>#{shift.id}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div className="user-avatar-small">{shift.user?.firstName?.[0] || 'U'}</div>
+                          <span>{shift.user?.firstName} {shift.user?.firstLastName}</span>
+                        </div>
+                      </td>
+                      <td>{new Date(shift.openedAt).toLocaleString()}</td>
+                      <td style={{ fontWeight: 500 }}>${Number(shift.openingAmount).toFixed(2)}</td>
+                      <td><span className="status-badge open">{shift.status}</span></td>
+                      <td>
+                        <button
+                          className="btn-small"
+                          onClick={() => setShowHandoverModal({ open: true, shiftId: shift.id })}
+                        >
+                          <span className="material-symbols-rounded" style={{ fontSize: '14px', verticalAlign: 'middle' }}>swap_horiz</span>
+                          Relevo
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="text-center">No hay turnos activos.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'history' && (
+          <div className="section-content">
+            <div className="section-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-rounded">history</span>
+                <h3>Historial de Turnos</h3>
+              </div>
+              <span className="text-muted" style={{ fontSize: '0.8rem' }}>Cierres y arqueos finalizados</span>
+            </div>
+            <table className="cash-table">
+              <thead style={{ background: '#f8fafc' }}>
+                <tr>
+                  <th>ID</th>
+                  <th>Cajero</th>
+                  <th>Apertura</th>
+                  <th>Cierre</th>
+                  <th>Fondo Inicial</th>
+                  <th>Cierre Final</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {historyShifts.map((shift) => (
+                  <tr key={shift.id}>
+                    <td style={{ fontWeight: 600 }}>#{shift.id}</td>
+                    <td>{shift.user?.firstName} {shift.user?.firstLastName}</td>
+                    <td>{new Date(shift.openedAt).toLocaleString()}</td>
+                    <td>{new Date(shift.closedAt).toLocaleString()}</td>
+                    <td>${Number(shift.openingAmount).toFixed(2)}</td>
+                    <td className="text-success" style={{ fontWeight: 600 }}>${Number(shift.closingAmount).toFixed(2)}</td>
+                    <td><span className="status-badge closed">{shift.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {activeTab === 'scheduled' && (
+          <div className="section-content">
+            <div className="section-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span className="material-symbols-rounded">event_repeat</span>
+                <h3>Turnos Programados</h3>
+              </div>
+              <span className="text-muted" style={{ fontSize: '0.8rem' }}>Automatizaciones y horarios asignados</span>
+            </div>
+            <div className="scheduled-grid">
+              <div className="scheduled-card">
+                <div className="scheduled-info">
+                  <span className="scheduled-time">08:00 AM - 04:00 PM</span>
+                  <span className="scheduled-user">Responsable: Ana Pérez</span>
+                </div>
+                <span className="status-badge open">Programado</span>
+              </div>
+              <div className="scheduled-card">
+                <div className="scheduled-info">
+                  <span className="scheduled-time">04:00 PM - 12:00 AM</span>
+                  <span className="scheduled-user">Responsable: Carlos Ruiz</span>
+                </div>
+                <span className="status-badge open">Programado</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {showCreateModal && (
+        <div className="cash-modal-overlay">
+          <div className="cash-modal">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="material-symbols-rounded">add_circle</span>
+              Abrir Nuevo Turno
+            </h2>
+            <form onSubmit={handleCreateShift}>
+              <div className="form-group">
+                <label>Monto de Apertura</label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: '10px', color: 'var(--cash-text-muted)' }}>$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    style={{ paddingLeft: '20px' }}
+                    value={newShiftData.openingAmount}
+                    onChange={(e) => setNewShiftData({ ...newShiftData, openingAmount: e.target.value })}
+                    placeholder="0.00"
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowCreateModal(false)} disabled={isSubmitting}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-primary" disabled={isSubmitting}>
+                  {isSubmitting ? 'Abriendo...' : 'Abrir Turno'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showHandoverModal.open && (
+        <div className="cash-modal-overlay">
+          <div className="cash-modal">
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span className="material-symbols-rounded">swap_horiz</span>
+              Relevo de Responsable
+            </h2>
+            <p style={{ fontSize: '0.875rem', color: 'var(--cash-text-muted)', marginBottom: '1.5rem' }}>
+              Transfiere la responsabilidad del Turno #{showHandoverModal.shiftId} a otro empleado.
+            </p>
+            <form onSubmit={handleHandover}>
+              <div className="form-group">
+                <label>Nuevo Responsable</label>
+                <select
+                  value={handoverData.newUserId}
+                  onChange={(e) => setHandoverData({ ...handoverData, newUserId: e.target.value })}
+                  required
+                >
+                  <option value="">Seleccione un usuario...</option>
+                  <option value="2">Ana Pérez</option>
+                  <option value="3">Carlos Ruiz</option>
+                  <option value="4">Marta Gómez</option>
+                </select>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowHandoverModal({ open: false, shiftId: null })}>
+                  Cancelar
+                </button>
+                <button type="submit" className="btn-primary">Confirmar Relevo</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CashShifts;

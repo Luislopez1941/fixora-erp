@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import '../cobranza.css'
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import './CreditAccounts.css'
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import { readCategoryBranchId } from '../../../../../constants/category'
 
 const formatMoney = (value: number) =>
@@ -70,14 +70,24 @@ const CreditAccounts: React.FC = () => {
     )
   }, [search])
 
+  const activeCount = MOCK_ACCOUNTS.filter((a) => a.status === 'ACTIVE').length
   const totalCredit = MOCK_ACCOUNTS.reduce((sum, item) => sum + item.creditLimit, 0)
   const totalUsed = MOCK_ACCOUNTS.reduce((sum, item) => sum + item.balance, 0)
+  const totalAvailable = Math.max(totalCredit - totalUsed, 0)
 
   return (
-    <div className='cobranza'>
-      <div className='cobranza__container'>
-        <div className='cobranza__toolbar'>
-          <div className='cobranza__toolbar-left'>
+    <div className='credit-accounts'>
+      <div className='credit-accounts__container'>
+        <div className='credit-accounts__notice' role='note'>
+          <span className='material-symbols-rounded'>info</span>
+          <div>
+            <strong>Vista de ejemplo</strong>
+            <span>Los clientes y montos de esta pantalla son de muestra: el módulo de cobranza aún no está conectado a los datos reales.</span>
+          </div>
+        </div>
+
+        <div className='credit-accounts__header'>
+          <div className='credit-accounts__header-left'>
             <CategoriesStorePicker
               branchId={branchId}
               onBranchIdChange={(id) => {
@@ -85,87 +95,96 @@ const CreditAccounts: React.FC = () => {
                 localStorage.setItem('categories-store-id', String(id))
               }}
             />
-          </div>
-          <div className='cobranza__toolbar-right'>
-            <div className='cobranza__search-field'>
+            <div className='credit-accounts__search'>
+              <span className='credit-accounts__search-icon material-symbols-rounded' aria-hidden>search</span>
               <input
-                className='inputs__general'
+                className='inputs__general credit-accounts__search-input'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder='Buscar cliente o RFC'
+                placeholder='Buscar cliente, RFC o teléfono'
                 aria-label='Buscar cuenta de crédito'
               />
             </div>
-            <button type='button' className='btn__general-primary'>
-              Nueva cuenta de crédito
-            </button>
           </div>
+          <button type='button' className='btn__general-primary' disabled title='Disponible cuando se conecte el módulo de cobranza'>
+            Nueva cuenta de crédito
+          </button>
         </div>
 
-        <p className='cobranza__subtitle'>
-          Otorga crédito a clientes registrados. Cada cliente tiene una sola cuenta con límite y saldo.
-        </p>
-
-        <div className='cobranza__stats'>
-          <div className='cobranza__stat-card'>
+        <div className='credit-accounts__summary'>
+          <div className='credit-accounts__card'>
             <span>Cuentas activas</span>
-            <strong>{MOCK_ACCOUNTS.filter((a) => a.status === 'ACTIVE').length}</strong>
+            <b>{activeCount}</b>
           </div>
-          <div className='cobranza__stat-card'>
+          <div className='credit-accounts__card'>
             <span>Límite total</span>
-            <strong>{formatMoney(totalCredit)}</strong>
+            <b>{formatMoney(totalCredit)}</b>
           </div>
-          <div className='cobranza__stat-card cobranza__stat-card--danger'>
+          <div className='credit-accounts__card'>
             <span>Crédito utilizado</span>
-            <strong>{formatMoney(totalUsed)}</strong>
+            <b className='is-debt'>{formatMoney(totalUsed)}</b>
+          </div>
+          <div className='credit-accounts__card'>
+            <span>Disponible</span>
+            <b className='is-ok'>{formatMoney(totalAvailable)}</b>
           </div>
         </div>
 
-        <div className='cobranza__table-wrap'>
-          <div className='cobranza__table-head cobranza__table--accounts'>
+        <div className='credit-accounts__list'>
+          <div className='credit-accounts__row credit-accounts__row--head'>
             <span>Cliente</span>
-            <span>RFC</span>
-            <span>Teléfono</span>
             <span>Límite</span>
+            <span>Uso del crédito</span>
             <span>Saldo</span>
             <span>Disponible</span>
             <span>Estado</span>
-            <span>Acciones</span>
+            <span className='credit-accounts__col-actions'>Acciones</span>
           </div>
 
           {filtered.length > 0 ? (
             filtered.map((item) => {
               const available = Math.max(item.creditLimit - item.balance, 0)
+              const usage = item.creditLimit > 0 ? Math.min((item.balance / item.creditLimit) * 100, 100) : 0
+              const level = usage >= 90 ? 'is-high' : usage >= 60 ? 'is-mid' : 'is-low'
               return (
-                <div className='cobranza__table-row cobranza__table--accounts' key={item.id}>
-                  <span>{item.customerName}</span>
-                  <span>{item.taxId || '—'}</span>
-                  <span>{item.phone || '—'}</span>
-                  <span className='cobranza__money'>{formatMoney(item.creditLimit)}</span>
-                  <span className={`cobranza__money ${item.balance > 0 ? 'cobranza__money--debt' : ''}`}>
+                <div className='credit-accounts__row' key={item.id}>
+                  <div className='credit-accounts__cell credit-accounts__cell--client' data-label='Cliente'>
+                    <strong>{item.customerName}</strong>
+                    <span>{[item.taxId, item.phone].filter(Boolean).join(' · ') || '—'}</span>
+                  </div>
+                  <div className='credit-accounts__cell' data-label='Límite'>{formatMoney(item.creditLimit)}</div>
+                  <div className='credit-accounts__cell' data-label='Uso del crédito'>
+                    <div className='credit-accounts__usage'>
+                      <div className='credit-accounts__bar'>
+                        <span className={level} style={{ width: `${usage}%` }} />
+                      </div>
+                      <small>{Math.round(usage)}%</small>
+                    </div>
+                  </div>
+                  <div className={`credit-accounts__cell ${item.balance > 0 ? 'is-debt' : ''}`} data-label='Saldo'>
                     {formatMoney(item.balance)}
-                  </span>
-                  <span className='cobranza__money cobranza__money--ok'>
-                    {formatMoney(available)}
-                  </span>
-                  <span>
-                    <span className={`cobranza__badge cobranza__badge--${item.status.toLowerCase()}`}>
+                  </div>
+                  <div className='credit-accounts__cell is-ok' data-label='Disponible'>{formatMoney(available)}</div>
+                  <div className='credit-accounts__cell' data-label='Estado'>
+                    <span className={`credit-accounts__badge credit-accounts__badge--${item.status.toLowerCase()}`}>
                       {statusLabel[item.status] ?? item.status}
                     </span>
-                  </span>
-                  <div className='cobranza__actions'>
-                    <button type='button' className='cobranza__action-btn'>
-                      Editar
+                  </div>
+                  <div className='credit-accounts__cell credit-accounts__col-actions'>
+                    <button type='button' className='credit-accounts__icon-btn' title='Editar (disponible al conectar el módulo)' aria-label='Editar cuenta' disabled>
+                      <span className='material-symbols-rounded'>edit</span>
                     </button>
-                    <button type='button' className='cobranza__action-btn cobranza__action-btn--primary'>
-                      Abonar
+                    <button type='button' className='credit-accounts__icon-btn' title='Registrar abono (disponible al conectar el módulo)' aria-label='Registrar abono' disabled>
+                      <span className='material-symbols-rounded'>payments</span>
                     </button>
                   </div>
                 </div>
               )
             })
           ) : (
-            <div className='cobranza__empty'>No hay cuentas de crédito con ese criterio.</div>
+            <div className='credit-accounts__state'>
+              <p>No hay cuentas de crédito con ese criterio</p>
+            </div>
           )}
         </div>
       </div>

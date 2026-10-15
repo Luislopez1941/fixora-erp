@@ -1,84 +1,90 @@
 .price-ranges-modal {
+  background: rgba(0, 0, 0, 0.3);
   position: fixed;
   top: 0;
+  bottom: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
+  right: 0;
   align-items: center;
+  justify-content: center;
+  display: flex;
+  visibility: hidden;
   z-index: 9999;
-  animation: article-modal-overlay-in 0.3s ease both;
+}
+
+.price-ranges-modal.active {
+  visibility: visible;
 }
 
 .price-ranges-content {
-  background: #1a1d24;
+  background-color: var(--modal-bg);
   border-radius: 12px;
-  width: min(860px, 94%);
-  max-width: 860px;
-  max-height: 74vh;
-  overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  animation: article-modal-content-in 0.3s ease both;
+  width: 94%;
+  max-width: 1080px;
+  height: 95vh;
+  transition: 0.3s ease all;
+  transform: scale(0.7);
+  opacity: 0;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  font-family: "Poppins", sans-serif;
 }
 
-@keyframes article-modal-overlay-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes article-modal-content-in {
-  from {
-    transform: scale(0.7);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.price-ranges-content.active {
+  transform: scale(1);
+  opacity: 1;
 }
 
 .price-ranges-header {
   display: flex;
-  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  justify-content: center;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid #2a2d35;
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--modal-overlay-border);
 }
 
 .price-ranges-header h2 {
-  color: #fff;
-  font-size: 18px;
+  color: var(--modal-text);
+  font-size: 1.1rem;
+  font-weight: 600;
   margin: 0;
 }
 
 .btn-close {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 32px;
-  cursor: pointer;
-  padding: 0;
-  width: 40px;
-  height: 40px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: 0.3s ease all;
+  color: var(--modal-text-muted);
+  position: absolute;
+  right: 15px;
+  top: 13px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
   border-radius: 8px;
-  transition: background 0.3s;
+  width: 32px;
+  height: 32px;
+  text-decoration: none;
 }
 
 .btn-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--modal-overlay-hover-bg);
+  color: var(--modal-text);
 }
 
 .price-ranges-body {
-  padding: 14px 16px;
+  padding: 20px 24px;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .ranges-list {
@@ -86,13 +92,14 @@
 }
 
 .ranges-list h3 {
-  color: #fff;
-  font-size: 18px;
+  color: var(--modal-text);
+  font-size: 1.1rem;
+  font-weight: 600;
   margin-bottom: 16px;
 }
 
 .no-ranges {
-  color: #888;
+  color: var(--modal-text-muted);
   text-align: center;
   padding: 32px;
   font-style: italic;
@@ -101,17 +108,17 @@
 .ranges-table {
   width: 100%;
   border-collapse: collapse;
-  background: #242730;
+  background: var(--modal-recessed-bg);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .ranges-table thead {
-  background: #2a2d35;
+  background: var(--modal-overlay-border);
 }
 
 .ranges-table th {
-  color: #fff;
+  color: var(--modal-text);
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -119,35 +126,39 @@
 }
 
 .ranges-table td {
-  color: #ddd;
+  color: var(--modal-text);
   padding: 12px 16px;
-  border-top: 1px solid #2a2d35;
+  border-top: 1px solid var(--modal-overlay-border);
 }
 
 .btn-delete-range {
-  background: #dc3545;
+  background: var(--modal-accent-red, #e53935);
   color: #fff;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .btn-delete-range:hover {
-  background: #c82333;
+  filter: brightness(0.9);
+  transform: translateY(-1px);
 }
 
 .add-range-form {
-  background: #242730;
+  background: var(--modal-recessed-bg);
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 1px solid var(--modal-overlay-border);
 }
 
 .add-range-form h3 {
-  color: #fff;
-  font-size: 18px;
+  color: var(--modal-text);
+  font-size: 1.1rem;
+  font-weight: 600;
   margin-bottom: 16px;
 }
 
@@ -161,61 +172,65 @@
 .form-group {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .form-group label {
-  color: #aaa;
-  font-size: 13px;
-  margin-bottom: 6px;
-  font-weight: 500;
+  color: var(--modal-text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 .input-field {
-  background: #1a1d24;
-  border: 1px solid #2a2d35;
-  color: #fff;
-  padding: 10px 12px;
-  border-radius: 6px;
+  background: var(--modal-input-bg);
+  border: 1px solid var(--modal-input-border);
+  color: var(--modal-text);
+  padding: 8px 12px;
+  border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.3s;
+  font-family: "Poppins", sans-serif;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #4a9eff;
+  border-color: #586ae9;
 }
 
 .input-field::placeholder {
-  color: #666;
+  color: var(--modal-text-muted);
 }
 
 .btn-add-range {
-  background: #28a745;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .btn-add-range:hover {
-  background: #218838;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 106, 233, 0.2);
 }
 
 .help-text {
   margin-top: 20px;
   padding: 16px;
-  background: rgba(74, 158, 255, 0.1);
-  border-left: 3px solid #4a9eff;
+  background: rgba(88, 106, 233, 0.1);
+  border-left: 3px solid #586ae9;
   border-radius: 6px;
 }
 
 .help-text p {
-  color: #fff;
+  color: var(--modal-text);
   margin: 0 0 8px 0;
   font-size: 14px;
 }
@@ -223,7 +238,7 @@
 .help-text ul {
   margin: 0;
   padding-left: 20px;
-  color: #ddd;
+  color: var(--modal-text-muted);
   font-size: 13px;
 }
 

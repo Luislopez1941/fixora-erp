@@ -14,10 +14,11 @@
   max-height: min(80vh, 720px);
   display: flex;
   flex-direction: column;
-  background: #1a1d24;
-  border: 1px solid rgba(88, 106, 233, 0.35);
+  background: var(--modal-bg);
+  border: 1px solid var(--modal-overlay-border);
   border-radius: 12px;
   overflow: hidden;
+  font-family: "Poppins", sans-serif;
 }
 
 .article-warehouses-modal-header {
@@ -25,19 +26,19 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--modal-overlay-border);
 }
 
 .article-warehouses-modal-header h2 {
   margin: 0;
-  color: #f5f6f7;
+  color: var(--modal-text);
   font-size: 1.1rem;
 }
 
 .article-warehouses-modal-close {
   border: none;
   background: transparent;
-  color: #f5f6f7;
+  color: var(--modal-text);
   font-size: 1.5rem;
   cursor: pointer;
   line-height: 1;
@@ -53,7 +54,7 @@
 
 .article-warehouses-modal-hint {
   margin: 0;
-  color: rgba(245, 246, 247, 0.65);
+  color: var(--modal-text-muted);
   font-size: 0.88rem;
   line-height: 1.45;
 }
@@ -89,20 +90,20 @@
   gap: 12px;
   padding: 12px 14px;
   border-radius: 8px;
-  background: #13171f;
-  border: 1px solid rgba(88, 106, 233, 0.2);
+  background: var(--modal-recessed-bg);
+  border: 1px solid var(--modal-overlay-border);
 }
 
 .article-warehouses-modal-item__name {
   margin: 0;
-  color: #f5f6f7;
+  color: var(--modal-text);
   font-weight: 600;
   font-size: 0.92rem;
 }
 
 .article-warehouses-modal-item__meta {
   margin: 4px 0 0;
-  color: rgba(245, 246, 247, 0.55);
+  color: var(--modal-text-muted);
   font-size: 0.8rem;
 }
 
@@ -111,7 +112,7 @@
   border-radius: 6px;
   padding: 6px 10px;
   background: rgba(239, 68, 68, 0.15);
-  color: #fca5a5;
+  color: var(--modal-accent-red);
   cursor: pointer;
   font-size: 0.82rem;
 }
@@ -120,12 +121,14 @@
   margin: 0;
   padding: 24px 12px;
   text-align: center;
-  color: rgba(245, 246, 247, 0.55);
+  color: var(--modal-text-muted);
 }
 
 .article-warehouses-modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 20px 24px;
+  border-top: 1px solid var(--modal-overlay-border);
   display: flex;
   justify-content: flex-end;
+  background-color: var(--modal-bg);
+  z-index: 10;
 }

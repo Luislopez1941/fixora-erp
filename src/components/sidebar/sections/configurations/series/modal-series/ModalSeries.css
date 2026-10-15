@@ -1,177 +1,170 @@
-
-
-
 /*=================================================
- 
-  Modal de precios del modal del articulo 
-  
+  Modal "Nueva serie"
+  Todas las clases cuelgan de .series_modal (notación padre__hijo)
+  para no chocar con los otros modales, que cargan su CSS de forma global.
 =================================================*/
 
-
-.overlay__series_modal {
-	background: rgba(0,0,0,.3);
+.series_modal__overlay {
 	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
+	inset: 0;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	display: flex;
+	background: rgba(7, 20, 40, 0.55);
 	visibility: hidden;
-	z-index: 1;
+	/* Por encima del sidebar (hasta 10000) y del header (2000) */
+	z-index: 10001;
 }
 
-.overlay__series_modal.active {
+.series_modal__overlay.active {
 	visibility: visible;
 }
 
-.header__modal {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-
-
-}
-
-
-.popup__series_modal {
-	background-color: #17191b;  
-	border-radius: 5px;
-	width: 40vw;
-    height: auto;
-	transition: .3s ease all;
+.series_modal__popup {
+	width: min(860px, 92vw);
+	background-color: var(--modal-bg, var(--card-bg));
+	color: var(--text-color);
+	border: 1px solid var(--panel-border);
+	border-top: 3px solid var(--secondary-color);
+	border-radius: 14px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
 	transform: scale(0.7);
 	opacity: 0;
-    overflow: hidden;
-}
-
-.administrator-modal {
-    padding: 10px 20px 20px 20px;
-}
-
-
-.popup__series_modal .btn-cerrar-popup__series_modal {
-	font-size: 16px;
-	display: block;
 	transition: .3s ease all;
-	color: #BBBBBB;
-    position: absolute;
-    right: 15px;
-    top: 13px;
 }
 
-/* ------------------------- */
-/* ANIMACIONES */
-/* ------------------------- */
-.popup__series_modal.active {	transform: scale(1); opacity: 1; }
+.series_modal__popup.active {
+	transform: scale(1);
+	opacity: 1;
+}
 
-.series_modal_container {
+.series_modal__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	border-bottom: 1px solid var(--panel-border);
+	background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
+}
+
+.series_modal__title {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--primary-color);
+}
+
+[data-theme="dark"] .series_modal__title {
+	color: var(--text-color);
+}
+
+.series_modal__close {
+	position: absolute;
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: block;
+	color: var(--text-muted);
+	transition: .3s ease all;
+}
+
+.series_modal__close:hover {
+	color: var(--secondary-color);
+}
+
+.series_modal__close-icon {
+	fill: currentColor;
+}
+
+.series_modal__body {
 	display: grid;
-	gap: 20px;
-	padding: 20px;
+	gap: 22px;
+	padding: 24px;
 }
 
-.series_modal_container > .row__one {
+.series_modal__fields {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
 	gap: 20px;
 }
 
-.series_modal_container > .row__two {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr) auto;
-	gap: 20px;
+.series_modal__actions {
+	display: flex;
+	justify-content: center;
 }
 
-.series_modal_container > .row__two {
-    
+.series_modal__actions .btn__general-primary {
+	min-width: 220px;
 }
 
-.series_modal_container > .row__three {
-    display: flex;
-    justify-content: center;
+@media (max-width: 700px) {
+	.series_modal__fields {
+		grid-template-columns: 1fr;
+	}
 }
 
-
-.series_modal_container > .row__one .search .inputs__general_icons {
-	margin: 0;
+.series_modal__close .material-symbols-rounded {
+	font-size: 20px;
 }
 
-.series_modal_container > .row__two .dropzone {
-	border: 2px dashed #888;
-	padding: 20px;
-	text-align: center;
-	border-radius: 10px;
+.series_modal__error {
+	display: block;
+	margin-top: 6px;
+	font-size: 0.78rem;
+	color: var(--danger-color, #d33);
+}
+
+/* Encabezado y pestañas compactos (mismo diseño que familias) */
+.series_modal__header {
+	height: 44px;
+}
+
+.series_modal__title {
+	font-size: 1rem;
+}
+
+.series_modal__tabs {
+	display: flex;
+	gap: 24px;
+	padding: 0 20px;
+	border-bottom: 1px solid var(--panel-border);
+}
+
+.series_modal__tab {
+	margin-bottom: -1px;
+	padding: 10px 2px 9px;
+	border: none;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: var(--text-muted);
+	font-family: inherit;
+	font-size: 0.86rem;
+	font-weight: 600;
 	cursor: pointer;
-	background-color: #1e1f21;
-	color: #bbb;
-  }
-  
-.series_modal_container > .row__two  .dropzone:hover {
-	border-color: var(--primary-color);
-	border-color: var(--primary-color);
-  }
-  
-.series_modal_container > .row__two  .dropzone__text {
-	font-size: 14px;
-  }
-  
-.series_modal_container > .row__two .preview-image {
-	max-width: 100%;
-	height: auto;
+}
+
+.series_modal__tab:hover {
+	color: var(--text-color);
+}
+
+.series_modal__tab.active {
+	color: var(--primary-color);
+	border-bottom-color: var(--primary-color);
+}
+
+.series_modal__company {
+	display: grid;
+	gap: 16px;
+}
+
+.series_modal__static {
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid var(--panel-border);
 	border-radius: 8px;
-	margin-top: 10px;
-  }
-  
-
-
-  @media screen and (max-width: 768px) {
-
-	.popup__series_modal {
-		background-color: #17191b;  
-		border-radius: 5px;
-		width: 95vw;
-		height: auto;
-		max-width: 95vh;
-		transition: .3s ease all;
-		transform: scale(0.7);
-		opacity: 0;
-		overflow: hidden;
-	}
-	
-
-  }
-
-  
-  @media screen and (max-width: 500px) {
-
-	.series_modal_container > .row__one {
-		display: grid;
-		grid-template-columns: repeat(1, 1fr);
-		gap: 20px;
-	}
-	
-	.series_modal_container > .row__two {
-		display: grid;
-		grid-template-columns: repeat(1, 1fr);
-		gap: 20px;
-	}
-
-  }
-
-
-
-  @media screen and (max-width: 400px) {
-
-
-
-  }
-
-
-
-
-
-
+	background: rgba(7, 42, 87, 0.04);
+	font-size: 0.9rem;
+	color: var(--text-color);
+}

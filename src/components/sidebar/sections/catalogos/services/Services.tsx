@@ -7,6 +7,10 @@ import { modal } from '../../../../../redux/state/modals'
 import { useSelector } from 'react-redux'
 import { setServices, updateServices } from '../../../../../redux/state/Services'
 import APIs from '../../../../../services/APIs'
+import Swal from 'sweetalert2'
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
+import CategoriesStorePicker from '../categories/CategoriesStorePicker'
+import { readCategoryBranchId } from '../../../../../constants/category'
 
 const Services: React.FC = () => {
   const dispatch = useDispatch()
@@ -16,9 +20,13 @@ const Services: React.FC = () => {
     dispatch(modal(value))
   }
 
-  const token = localStorage.getItem('token-eco')
+  const token = localStorage.getItem('token-fixora')
 
   const [search, setSearch] = useState<string>('')
+  const [loading, setLoading] = useState(true)
+  // Filtros principales: empresa y sucursal (0 = todo el catálogo de la empresa)
+  const [companyId, setCompanyId] = useState<number | null>(null)
+  const [branchId, setBranchId] = useState(() => readCategoryBranchId())
 
   const normalizeItemList = (res: unknown): any[] => {
     if (Array.isArray(res)) return res
@@ -32,21 +40,31 @@ const Services: React.FC = () => {
     let cancelled = false
     ;(async () => {
       if (!token) {
-        if (!cancelled) dispatch(setServices([]))
+        if (!cancelled) {
+          dispatch(setServices([]))
+          setLoading(false)
+        }
         return
       }
       try {
-        const result: any = await APIs.getItemList(token)
+        if (!companyId) {
+          if (!cancelled) setLoading(false)
+          return
+        }
+        setLoading(true)
+        const result: any = await APIs.getItemList(token, { companyId, branchId: branchId > 0 ? branchId : undefined })
         const filtered = normalizeItemList(result).filter((item: any) => item.type === 'SERVICE')
         if (!cancelled) dispatch(setServices(filtered))
       } catch {
         if (!cancelled) dispatch(setServices([]))
+      } finally {
+        if (!cancelled) setLoading(false)
       }
     })()
     return () => {
       cancelled = true
     }
-  }, [dispatch, token])
+  }, [dispatch, token, companyId, branchId])
 
   const filteredServices = (services ?? []).filter((item: any) => {
     if (!search.trim()) return true
@@ -64,107 +82,117 @@ const Services: React.FC = () => {
   const handleDelete = async (item: any) => {
     const id = item.id
     if (id == null) {
-      alert('Servicio sin ID')
+      Swal.fire({ icon: 'warning', title: 'Servicio sin ID' })
       return
     }
 
-    if (!confirm(`¿Eliminar servicio "${item.name}"?`)) return
+    const confirmation = await Swal.fire({
+      title: '¿Eliminar servicio?',
+      text: `Se eliminará "${item.name}". Esta acción no se puede deshacer.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+    })
+    if (!confirmation.isConfirmed) return
 
     try {
       await APIs.deleteItem(id, token as string)
-      alert('Servicio eliminado')
+      Swal.fire({ icon: 'success', title: 'Servicio eliminado' })
       const result: any = await APIs.getItemList(token as string)
-      const filtered = normalizeItemList(result).filter((item: any) => item.type === 'SERVICE')
+      const filtered = normalizeItemList(result).filter((row: any) => row.type === 'SERVICE')
       dispatch(setServices(filtered))
     } catch (err: any) {
-      alert('Error al eliminar: ' + (err?.response?.data?.message ?? err?.message))
+      Swal.fire({
+        icon: 'error',
+        title: 'No se pudo eliminar',
+        text: err?.response?.data?.message ?? err?.message,
+      })
     }
   }
 
   return (
     <div className='services'>
       <div className='services__container'>
-        <div className='row__one'>
-          <div className='services-toolbar'>
-            <div className='services-toolbar__search services__search-inline'>
-              <div className='services__search-field'>
-                <div className='services__search-field__input-wrap'>
-                  <input
-                    className='inputs__general'
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    type='text'
-                    placeholder='Buscar servicios...'
-                  />
-                </div>
-              </div>
-            </div>
+        <div className='services__header'>
+          <CategoriesStorePicker
+            branchId={branchId}
+            onBranchIdChange={(id) => {
+              setBranchId(id)
+              localStorage.setItem('categories-store-id', String(id))
+            }}
+            onCompanyIdChange={(id) => setCompanyId(id)}
+          />
+          <div className='services__search'>
+            <span className='services__search-icon material-symbols-rounded' aria-hidden>search</span>
+            <input
+              className='inputs__general services__search-input'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              type='text'
+              placeholder='Buscar servicio'
+              aria-label='Buscar servicios'
+            />
           </div>
-          <div className='services__row-actions'>
-            <button className='btn__general-purple' type='button' onClick={() => setModal('services-modal')}>
-              Nuevo servicio
-            </button>
-          </div>
+          <button className='btn__general-primary' type='button' onClick={() => setModal('services-modal')}>
+            Nuevo servicio
+          </button>
         </div>
-        <div className='table__services'>
-          <div>
-            {services ? (
-              <div className='table__numbers'>
-                <p className='text'>Total (vista)</p>
-                <div className='quantities_tables'>{filteredServices.length}</div>
-              </div>
-            ) : (
-              <p className='text'>No hay servicios</p>
-            )}
+
+        {/* La tabla siempre se ve; el skeleton va dentro */}
+        <div className='services__list'>
+          <div className='services__row services__row--head'>
+            <span>Servicio</span>
+            <span>Descripción</span>
+            <span>Código</span>
+            <span>Categoría</span>
+            <span className='services__col-actions'>Acciones</span>
           </div>
-          <div className='table__head'>
-            <div className='thead'>
-              <div className='th'>
-                <p>Nombre</p>
-              </div>
-              <div className='th'>
-                <p>Descripción</p>
-              </div>
-              <div className='th'>
-                <p>Código</p>
-              </div>
-              <div className='th'>
-                <p>Categoría</p>
-              </div>
-              <div className='th'>
-                <p>Acciones</p>
-              </div>
-            </div>
-          </div>
-          {filteredServices.length > 0 ? (
-            <div className='table__body'>
-              {filteredServices.map((item: any, index: number) => (
-                <div className='tbody__container' key={item.id ?? index}>
-                  <div className='tbody'>
-                    <div className='td'>
-                      <p>{item.name}</p>
-                    </div>
-                    <div className='td'>{item.description || '—'}</div>
-                    <div className='td'>{item.code || '—'}</div>
-                    <div className='td'>{item.category?.title ?? item.category?.name ?? '—'}</div>
-                    <div className='td'>
-                      <button className='btn__general-purple' type='button' onClick={() => updateModalServices(item)}>
-                        Editar
-                      </button>
-                      <button
-                        className='btn__general-danger'
-                        type='button'
-                        onClick={() => handleDelete(item)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  </div>
+
+          {loading ? (
+            <TableSkeleton rowClassName='services__row' cols={[{ width: '60%' }, { width: '75%' }, { pill: true, width: '70px' }, { width: '50%' }, { actions: 2 }]} />
+          ) : filteredServices.length > 0 ? (
+            filteredServices.map((item: any, index: number) => (
+              <div className='services__row' key={item.id ?? index}>
+                <div className='services__cell services__cell--name' data-label='Servicio'>
+                  <strong>{item.name}</strong>
                 </div>
-              ))}
-            </div>
+                <div className='services__cell services__cell--muted' data-label='Descripción'>
+                  {item.description || '—'}
+                </div>
+                <div className='services__cell' data-label='Código'>
+                  {item.code ? <span className='services__tag'>{item.code}</span> : '—'}
+                </div>
+                <div className='services__cell' data-label='Categoría'>
+                  {item.category?.title ?? item.category?.name ?? '—'}
+                </div>
+                <div className='services__cell services__col-actions'>
+                  <button
+                    className='services__icon-btn'
+                    type='button'
+                    title='Editar servicio'
+                    aria-label='Editar servicio'
+                    onClick={() => updateModalServices(item)}
+                  >
+                    <span className='material-symbols-rounded'>edit</span>
+                  </button>
+                  <button
+                    className='services__icon-btn services__icon-btn--danger'
+                    type='button'
+                    title='Eliminar servicio'
+                    aria-label='Eliminar servicio'
+                    onClick={() => handleDelete(item)}
+                  >
+                    <span className='material-symbols-rounded'>delete</span>
+                  </button>
+                </div>
+              </div>
+            ))
           ) : (
-            <p className='text'>No hay servicios que mostrar</p>
+            <div className='services__state'>
+              <p>{search.trim() ? 'No se encontraron servicios con ese criterio' : 'No hay servicios registrados'}</p>
+            </div>
           )}
         </div>
       </div>

@@ -1,0 +1,259 @@
+/*=================================================
+  Modal "Nuevo tipo de área"
+  Todas las clases cuelgan de .area-type_modal (notación padre__hijo) para no
+  chocar con los demás modales, que cargan su CSS de forma global.
+=================================================*/
+
+.area-type_modal__overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 20, 40, 0.55);
+  visibility: hidden;
+  /* Por encima del sidebar (hasta 10000) y del header (2000) */
+  z-index: 10001;
+}
+
+.area-type_modal__overlay.active {
+  visibility: visible;
+}
+
+.area-type_modal__popup {
+  position: relative;
+  width: min(480px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--modal-bg, var(--card-bg));
+  color: var(--text-color);
+  border: 1px solid var(--panel-border);
+  border-top: 3px solid var(--secondary-color);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  transform: scale(0.7);
+  opacity: 0;
+  transition: .3s ease all;
+}
+
+.area-type_modal__popup.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.area-type_modal__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-bottom: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
+}
+
+.area-type_modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .area-type_modal__title {
+  color: var(--text-color);
+}
+
+.area-type_modal__close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .2s ease all;
+}
+
+.area-type_modal__close:hover {
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.area-type_modal__body {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.area-type_modal__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.area-type_modal__fields:empty {
+  display: none;
+}
+
+/* Casilla con diseño: caja con palomita (Material Symbols relleno) + título y ayuda */
+.area-type_modal__check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(7, 42, 87, 0.04);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.area-type_modal__check:hover {
+  border-color: var(--secondary-color);
+}
+
+.area-type_modal__check.is-checked {
+  border-color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.08);
+}
+
+.area-type_modal__check-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.area-type_modal__check-box {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--text-muted);
+  border-radius: 7px;
+  color: transparent;
+  background: var(--card-bg);
+  transition: all 0.15s ease;
+}
+
+.area-type_modal__check-box .material-symbols-rounded {
+  font-size: 18px;
+  font-variation-settings: 'FILL' 1, 'wght' 700;
+}
+
+.area-type_modal__check.is-checked .area-type_modal__check-box {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #fff;
+}
+
+.area-type_modal__check-input:focus-visible + .area-type_modal__check-box {
+  box-shadow: 0 0 0 3px rgba(252, 116, 0, 0.35);
+}
+
+.area-type_modal__check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.area-type_modal__check-text strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.area-type_modal__check-text small {
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--text-color) 70%, transparent);
+}
+
+.area-type_modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+@media screen and (max-width: 500px) {
+  .area-type_modal__fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Encabezado y pestañas compactos (mismo diseño que familias) */
+.area-type_modal__header {
+	height: 44px;
+}
+
+.area-type_modal__title {
+	font-size: 1rem;
+}
+
+.area-type_modal__tabs {
+	display: flex;
+	gap: 24px;
+	padding: 0 20px;
+	border-bottom: 1px solid var(--panel-border);
+}
+
+.area-type_modal__tab {
+	margin-bottom: -1px;
+	padding: 10px 2px 9px;
+	border: none;
+	border-bottom: 2px solid transparent;
+	background: transparent;
+	color: var(--text-muted);
+	font-family: inherit;
+	font-size: 0.86rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.area-type_modal__tab:hover {
+	color: var(--text-color);
+}
+
+.area-type_modal__tab.active {
+	color: var(--primary-color);
+	border-bottom-color: var(--primary-color);
+}
+
+.area-type_modal__pane {
+	display: grid;
+	gap: 16px;
+}
+
+.area-type_modal__pane[hidden] {
+	display: none;
+}
+
+.area-type_modal__company {
+	display: grid;
+	gap: 16px;
+}
+
+.area-type_modal__static {
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid var(--panel-border);
+	border-radius: 8px;
+	background: rgba(7, 42, 87, 0.04);
+	font-size: 0.9rem;
+	color: var(--text-color);
+}
+
+.area-type_modal__hint {
+	display: block;
+	margin-top: 6px;
+	color: var(--text-muted);
+	font-size: 0.78rem;
+}

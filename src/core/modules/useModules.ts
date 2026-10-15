@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { MODULES } from './modules.config'
 import type { ModuleManifest } from './module.types'
-import { fetchCompanyActiveModules } from './kernel.service'
+import { fetchBranchActiveModules } from './kernel.service'
+import APIs from '../../services/APIs'
 
 /** Lee userKind desde localStorage por si Redux aún no lo tiene al montar. */
 function getUserKindFromStorage(): string | undefined {
@@ -13,13 +14,45 @@ function getUserKindFromStorage(): string | undefined {
   return undefined
 }
 
+/** Lee companyIds desde localStorage por si Redux aún no lo tiene al montar. */
+function getCompanyIdsFromStorage(): number[] {
+  try {
+    const raw = localStorage.getItem('user')
+    if (raw) return JSON.parse(raw)?.companyIds ?? []
+  } catch {}
+  return []
+}
+
+/** Lee branchId desde localStorage por si Redux aún no lo tiene al montar. */
+function getBranchIdFromStorage(): number | null {
+  try {
+    const raw = localStorage.getItem('user')
+    if (raw) return JSON.parse(raw)?.activeBranchId ?? null
+  } catch {}
+  return null
+}
+
+/** Fallback: lee el branchId del JWT para sesiones antiguas. */
+function getBranchIdFromToken(): number | null {
+  try {
+    const token = localStorage.getItem('token-fixora')
+    if (!token) return null
+    const parts = token.split('.')
+    if (parts.length < 2) return null
+    const payload = JSON.parse(atob(parts[1]))
+    return payload.branchId ?? null
+  } catch {
+    return null
+  }
+}
+
 /**
  * Fallback: lee el primer companyId del JWT para sesiones antiguas
  * que no tengan activeCompanyId en Redux/localStorage.
  */
 function getCompanyIdFromToken(): number | null {
   try {
-    const token = localStorage.getItem('token-eco')
+    const token = localStorage.getItem('token-fixora')
     if (!token) return null
     const parts = token.split('.')
     if (parts.length < 2) return null
@@ -66,8 +99,8 @@ function hasPermission(userPermissions: string[] = [], required?: string): boole
  *  6. Si no hay companyId o falla el backend → muestra todos.
  */
 export function useModules() {
-  const activeCompanyId: number | null = useSelector(
-    (state: any) => state.user?.activeCompanyId ?? null
+  const activeBranchId: number | null = useSelector(
+    (state: any) => state.user?.activeBranchId ?? null
   )
   const userKindRedux: string | undefined = useSelector(
     (state: any) => state.user?.userKind
@@ -78,10 +111,17 @@ export function useModules() {
   const permissionsRedux: string[] | undefined = useSelector(
     (state: any) => state.user?.permissions
   )
+  const companyIdsRedux: number[] = useSelector(
+    (state: any) => state.user?.companyIds ?? []
+  )
+  const userIdRedux: number | undefined = useSelector(
+    (state: any) => state.user?.id ?? state.user?._id
+  )
 
   // Fallback a localStorage
   const userKind = userKindRedux ?? getUserKindFromStorage()
   const roleLevel = roleLevelRedux ?? 99
+  const companyIds = companyIdsRedux.length > 0 ? companyIdsRedux : getCompanyIdsFromStorage()
 
   // Solo SYSTEM / ACCOUNT con nivel 0-1 ven todo (super_admin, owner)
   const isOwner =
@@ -94,18 +134,46 @@ export function useModules() {
   )
 
   const [activeModuleIds, setActiveModuleIds] = useState<string[] | null>(null)
-  const [loading, setLoading] = useState(!isOwner)
+  const [totalBranches, setTotalBranches] = useState(0)
+  // Ids de TODAS las sucursales de las empresas del usuario (para el dueño).
+  const [allBranchIds, setAllBranchIds] = useState<number[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (isOwner) {
-      setActiveModuleIds(null)
-      setLoading(false)
-      return
+    // Petición para contar sucursales del usuario
+    const countBranches = async () => {
+      try {
+        const userId = userIdRedux
+        if (!userId) {
+          setTotalBranches(0)
+          return
+        }
+        const response: any = await APIs.getUserById(userId)
+        if (response?.status === 'success' && response?.data?.userCompanies) {
+          let count = 0
+          const ids: number[] = []
+          response.data.userCompanies.forEach((uc: any) => {
+            count += uc.company?.branches?.length || 0
+            ;(uc.company?.branches ?? []).forEach((b: any) => b?.id && ids.push(b.id))
+          })
+          setTotalBranches(count)
+          setAllBranchIds(ids)
+        }
+      } catch (error) {
+        console.error('Error al contar sucursales:', error)
+      }
     }
+    countBranches()
+  }, [userIdRedux])
 
-    const companyId = activeCompanyId ?? getCompanyIdFromToken()
+  useEffect(() => {
+    // Antes: un owner con más de una empresa se quedaba con un menú fijo
+    // (MULTI_COMPANY_MODULE_KEYS) sin importar su licencia. Eso contradice todo
+    // el sistema de módulos por licencia — el sidebar siempre debe reflejar lo
+    // que la licencia permite, tenga 1 empresa o varias.
+    const branchId = activeBranchId ?? getBranchIdFromStorage() ?? getBranchIdFromToken()
 
-    if (!companyId) {
+    if (!branchId) {
       setLoading(false)
       return
     }
@@ -113,30 +181,54 @@ export function useModules() {
     let cancelled = false
     setLoading(true)
 
-    fetchCompanyActiveModules(companyId).then((ids) => {
-      if (!cancelled) {
-        setActiveModuleIds(ids)
-        setLoading(false)
-      }
+    // Dueño: ve la UNIÓN de los módulos habilitados en todas sus sucursales (no solo
+    // la activa). Staff: solo los de su sucursal. Si alguna sucursal responde null
+    // ("sin configurar" = mostrar todo), se muestra todo.
+    const branchIds = isOwner
+      ? Array.from(new Set([branchId, ...allBranchIds]))
+      : [branchId]
+
+    Promise.all(branchIds.map((id) => fetchBranchActiveModules(id))).then((results) => {
+      if (cancelled) return
+      const merged = results.some((r) => r === null)
+        ? null
+        : Array.from(new Set(results.flatMap((r) => r ?? [])))
+      setActiveModuleIds(merged)
+      setLoading(false)
     })
 
     return () => { cancelled = true }
-  }, [activeCompanyId, isOwner])
+    // companyIds se compara por valor: el selector devuelve un arreglo nuevo en cada
+    // render y con la referencia el efecto repetía el GET active-modules sin parar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeBranchId, isOwner, companyIds.join(','), allBranchIds.join(',')])
 
   const modules = useMemo<ModuleManifest[]>(() => {
     return MODULES
       .filter((m) => m.enabled !== false)
       .map((m) => {
-        if (isOwner || m.ownerOnly || m.key === 'dashboard') return m
+        // Dashboard y ownerOnly siempre se muestran tal cual
+        if (m.key === 'dashboard') return m
+        if (m.ownerOnly) return isOwner ? m : { ...m, children: [] }
 
-        // Filtrar children por permisos individuales y por módulos activos de la empresa
+        // Filtrar children por permisos, módulos activos de la empresa,
+        // y para Empresas/Sucursales: solo si tiene más de una
         const filteredChildren = m.children?.filter((child) => {
+          // Ocultar Empresas dentro de Configuraciones si solo tiene 1 empresa
+          if (child.key === 'configurations.companies' && companyIds.length <= 1) return false
+          // Ocultar Sucursales dentro de Configuraciones si solo tiene 1 sucursal total
+          if (child.key === 'configurations.branch' && totalBranches <= 1) return false
+
+          if (isOwner) {
+            // Owners: si el módulo padre está activo, mostrar todos los children
+            if (!activeModuleIds) return true
+            return activeModuleIds.includes(m.key)
+          }
+          // Staff: filtrar por permisos; si el padre está activo, mostrar child
           const hasPerm = hasPermission(userPermissions, child.requiredPermission)
           if (!hasPerm) return false
           if (!activeModuleIds) return true
-          // Si el child tiene key, verificar que esté activo en la empresa
-          if (child.key) return activeModuleIds.includes(child.key)
-          return true
+          return activeModuleIds.includes(m.key)
         })
 
         return {
@@ -145,28 +237,33 @@ export function useModules() {
         }
       })
       .filter((m) => {
-        // ownerOnly: solo visible para dueños (SYSTEM/ACCOUNT)
-        if (m.ownerOnly) return isOwner
-
         // Dashboard siempre visible
         if (m.key === 'dashboard') return true
 
-        // SYSTEM / ACCOUNT (nivel 0-1) ven todo sin restricción de permisos
-        if (isOwner) return true
-
-        // Para STAFF u otros: filtrar por permisos del rol
-        const hasAccess = hasPermission(userPermissions, m.requiredPermission)
-        if (!hasAccess) return false
+        // ownerOnly: solo visible para dueños
+        if (m.ownerOnly) {
+          return isOwner
+        }
 
         // Si tiene children pero todos fueron filtrados, no mostrar
         if (m.children && m.children.length === 0) return false
 
-        // Filtrar por módulos activos de la empresa (solo para no-owners)
+        // Owners: ver módulos activos de la empresa (sin restricción de permisos)
+        if (isOwner) {
+          if (!activeModuleIds) return true
+          return activeModuleIds.includes(m.key)
+        }
+
+        // Staff: filtrar por permisos del rol
+        const hasAccess = hasPermission(userPermissions, m.requiredPermission)
+        if (!hasAccess) return false
+
+        // Filtrar por módulos activos de la empresa
         if (!activeModuleIds) return true
         return activeModuleIds.includes(m.key)
       })
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-  }, [activeModuleIds, isOwner, userPermissions])
+  }, [activeModuleIds, isOwner, userPermissions, companyIds, totalBranches])
 
   return { modules, loading, activeModuleIds }
 }

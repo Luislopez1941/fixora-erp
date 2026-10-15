@@ -12,7 +12,7 @@ const Administrator: React.FC = () => {
   const [currentPage] = useState<number>(1)
   const [pages, setPages] = useState<any>([1])
 
-  const token: any = localStorage.getItem('token-eco')
+  const token: any = localStorage.getItem('token-fixora')
 
   const fetch = async () => {
     let data = {
@@ -75,8 +75,8 @@ const Administrator: React.FC = () => {
       }
       let resultUsers: any = await APIs.searchUser(data)
       setUser(resultUsers.data)
-      
-    } 
+
+    }
   }
 
   return (

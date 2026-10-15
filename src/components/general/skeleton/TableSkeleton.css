@@ -1,0 +1,87 @@
+/* Skeleton de tabla — todas las clases cuelgan de .table-skeleton (notación padre__hijo) */
+
+.table-skeleton {
+  display: flex;
+  flex-direction: column;
+}
+
+.table-skeleton__cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.table-skeleton__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.table-skeleton__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Base con brillo que se desliza de izquierda a derecha */
+.table-skeleton__shimmer {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text-color) 10%, transparent);
+}
+
+.table-skeleton__shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--text-color) 14%, transparent),
+    transparent
+  );
+  animation: table-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.table-skeleton__line {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.table-skeleton__line--thin {
+  height: 9px;
+}
+
+.table-skeleton__line--pill {
+  height: 22px;
+  border-radius: 999px;
+}
+
+.table-skeleton__avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.table-skeleton__btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+@keyframes table-skeleton-shimmer {
+  to { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .table-skeleton__shimmer::after {
+    animation: none;
+  }
+}

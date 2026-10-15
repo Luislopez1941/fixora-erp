@@ -2,9 +2,15 @@
    VISTAS DE CATÁLOGO — Áreas & SubÁreas
    ======================================== */
 
+/* .production (compartida con el módulo real de Producción) no trae padding
+   arriba — ahí el primer elemento siempre es un toolbar con su propio
+   espaciado, pero aquí el header queda pegado contra el breadcrumb de la
+   página. Se agrega solo para estas vistas de Catálogo, sin tocar .production. */
+.catalog-areas-types.production {
+  padding-top: 20px;
+}
+
 /* Material Symbols Rounded — filled helper */
-.catalog-area__tag .material-symbols-rounded,
-.catalog-area__btn .material-symbols-rounded,
 .subareas__action-btn .material-symbols-rounded {
   display: inline-flex;
   align-items: center;
@@ -62,117 +68,167 @@
   color: #5a5f6a;
 }
 
+/* Header de la página de tipos de área: selector a la izquierda, botones a
+   la derecha — igual al resto de los headers de Configuraciones. */
+.catalog-areas__header {
+  display: flex;
+  /* El picker de empresa/sucursal trae su propia etiqueta arriba del botón
+     (dos líneas), más alto que el título o un botón plano — alineando por
+     abajo quedan todos a la misma altura visual en vez de descuadrados. */
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+}
+
+.catalog-areas__header-actions,
+.catalog-areas__header-left {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* El picker de Empresa/Sucursal (CategoriesStorePicker) necesita esta regla
+   explícita en cada página que lo usa (mismo patrón en Users.css,
+   production.css, Store.css, etc.) — sin ella, sus dos selects no quedan
+   lado a lado de forma confiable. */
+.catalog-areas__header-actions .categories-toolbar__stores,
+.catalog-areas__header-left .categories-toolbar__stores {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+}
+
+/* .inputs__general trae width:100% por defecto (pensado para formularios en
+   columna) — dentro de este toolbar en fila eso hacía que el select se
+   estirara a todo el ancho y empujara los botones a su propia línea. Se
+   sobreescribe explícito, con suficiente especificidad para ganarle al
+   genérico sin importar el orden de carga del CSS. */
+select.catalog-areas__company-select {
+  width: auto;
+  flex: 0 0 auto;
+  min-width: 180px;
+  margin-top: 0;
+}
+
 /* ----- Grid de cards (Áreas) ----- */
 .catalog-areas__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
-  padding: 8px 0 24px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-items: stretch;
+  gap: 12px;
+  padding: 4px 0 16px;
 }
 
-/* ----- Card de área ----- */
+/* ----- Card horizontal compacta: icono | texto | acciones ----- */
 .catalog-area__card {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   gap: 14px;
-  padding: 24px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
-  border: 1px solid rgba(255,255,255,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  padding: 14px 14px 14px 18px;
+  border-radius: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: 0 1px 2px rgba(7, 42, 87, 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   cursor: default;
   overflow: hidden;
 }
 
+/* Barra de acento a la izquierda */
 .catalog-area__card::before {
   content: '';
   position: absolute;
   top: 0;
+  bottom: 0;
   left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--area-color, #586ae9);
-  opacity: 0.6;
-  transition: opacity 0.2s ease, height 0.2s ease;
+  width: 4px;
+  background: var(--area-color, var(--primary-color));
 }
 
 .catalog-area__card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
-  border-color: rgba(255,255,255,0.14);
+  box-shadow: 0 8px 22px rgba(7, 42, 87, 0.14);
+  border-color: color-mix(in srgb, var(--area-color, var(--primary-color)) 45%, transparent);
 }
 
-.catalog-area__card:hover::before {
-  opacity: 1;
-  height: 4px;
-}
-
-/* ----- Icono / badge superior ----- */
 .catalog-area__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   border-radius: 12px;
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--area-color, #586ae9);
-  background: var(--area-color-bg, rgba(88,106,233,0.12));
-  border: 1px solid var(--area-color-border, rgba(88,106,233,0.18));
+  color: var(--area-color, var(--primary-color));
+  background: var(--area-color-bg, rgba(7, 42, 87, 0.12));
+  border: 1px solid var(--area-color-border, rgba(7, 42, 87, 0.18));
 }
 
-/* ----- Título de la card ----- */
+.catalog-area__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
 .catalog-area__title {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: #f5f6f7;
-  letter-spacing: -0.2px;
+  color: var(--text-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ----- Descripción ----- */
+/* Descripción en 1 línea y con contraste suficiente (texto al 72% del color base) */
 .catalog-area__desc {
   margin: 0;
-  font-size: 0.88rem;
-  color: #9aa0ac;
-  line-height: 1.5;
-  flex-grow: 1;
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--text-color) 72%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* ----- Meta info (contadores, tags) ----- */
-.catalog-area__meta {
+.catalog-area__footer {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-top: 4px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
 }
 
-.catalog-area__tag {
+.catalog-area__count {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--area-color, var(--primary-color));
+  background: var(--area-color-bg, rgba(7, 42, 87, 0.1));
+}
+
+/* Tipo limitado a una sucursal específica (en vez de toda la empresa) */
+.catalog-area__branch-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  font-size: 0.78rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: var(--area-color, #586ae9);
-  background: var(--area-color-bg, rgba(88,106,233,0.1));
-  border: 1px solid var(--area-color-border, rgba(88,106,233,0.15));
+  background: rgba(217, 119, 6, 0.14);
+  color: #b45309;
+  white-space: nowrap;
 }
 
-/* ----- Top row: icono + botones ----- */
-.catalog-area__top {
+.catalog-area__card-actions {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.catalog-area__actions-row {
-  display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 6px;
 }
 
@@ -180,70 +236,47 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
-  border: none;
+  border: 1px solid var(--panel-border);
   cursor: pointer;
-  background: rgba(255,255,255,0.04);
-  color: #c5cbff;
+  background: transparent;
+  color: color-mix(in srgb, var(--text-color) 70%, transparent);
   transition: all 0.15s ease;
 }
 
-.catalog-area__btn-icon:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
+.catalog-area__btn-icon:hover:not(:disabled) {
+  color: var(--text-color);
+  border-color: var(--text-muted);
 }
 
+.catalog-area__btn-icon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Botón principal con el acento de la card (primario / secundario alternados) */
 .catalog-area__btn-icon--primary {
-  background: linear-gradient(135deg, #586ae9 0%, #4f5bd5 100%);
+  background: var(--area-color, var(--primary-color));
+  border-color: transparent;
   color: #fff;
-  box-shadow: 0 4px 12px rgba(88,106,233,0.25);
 }
 
-.catalog-area__btn-icon--primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(88,106,233,0.35);
+.catalog-area__btn-icon--primary:hover:not(:disabled) {
+  color: #fff;
+  border-color: transparent;
+  filter: brightness(1.1);
+}
+
+.catalog-area__btn-icon--danger:hover:not(:disabled) {
+  color: var(--danger-color, #dc2626);
+  border-color: var(--danger-color, #dc2626);
 }
 
 /* ========================================
    SUBÁREAS — Tabla y filtros
    ======================================== */
-
-/* ----- Toolbar ----- */
-.subareas__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
-  margin: 16px 0 20px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-.subareas__toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.subareas__toolbar-title {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #f5f6f7;
-}
-
-.subareas__toolbar-badge {
-  padding: 3px 10px;
-  border-radius: 8px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--filter-color, #586ae9);
-  background: var(--filter-color-bg, rgba(88,106,233,0.12));
-  border: 1px solid var(--filter-color-border, rgba(88,106,233,0.2));
-}
 
 /* ----- Filtros chips ----- */
 .subareas__filters {
@@ -283,7 +316,7 @@
 
 /* ----- Tabla moderna ----- */
 .subareas__table-wrap {
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   overflow: hidden;
   background: rgba(255,255,255,0.01);
@@ -416,8 +449,8 @@
 /* ----- Responsive ----- */
 @media (max-width: 900px) {
   .catalog-areas__grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
   }
 
   .subareas__table-head,
@@ -435,11 +468,6 @@
     grid-template-columns: 1fr;
   }
 
-  .subareas__toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .subareas__table-head,
   .subareas__table-row {
     grid-template-columns: 1fr 100px;
@@ -448,4 +476,86 @@
   .subareas__table-row .subareas__type-badge {
     display: none;
   }
+}
+
+/* ========================================
+   MODO CLARO — este archivo se escribió solo para modo oscuro (overlays
+   blancos semi-transparentes sobre fondo oscuro, texto casi blanco/gris
+   claro) — sobre el fondo ya claro de [data-theme="light"] eso se traduce
+   en texto casi invisible y paneles sin contraste (el bug reportado: las
+   cards de "Áreas" se ven lavadas/borrosas). Mismos selectores, mismo
+   diseño, con los tintes cambiados por los equivalentes navy que ya usa el
+   resto de la app en modo claro.
+   ======================================== */
+[data-theme="light"] .catalog-breadcrumb {
+  background: rgba(7, 42, 87, 0.04);
+  border-color: var(--panel-border);
+}
+
+[data-theme="light"] .catalog-breadcrumb__link {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .catalog-breadcrumb__link:hover {
+  color: var(--primary-color);
+  background: rgba(7, 42, 87, 0.06);
+}
+
+[data-theme="light"] .catalog-breadcrumb__current {
+  color: var(--text-color);
+}
+
+[data-theme="light"] .catalog-breadcrumb__separator {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .subareas__chip {
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.04);
+  border-color: var(--panel-border);
+}
+
+[data-theme="light"] .subareas__chip:hover {
+  background: rgba(7, 42, 87, 0.07);
+  color: var(--text-color);
+}
+
+[data-theme="light"] .subareas__table-wrap {
+  background: var(--card-bg);
+  border-color: var(--panel-border);
+}
+
+[data-theme="light"] .subareas__table-head {
+  background: rgba(7, 42, 87, 0.04);
+  border-bottom-color: var(--panel-border);
+}
+
+[data-theme="light"] .subareas__table-head span {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .subareas__table-row {
+  border-bottom-color: var(--panel-border);
+}
+
+[data-theme="light"] .subareas__table-row:hover {
+  background: var(--hover-body-table-color);
+}
+
+[data-theme="light"] .subareas__name {
+  color: var(--text-color);
+}
+
+[data-theme="light"] .subareas__branch {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .subareas__empty,
+[data-theme="light"] .subareas__loading {
+  color: var(--text-muted);
+}
+
+[data-theme="light"] .subareas__spinner {
+  border-color: rgba(7, 42, 87, 0.12);
+  border-top-color: var(--primary-color);
 }

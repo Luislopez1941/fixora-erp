@@ -1,0 +1,227 @@
+/* Configuración de caja — todas las clases cuelgan de .cash-config (notación padre__hijo).
+   Colores con variables del tema: sirve igual en modo claro y oscuro. */
+
+.cash-config {
+  width: 100%;
+  min-width: 0;
+}
+
+.cash-config__container {
+  /* Ocupa todo el ancho: dos paneles lado a lado en pantallas anchas, uno debajo del otro en chicas */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  width: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.cash-config__header,
+.cash-config__hint--standalone {
+  grid-column: 1 / -1;
+}
+
+.cash-config__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.cash-config__lead {
+  margin: 0;
+  font-size: 0.9rem;
+  color: color-mix(in srgb, var(--text-color) 72%, transparent);
+}
+
+.cash-config__header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.cash-config__panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.cash-config__panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+  background: rgba(7, 42, 87, 0.05);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.cash-config__panel-title .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--secondary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.cash-config__pill {
+  margin-left: auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.cash-config__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.cash-config__row:last-child {
+  border-bottom: none;
+}
+
+.cash-config__row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cash-config__row-text strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.cash-config__row-text span {
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--text-color) 68%, transparent);
+}
+
+.cash-config__input.inputs__general {
+  width: 140px;
+  margin-top: 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.cash-config__error {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--danger-color, #d33);
+}
+
+.cash-config__skeleton {
+  height: 120px;
+  margin: 16px 18px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  animation: cash-config-pulse 1.4s ease-in-out infinite;
+}
+
+.cash-config__skeleton--short {
+  height: 56px;
+}
+
+@keyframes cash-config-pulse {
+  50% { opacity: 0.5; }
+}
+
+/* ── Próximamente (deshabilitado) ── */
+.cash-config__panel--upcoming {
+  opacity: 0.85;
+}
+
+.cash-config__upcoming {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  background: var(--card-bg);
+}
+
+.cash-config__upcoming-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 0 0 0.5px var(--panel-border);
+}
+
+.cash-config__upcoming-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.08);
+}
+
+.cash-config__upcoming-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cash-config__upcoming-item strong {
+  font-size: 0.86rem;
+  color: color-mix(in srgb, var(--text-color) 85%, transparent);
+}
+
+.cash-config__upcoming-item span:not(.cash-config__upcoming-icon) {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.cash-config__hint {
+  margin: 0;
+  padding: 12px 18px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--panel-border);
+}
+
+@media screen and (max-width: 1100px) {
+  .cash-config__container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .cash-config__container {
+    padding: 16px;
+  }
+
+  .cash-config__row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.cash-config__hint--standalone {
+  padding: 0 4px;
+  border-top: none;
+}
+
+.cash-config__lead-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+}

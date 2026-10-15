@@ -13,14 +13,15 @@
 }
 
 .temp-price-ranges-modal-content {
-  background: #1a1d24;
+  background: var(--modal-bg);
   border-radius: 12px;
   width: min(860px, 94%);
   max-width: 860px;
-  max-height: 74vh;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   animation: article-modal-content-in 0.3s ease both;
+  font-family: "Poppins", sans-serif;
 }
 
 @keyframes article-modal-overlay-in {
@@ -45,36 +46,43 @@
 
 .temp-price-ranges-modal-header {
   display: flex;
-  justify-content: space-between;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  justify-content: center;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid #2a2d35;
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--modal-overlay-border);
 }
 
 .temp-price-ranges-modal-header h2 {
-  color: #fff;
+  color: var(--modal-text);
   font-size: 18px;
   margin: 0;
 }
 
 .temp-price-ranges-modal-close {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 32px;
-  cursor: pointer;
-  padding: 0;
-  width: 40px;
-  height: 40px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: 0.3s ease all;
+  color: var(--modal-text-muted);
+  position: absolute;
+  right: 15px;
+  top: 13px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
   border-radius: 8px;
-  transition: background 0.3s;
+  width: 32px;
+  height: 32px;
 }
 
 .temp-price-ranges-modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--modal-overlay-hover-bg);
+  color: var(--modal-text);
 }
 
 .temp-price-ranges-modal-body {
@@ -86,7 +94,7 @@
 }
 
 .temp-price-ranges-list h3 {
-  color: #fff;
+  color: var(--modal-text);
   font-size: 18px;
   margin-bottom: 16px;
 }
@@ -94,17 +102,17 @@
 .temp-price-ranges-table {
   width: 100%;
   border-collapse: collapse;
-  background: #242730;
+  background: var(--modal-recessed-bg);
   border-radius: 8px;
   overflow: hidden;
 }
 
 .temp-price-ranges-table thead {
-  background: #2a2d35;
+  background: var(--modal-overlay-border);
 }
 
 .temp-price-ranges-table th {
-  color: #fff;
+  color: var(--modal-text);
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -112,34 +120,37 @@
 }
 
 .temp-price-ranges-table td {
-  color: #ddd;
+  color: var(--modal-text);
   padding: 12px 16px;
-  border-top: 1px solid #2a2d35;
+  border-top: 1px solid var(--modal-overlay-border);
 }
 
 .temp-price-ranges-delete {
-  background: #dc3545;
+  background: var(--modal-accent-red, #e53935);
   color: #fff;
   border: none;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
   font-size: 13px;
-  transition: background 0.3s;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
 .temp-price-ranges-delete:hover {
-  background: #c82333;
+  filter: brightness(0.9);
+  transform: translateY(-1px);
 }
 
 .temp-price-ranges-form {
-  background: #242730;
+  background: var(--modal-recessed-bg);
   padding: 20px;
   border-radius: 8px;
+  border: 1px solid var(--modal-overlay-border);
 }
 
 .temp-price-ranges-form h3 {
-  color: #fff;
+  color: var(--modal-text);
   font-size: 18px;
   margin-bottom: 16px;
 }
@@ -157,16 +168,16 @@
 }
 
 .temp-price-ranges-form-group label {
-  color: #aaa;
+  color: var(--modal-text-muted);
   font-size: 13px;
   margin-bottom: 6px;
   font-weight: 500;
 }
 
 .temp-price-ranges-input {
-  background: #1a1d24;
-  border: 1px solid #2a2d35;
-  color: #fff;
+  background: var(--modal-input-bg);
+  border: 1px solid var(--modal-input-border);
+  color: var(--modal-text);
   padding: 10px 12px;
   border-radius: 6px;
   font-size: 14px;
@@ -175,40 +186,42 @@
 
 .temp-price-ranges-input:focus {
   outline: none;
-  border-color: #4a9eff;
+  border-color: #586ae9;
 }
 
 .temp-price-ranges-input::placeholder {
-  color: #666;
+  color: var(--modal-text-muted);
 }
 
 .temp-price-ranges-add {
-  background: #28a745;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   padding: 10px 20px;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
   font-weight: 600;
-  transition: background 0.3s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
 .temp-price-ranges-add:hover {
-  background: #218838;
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(88, 106, 233, 0.2);
 }
 
 .temp-price-ranges-help {
   margin-top: 20px;
   padding: 16px;
-  background: rgba(74, 158, 255, 0.1);
-  border-left: 3px solid #4a9eff;
+  background: rgba(88, 106, 233, 0.1);
+  border-left: 3px solid #586ae9;
   border-radius: 6px;
 }
 
 .temp-price-ranges-help p {
-  color: #fff;
+  color: var(--modal-text);
   margin: 0 0 8px 0;
   font-size: 14px;
 }
@@ -216,7 +229,7 @@
 .temp-price-ranges-help ul {
   margin: 0;
   padding-left: 20px;
-  color: #ddd;
+  color: var(--modal-text-muted);
   font-size: 13px;
 }
 
@@ -226,7 +239,7 @@
 
 .temp-price-ranges-modal-footer {
   padding: 12px 16px;
-  border-top: 1px solid #2a2d35;
+  border-top: 1px solid var(--modal-overlay-border);
   display: flex;
   justify-content: flex-end;
 }

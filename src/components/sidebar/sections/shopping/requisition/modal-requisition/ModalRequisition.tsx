@@ -1,606 +1,502 @@
-import React, { useEffect, useState } from 'react';
-import './ModalRequisition.css';
-import { useDispatch, useSelector } from "react-redux";
-import { modal } from '../../../../../../redux/state/modals';
-import APIs from '../../../../../../services/APIs';
+import React, { useEffect, useState } from 'react'
+import './ModalRequisition.css'
+import { useDispatch, useSelector } from 'react-redux'
+import { modal } from '../../../../../../redux/state/modals'
+import APIs from '../../../../../../services/APIs'
+import Swal from 'sweetalert2'
 
-import Swal from 'sweetalert2';
+type ReqItem = {
+  key: string
+  productId: number
+  code: string
+  name: string
+  quantity: number
+  unitId: number
+  storeId: number
+  units: any[]
+  stores: any[]
+  comments: string
+}
 
-const ModalRequisition: React.FC<any> = ({ companies, branch }) => {
-  const userState = useSelector((store: any) => store.user);
-  const dispatch = useDispatch();
-  const modalState = useSelector((state: any) => state.modals);
+const ModalRequisition: React.FC = () => {
+  const dispatch = useDispatch()
+  const modalState = useSelector((state: any) => state.modals)
+  const userState = useSelector((state: any) => state.user)
+  const isOpen = modalState === 'requisition_modal'
 
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [items, setItems] = useState<ReqItem[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedOption, setSelectedOption] = useState<number>(0)
 
+  // Cascading Filters States
+  const [companies, setCompanies] = useState<any[]>([])
+  const [branchOffices, setBranchOffices] = useState<any[]>([])
+  const [areas, setAreas] = useState<any[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<number>(0)
+  const [selectedBranch, setSelectedBranch] = useState<number>(0)
+  const [selectedArea, setSelectedArea] = useState<number>(0)
+  const [selectedUrgency, setSelectedUrgency] = useState<string>('NORMAL')
 
-  const fetch = async () => {
-    try {
+  const [fields, setFields] = useState({
+    title: '',
+    comments: '',
+  })
 
-      setSelectCompany((prevState: any) => ({
-        ...prevState,
-        companies: companies,
-      }));
-      setSelectBranch((prevState: any) => ({
-        ...prevState,
-        branch: branch,
-      }));
-      setFields((prevState: any) => ({
-        ...prevState,
-        companyId: companies[0]?.id,
-        branchId: branch[0]?.id,
-        companyName: companies[0]?.name,
-        branchName: branch[0]?.name,
-      }));
+  const [articuloTemporal, setArticuloTemporal] = useState('')
 
-    } catch (error) {
+  const [searchState, setSearchState] = useState({
+    type: 1 as 1 | 2, // 1: Code, 2: Name
+    field: '',
+  })
 
-    }
+  const handleModalChange = (value: string) => {
+    dispatch(modal(value))
   }
 
   useEffect(() => {
-    fetch()
-  }, [modalState])
-
-
-  // Estado inicial para los campos del formulario
-  const [fields, setFields] = useState<any>({
-    companyId: null,
-    branchId: null,
-    companyName: '',
-    branchName: '',
-    comments: ''
-  })
-
-  const [selectCompany, setSelectCompany] = useState<any>({
-    selectCompany: false,
-    companies: []
-  })
-
-  const openSelectCompany = () => {
-    setSelectCompany((prevState: any) => ({
-      ...prevState,
-      selectCompany: !prevState.selectCompany, // Close the dropdown on selection
-    }));
-  }
-
-  const handleCompanyChange = async (company: any) => {
-    setSelectCompany((prevState: any) => ({
-      ...prevState,
-      selectCompany: !prevState.selectCompany,
-    }));
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      companyId: company.id,
-      companyName: company.name,
-
-    }));
-
-    let data = {
-      userId: userState.id,
-      companyId: company.id
+    if (isOpen && userState?.id) {
+      loadInitialData()
     }
-    let response: any = await APIs.getBranch(data)
-    response.data.unshift({
-      id: 0,
-      name: "Sin sucursal"
-    });
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      branch: response.data, // Close the dropdown on selection
-    }));
+  }, [isOpen, userState?.id])
 
-    setFields((prevState: any) => ({
-      ...prevState,
-      companyId: company.id,
-      companyName: company.name,
-      branchId: response.data[0].id,
-      branchName: response.data[0].name,
-    }));
-  }
-
-  const [selectBranch, setSelectBranch] = useState<any>({
-    selectBranch: false,
-    branch: []
-  })
-
-  const openSelectBranch = () => {
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      selectBranch: !prevState.selectBranch, // Close the dropdown on selection
-    }));
-  }
-
-  const handleBranchChange = (branch: any) => {
-    setSelectBranch((prevState: any) => ({
-      ...prevState,
-      selectBranch: !prevState.selectBranch
-    }));
-
-    setFields((prevState: any) => ({
-      ...prevState,
-      branchId: branch.id,
-      branchName: branch.name,
-    }));
-
-
-
-  }
-
-  const handleModalChange = (value: any) => {
-    dispatch(modal(value));
-    // dispatch(updateAdministrator('reset'));
-  };
-
-  const [selectAdd, setSelectAdd] = useState<any>({
-    types: [
-      {
-        id: 1,
-        name: 'Codigo'
-      },
-      {
-        id: 2,
-        name: 'Nombre'
-      }
-    ],
-    selectType: null,
-    selectedType: null,
-    selectResult: null,
-    selectedResult: {},
-    result: [],
-    field: ''
-  })
-
-  const [concepts, setConcepts] = useState<any>([])
-
-
-
-
-
-
-  const openSelectType = () => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectType: !prevState.selectType,
-    }));
-  }
-
-  const handleTypeChange = async (type: any) => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectType: !prevState.selectType,
-    }));
-
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectedType: type.id,
-    }));
-  }
-
-  const openSelectResult = () => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectResult: !prevState.selectResult
-    }));
-  }
-
-  const handleResultChange = (result: any) => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectResult: !prevState.selectResult,
-      selectedResult: result
-    }));
-
-
-
-
-  }
-
-  const search = async () => {
+  const loadInitialData = async () => {
     try {
-      if (selectAdd.selectedType == 1) {
-        const response: any = await APIs.getProducts(selectAdd.field, '');
-        setSelectAdd((prevState: any) => ({
-          ...prevState,
-          result: response.data
-        }));
-      }
-      if (selectAdd.selectedType == 2) {
-        const response: any = await APIs.getProducts('', selectAdd.field);
-        setSelectAdd((prevState: any) => ({
-          ...prevState,
-          result: response.data
-        }));
-      }
+      const userId = userState?.id || 1
+      console.log('Loading companies for userId:', userId);
+      const compData = await APIs.getCompaniesByUser(userId)
+      console.log('Companies data received:', compData);
 
+      // Handle cases where the API might return { data: [...] } instead of [...]
+      const companiesList = Array.isArray(compData) ? compData : (compData?.data || []);
+      setCompanies(companiesList);
+      // Con una sola empresa (o la activa de la sesión si no hay lista) se elige sola.
+      const onlyCompanyId = companiesList.length === 1
+        ? companiesList[0].id
+        : companiesList.length === 0 ? (userState?.activeCompanyId ?? userState?.companyId ?? 0) : 0
+      if (onlyCompanyId) await handleCompanyChange(onlyCompanyId)
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      console.error('Error loading companies:', error)
     }
   }
 
-  console.log(userState, userState)
-
-  const createTickets = async () => {
-    let data = {
-      companyId: fields.companyId,
-      companyName: fields.companyName,
-      branchId: fields.branchId,
-      branchName: fields.branchName,
-      comments: fields.comments,
-      userId: userState.id,
-      concepts: concepts,
-    };
-
+  const handleCompanyChange = async (companyId: number) => {
+    setSelectedCompany(companyId)
+    setSelectedBranch(0)
+    setSelectedArea(0)
     try {
-      let response: any = await APIs.cresteTickets(data);
-      Swal.fire({
-        icon: 'success',
-        title: 'Serie creada correctamente',
-        text: response.message,
-        confirmButtonColor: '#3085d6',
-      });
-      dispatch(modal(''));
-    } catch (error: any) {
-      console.error('Error al crear el ticket:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error al crear la serie',
-        text: error.response?.data?.message || 'Ocurrió un error inesperado',
-        confirmButtonColor: '#d33',
-      });
+      const userId = userState?.id || 1
+      const response = await APIs.getBranchOffices(companyId, userId)
+      const branches = Array.isArray(response) ? response : (response?.data || [])
+      setBranchOffices(branches)
+      // Con una sola sucursal se elige sola (y carga sus áreas).
+      if (branches.length === 1) await handleBranchChange(branches[0].id)
+    } catch (error) {
+      console.error('Error loading branches:', error)
     }
+  }
+
+  const handleBranchChange = async (branchId: number) => {
+    setSelectedBranch(branchId)
+    setSelectedArea(0)
+    try {
+      const response = await APIs.getAreas({ branchId })
+      const areasData = Array.isArray(response) ? response : (response?.data || [])
+      setAreas(areasData)
+    } catch (error) {
+      console.error('Error loading areas:', error)
+    }
+  }
+
+  const searchProducts = async (code: string, name: string) => {
+    try {
+      const response: any = await APIs.getProducts(code, name, undefined)
+      setSearchResults(response?.data ?? [])
+    } catch (error) {
+      console.error('Error searching products:', error)
+      setSearchResults([])
+    }
+  }
+
+  const handleSearchChange = async (val: string) => {
+    const isCodeSearch = searchState.type === 1;
+    const code = isCodeSearch ? val : '';
+    const name = !isCodeSearch ? val : '';
+    await searchProducts(code, name);
   };
 
+  const addItem = (product: any) => {
+    const newItem: ReqItem = {
+      key: `${product.id}-${Date.now()}`,
+      productId: product.id,
+      code: product.code ?? '',
+      name: product.name ?? '',
+      quantity: 1,
+      unitId: product.productUnits?.[0]?.unit?.id ?? 0,
+      storeId: product.stores?.[0]?.id ?? product.productStores?.[0]?.storeId ?? 0,
+      units: product.productUnits ?? [],
+      stores: product.stores ?? product.productStores ?? [],
+      comments: '',
+    }
+    setItems(prev => [...prev, newItem])
+    setSearchResults([])
+    setSearchState(prev => ({ ...prev, field: '' }))
+  }
 
-  const addTickets = () => {
-    let data = {
-      code: selectAdd.selectedResult.code,
-      name: selectAdd.selectedResult.name,
-      productId: selectAdd.selectedResult.id,
-      quantity: 0,
+  const agregarTmp = () => {
+    if (!articuloTemporal.trim()) {
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'Ingresa la descripción del artículo temporal.' })
+      return
+    }
+    const newItem: ReqItem = {
+      key: `tmp-${Date.now()}`,
+      productId: 0,
+      code: 'TMP',
+      name: articuloTemporal,
+      quantity: 1,
       unitId: 0,
       storeId: 0,
-      store: selectAdd.selectedResult.productStores,
-      units: selectAdd.selectedResult.productUnits
+      units: [],
+      stores: [],
+      comments: '',
     }
-    setConcepts([...concepts, data])
+    setItems(prev => [...prev, newItem])
+    setArticuloTemporal('')
   }
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const value = e.target.value.trim();
-    const parsedValue = value === '' ? null : parseFloat(value);
-
-    const updatedConcepts = concepts.map((concept: any, i: number) =>
-      i === index ? { ...concept, quantity: parsedValue } : concept
-    );
-
-    setConcepts(updatedConcepts);
-  };
-
-
-  const handlUnitsChange = (e: React.ChangeEvent<HTMLSelectElement>, index: number) => {
-    const value = e.target.value.trim();
-    const updatedConcepts = concepts.map((concept: any, i: number) =>
-      i === index ? { ...concept, unit_id: value } : concept
-    );
-    setConcepts(updatedConcepts);
-
-  };
-
-  const handlStoreChange = (e: React.ChangeEvent<HTMLSelectElement>, index: number) => {
-    const value = e.target.value.trim();
-    const updatedConcepts = concepts.map((concept: any, i: number) =>
-      i === index ? { ...concept, store_id: value } : concept
-    );
-    setConcepts(updatedConcepts);
-
-  };
-
-
-  const deleteBranch = (_: any, i: number) => {
-    let filter = concepts.filter((_: any, index: any) => index !== i)
-    setConcepts(filter)
+  const updateItem = (key: string, updates: Partial<ReqItem>) => {
+    setItems(prev => prev.map(item => item.key === key ? { ...item, ...updates } : item))
   }
 
+  const removeItem = (key: string) => {
+    setItems(prev => prev.filter(item => item.key !== key))
+  }
 
-  console.log('selectAdd', selectAdd)
-
-  const [selectedOption, setSelectedOption] = useState<any>(0);
-
-  const handleOptionChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    if (value === "normal") {
-      setSelectedOption(0);
+  const handleSave = async () => {
+    if (items.length === 0) {
+      Swal.fire({ icon: 'warning', title: 'Sin artículos', text: 'Agrega al menos un artículo.' })
+      return
     }
-    else if (value === "diferencial") {
-      setSelectedOption(1);
+    if (selectedCompany === 0 || selectedBranch === 0) {
+      Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor selecciona la Empresa y Sucursal.' })
+      return
     }
-    else {
 
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        title: fields.title,
+        companyId: selectedCompany,
+        branchId: selectedBranch,
+        areaId: selectedArea,
+        urgency: selectedUrgency,
+        comments: fields.comments,
+        userId: userState?.id || 1,
+        option: selectedOption,
+        concepts: items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitId: item.unitId,
+          storeId: item.storeId,
+          code: item.code,
+          name: item.name,
+          comments: item.comments,
+        })),
+      }
+      const response: any = await APIs.createRequisition(payload)
+      Swal.fire({ icon: 'success', title: 'Requisición creada', text: response.message })
+      handleModalChange('')
+      setItems([])
+    } catch (error: any) {
+      Swal.fire({ icon: 'error', title: 'Error', text: error.response?.data?.message || 'Error inesperado' })
+    } finally {
+      setIsSubmitting(false)
     }
-  };
-
+  }
 
   return (
-    <div className={`overlay__requisition_modal ${modalState === 'requisition_modal' ? 'active' : ''}`}>
-      <div className={`popup__requisition_modal ${modalState === 'requisition_modal' ? 'active' : ''}`}>
-      <div className='header__modal'>
-          <a href="#" className="btn-cerrar-popup__requisition_modal" onClick={() => handleModalChange('')}>
-            <svg className='svg__close' xmlns="http://www.w3.org/2000/svg" height="16" width="12" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" /></svg>
-          </a>
-          <p className='title__modals'>Nueva requisicón</p>
+    <div className={`modal-req-overlay ${isOpen ? 'active' : ''}`}>
+      <div className="modal-req-popup">
+        <div className='modal-req-header'>
+          <div className='modal-req-header-left'>
+            <div className='modal-req-type-selector'>
+              <div className='modal-req-type-group'>
+                <label className="modal-req-checkbox-label">
+                  <input
+                    type="radio"
+                    name="req-type"
+                    checked={selectedOption === 0}
+                    onChange={() => setSelectedOption(0)} />
+                  <span className="modal-req-checkmark"></span>
+                  <span className='text'>Normal</span>
+                </label>
+                <div className='modal-req-checkbox-item'>
+                  <label className="modal-req-checkbox-label">
+                    <input
+                      type="radio"
+                      name="req-type"
+                      checked={selectedOption === 1}
+                      onChange={() => setSelectedOption(1)} />
+                    <span className="modal-req-checkmark"></span>
+                    <span className='text'>Diferencial</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type='button' className='modal-req-close-btn' onClick={() => handleModalChange('')}>
+            <span className="material-symbols-rounded">close</span>
+          </button>
         </div>
-        <div className='requisition_modal'>
-          <div className='requisition_modal_container'>
-            <div className='checkbox__container_general'>
-              <div className='checkbox__container'>
-                <label className="checkbox__container_general">
-                  <input
-                    className='checkbox'
-                    type="radio"
-                    value="normal"
-                    checked={selectedOption == 0}
-                    onChange={handleOptionChange} />
-                  <span className="checkmark__general"></span>
-                </label>
-                <p className='text'>Normal</p>
+
+        <div className='modal-req-body'>
+          <div className='modal-req-container'>
+
+            <div className='modal-req-row-0'>
+              {companies.length > 1 && (
+              <div className='modal-req-select-field'>
+                <label className='modal-req-label'>Empresa</label>
+                <select
+                  className='modal-req-select'
+                  value={selectedCompany}
+                  onChange={(e) => handleCompanyChange(Number(e.target.value))}
+                >
+                  <option value={0}>Selecciona Empresa</option>
+                  {companies.map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
               </div>
-              <div className='checkbox__container'>
-                <label className="checkbox__container_general">
-                  <input
-                    className='checkbox'
-                    type="radio"
-                    value="diferencial"
-                    checked={selectedOption == 1}
-                    onChange={handleOptionChange} />
-                  <span className="checkmark__general"></span>
-                </label>
-                <p className='text'>Diferencial</p>
+              )}
+              {branchOffices.length > 1 && (
+              <div className='modal-req-select-field'>
+                <label className='modal-req-label'>Sucursal</label>
+                <select
+                  className='modal-req-select'
+                  value={selectedBranch}
+                  onChange={(e) => handleBranchChange(Number(e.target.value))}
+                  disabled={!selectedCompany}
+                >
+                  <option value={0}>Selecciona Sucursal</option>
+                  {branchOffices.map((b: any) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
               </div>
-            </div>
-            <div className='row__one'>
-              <div className='select__container'>
-                <label className='label__general'>Empresa</label>
-                <div className='select-btn__general'>
-                  <div className={`select-btn ${selectCompany.selectCompany ? 'active' : ''}`} onClick={openSelectCompany}>
-                    <p>{fields.companyId !== null ? selectCompany.companies.find((s: { id: number }) => s.id === fields.companyId)?.name : 'selecciona'}</p>
-                    <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                  </div>
-                  <div className={`content ${selectCompany.selectCompany ? 'active' : ''}`}>
-                    <ul className={`options ${selectCompany.selectCompany ? 'active' : ''}`} style={{ opacity: selectCompany.selectCompany ? '1' : '0' }}>
-                      {selectCompany?.companies?.map((company: any) => (
-                        <li key={company.id} onClick={() => handleCompanyChange(company)}>
-                          {company.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+              )}
+              <div className='modal-req-select-field'>
+                <label className='modal-req-label'>Area</label>
+                <select
+                  className='modal-req-select'
+                  value={selectedArea}
+                  onChange={(e) => setSelectedArea(Number(e.target.value))}
+                  disabled={!selectedBranch}
+                >
+                  <option value={0}>Selecciona Area</option>
+                  {areas.map((a: any) => (
+                    <option key={a.id} value={a.id}>{a.name}</option>
+                  ))}
+                </select>
               </div>
-              <div className='select__container'>
-                <label className='label__general'>Sucursal</label>
-                <div className='select-btn__general'>
-                  <div className={`select-btn ${selectBranch.selectBranch ? 'active' : ''}`} onClick={openSelectBranch}>
-                    <p>{fields.branchId !== null ? selectBranch.branch.find((s: { id: number }) => s.id === fields.branchId)?.name : 'selecciona'}</p>
-                    <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                  </div>
-                  <div className={`content ${selectBranch.selectBranch ? 'active' : ''}`}>
-                    <ul className={`options ${selectBranch.selectBranch ? 'active' : ''}`} style={{ opacity: selectBranch.selectBranch ? '1' : '0' }}>
-                      {selectBranch?.branch?.map((branch: any) => (
-                        <li key={branch.id} onClick={() => handleBranchChange(branch)}>
-                          {branch.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+              <div className='modal-req-select-field'>
+                <label className='modal-req-label'>Urgencia</label>
+                <select
+                  className='modal-req-select'
+                  value={selectedUrgency}
+                  onChange={(e) => setSelectedUrgency(e.target.value)}
+                >
+                  <option value='LOW'>Baja</option>
+                  <option value='NORMAL'>Normal</option>
+                  <option value='HIGH'>Alta</option>
+                  <option value='URGENT'>Urgente</option>
+                </select>
               </div>
-              <div className='select__container'>
-                <label className='label__general'>Areas</label>
-                <div className='select-btn__general'>
-                  <div className={`select-btn ${selectBranch.selectBranch ? 'active' : ''}`} onClick={openSelectBranch}>
-                    <p>{fields.branchId !== null ? selectBranch.branch.find((s: { id: number }) => s.id === fields.branchId)?.name : 'selecciona'}</p>
-                    <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                  </div>
-                  <div className={`content ${selectBranch.selectBranch ? 'active' : ''}`}>
-                    <ul className={`options ${selectBranch.selectBranch ? 'active' : ''}`} style={{ opacity: selectBranch.selectBranch ? '1' : '0' }}>
-                      {selectBranch?.branch?.map((branch: any) => (
-                        <li key={branch.id} onClick={() => handleBranchChange(branch)}>
-                          {branch.name}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <div className="comments">
-                <label className='label__general'>Comentarios</label>
-                <textarea className={`inputs__general`} value={fields.comments} onChange={(e) => setFields({ ...fields, comments: e.target.value })} placeholder='Comentarios'></textarea>
+              <div className='modal-req-select-field'>
+                <label className='modal-req-label'>Título</label>
+                <input
+                  className='modal-req-inputs'
+                  type='text'
+                  value={fields.title}
+                  onChange={(e) => setFields(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder='Ingresa el título'
+                />
               </div>
             </div>
-            <div className='row__two'>
-              <div className='row__one'>
-                <div className='select__container'>
-                  <label className='label__general'>Buscar por</label>
-                  <div className='select-btn__general'>
-                    <div className={`select-btn ${selectAdd.selectType ? 'active' : ''}`} onClick={openSelectType}>
-                      <p>{selectAdd.selectedType !== null ? selectAdd?.types.find((s: { id: number }) => s.id === selectAdd.selectedType)?.name : 'selecciona'}</p>
-                      <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
+
+            <div className='modal-req-row-1'>
+              <div className='modal-req-main-fields'>
+                <div className='modal-req-field-group'>
+                  <div className='modal-req-input-field'>
+                    <label className='modal-req-label'>Comentario</label>
+                    <textarea
+                      className='modal-req-textarea'
+                      value={fields.comments}
+                      onChange={(e) => setFields(prev => ({ ...prev, comments: e.target.value }))}
+                      placeholder='Comentarios generales'
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='modal-req-search-area'>
+              <div className='modal-req-search-box'>
+                <div className='modal-req-search-controls'>
+                  <div className='modal-req-select-wrap'>
+                    <label className='modal-req-label'>Buscar por</label>
+                    <select
+                      className='modal-req-select'
+                      value={searchState.type}
+                      onChange={(e) => setSearchState(prev => ({ ...prev, type: Number(e.target.value) }))}
+                    >
+                      <option value={1}>Código</option>
+                      <option value={2}>Nombre</option>
+                    </select>
+                  </div>
+                  <div className='modal-req-input-wrap'>
+                    <label className='modal-req-label'>Término de búsqueda</label>
+                    <div className='modal-req-input-with-icon'>
+                      <span className="material-symbols-rounded">search</span>
+                      <input
+                        className='modal-req-inputs modal-req-search-input'
+                        placeholder='Escribe para buscar...'
+                        value={searchState.field}
+                        type='text'
+                        onChange={(e) => {
+                          const val = e.target.value
+                          setSearchState(prev => ({ ...prev, field: val }))
+                          handleSearchChange(val)
+                        }}
+                      />
                     </div>
-                    <div className={`content ${selectAdd.selectType ? 'active' : ''}`}>
-                      <ul className={`options ${selectAdd.selectType ? 'active' : ''}`} style={{ opacity: selectAdd.selectType ? '1' : '0' }}>
-                        {selectAdd?.types?.map((type: any) => (
-                          <li key={type.id} onClick={() => handleTypeChange(type)}>
-                            {type.name}
-                          </li>
+                    {searchResults.length > 0 && (
+                      <div className='modal-req-results-list'>
+                        {searchResults.map((product: any) => (
+                          <button
+                            type='button'
+                            key={product.id}
+                            className='modal-req-result-item'
+                            onClick={() => addItem(product)}
+                          >
+                            <div className="modal-req-result-info">
+                              <span className="modal-req-result-name">{product.name}</span>
+                              <span className="modal-req-result-code">{product.code}</span>
+                            </div>
+                            <img src={product.images?.[0] || ''} alt='' className='modal-req-result-img' onError={(e: any) => e.target.style.display = 'none'} />
+                          </button>
                         ))}
-                      </ul>
+                      </div>
+                    )}
+                  </div>
+                  <div className='modal-req-tmp-field'>
+                    <label className='modal-req-label'>Artículo Temporal</label>
+                    <div className='modal-req-tmp-input-wrap'>
+                      <input
+                        className='modal-req-inputs'
+                        type='text'
+                        value={articuloTemporal}
+                        onChange={(e) => setArticuloTemporal(e.target.value)}
+                        placeholder='Descripción artículo temporal'
+                      />
+                      <button type='button' className='modal-req-btn-add-tmp' onClick={agregarTmp}>
+                        Agregar
+                      </button>
                     </div>
                   </div>
-                </div>
-                <div className='row__two'>
-                  <div className="col-4 comments">
-                    <label className='label__general'>Buscar por</label>
-                    <input className={`inputs__general`} type='text' value={fields.comments} onChange={(e) => setFields({ ...fields, comments: e.target.value })} placeholder='Buscar' />
-                  </div>
-                  <div>
-                    <button className='btn__general-primary' onClick={search}>Buscar</button>
-                  </div>
-                </div>
-              </div>
-              <div className='row__two'>
-                <div className='select__container'>
-                  <label className='label__general'>Resultado</label>
-                  <div className='select-btn__general'>
-                    <div className={`select-btn ${selectAdd.selectResult ? 'active' : ''}`} onClick={openSelectResult}>
-                      <p>{selectAdd.selectedResult.id ? selectAdd?.result?.find((s: { id: number }) => s.id === selectAdd.selectedResult.id)?.name : 'selecciona'}</p>
-                      <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="16" width="16" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                    </div>
-                    <div className={`content ${selectAdd.selectResult ? 'active' : ''}`}>
-                      <ul className={`options ${selectAdd.selectResult ? 'active' : ''}`} style={{ opacity: selectAdd.selectResult ? '1' : '0' }}>
-                        {selectAdd?.result?.map((result: any) => (
-                          <li key={result.id} onClick={() => handleResultChange(result)}>
-                            {result.name}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                <div className=''>
-                  <button className='btn__general-primary' onClick={addTickets}>Agregar</button>
                 </div>
               </div>
             </div>
-            <div className='table__requisition_modal' >
-              <div>
-                {concepts ? (
-                  <div className='table__numbers'>
-                    <p className='text'>Total de entradas</p>
-                    <div className='quantities_tables'>{concepts.length}</div>
-                  </div>
+
+            <div className='modal-req-items-table'>
+              <div className='modal-req-table-head'>
+                <div className='modal-req-thead'>
+                  <div className='modal-req-th modal-req-td-left' style={{ flex: 3 }}>Artículos</div>
+                  <div className='modal-req-th' style={{ flex: 1 }}>Cantidad</div>
+                  <div className='modal-req-th' style={{ flex: 1 }}>Unidad</div>
+                  <div className='modal-req-th' style={{ flex: 1 }}>Almacén</div>
+                  <div className='modal-req-th' style={{ flex: 2 }}>Comentarios</div>
+                  <div className='modal-req-th' style={{ width: '50px' }}></div>
+                </div>
+              </div>
+              <div className='modal-req-table-body'>
+                {items.length > 0 ? (
+                  items.map((item) => (
+                    <div className='modal-req-table-row-wrap' key={item.key}>
+                      <div className='modal-req-table-row'>
+                        <div className='modal-req-td modal-req-td-left' style={{ flex: 3 }}>
+                          <p className='modal-req-item-id'>{item.code} - {item.name}</p>
+                        </div>
+                        <div className='modal-req-td' style={{ flex: 1 }}>
+                          <input
+                            className='modal-req-inputs'
+                            value={item.quantity}
+                            onChange={(e) => updateItem(item.key, { quantity: Number(e.target.value) })}
+                            type="number"
+                          />
+                        </div>
+                        <div className='modal-req-td' style={{ flex: 1 }}>
+                          <select
+                            className='modal-req-traditional-select'
+                            value={item.unitId}
+                            onChange={(e) => updateItem(item.key, { unitId: Number(e.target.value) })}
+                          >
+                            {item.units.map((u: any) => (
+                              <option key={u.id} value={u.unit?.id ?? u.id}>{u.unit?.name || u.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className='modal-req-td' style={{ flex: 1 }}>
+                          <select
+                            className='modal-req-traditional-select'
+                            value={item.storeId}
+                            onChange={(e) => updateItem(item.key, { storeId: Number(e.target.value) })}
+                          >
+                            {item.stores.map((s: any) => (
+                              <option key={s.id} value={s.storeId || s.id}>{s.store?.name || s.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className='modal-req-td' style={{ flex: 2 }}>
+                          <input
+                            className='modal-req-inputs'
+                            value={item.comments}
+                            onChange={(e) => updateItem(item.key, { comments: e.target.value })}
+                            type="text"
+                            placeholder='Comentario...'
+                          />
+                        </div>
+                        <div className='modal-req-td modal-req-td-delete' style={{ width: '50px' }}>
+                          <div className='modal-req-delete-btn' onClick={() => removeItem(item.key)} title='Eliminar concepto'>
+                            <span className="material-symbols-rounded">delete</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
                 ) : (
-                  <p className='text'>No hay empresas</p>
+                  <div className='modal-req-empty-state'>No hay artículos agregados.</div>
                 )}
               </div>
-              <div className='table__head'>
-                <div className='thead'>
-                  <div className='th '>
-                    <p className=''>Codigo / Nombre</p>
-                  </div>
-                  <div className='th movil'>
-                    <p className=''>Cantidad</p>
-                  </div>
-                  <div className='th movil'>
-                    <p className=''>Unidad</p>
-                  </div>
-                  <div className='th movil'>
-                    <p className=''>Almacén </p>
-                  </div>
-                  <div className='th'>
-
-                  </div>
-                </div>
-              </div>
-              {concepts?.length > 0 ? (
-                <div className='table__body'>
-                  {concepts?.map((item: any, index: any) => (
-                    <div className='tbody__container' key={index}>
-                      <div className='tbody-desk'>
-                        <div className='td'>
-                          <p className='code-identifier'>{item.code}-{item.name}</p>
-                        </div>
-                        <div className='td'>
-                          <input className={`inputs__general`} type='text' value={item.cantidad === null ? '' : item.cantidad} onChange={(e) => handleAmountChange(e, index)} placeholder='Comentarios' />
-                        </div>
-                        <div className='td'>
-
-                          <select className='traditional__selector' onChange={(event) => handlUnitsChange(event, index)} value={item.unit_id} >
-                            {item.units?.map((item: any) => (
-                              <option key={item.id} value={item.unit_id}>
-                                {item.unit.name}
-                              </option>
-                            ))}
-                          </select>
-
-                        </div>
-
-                        <div className='td'>
-                          <select className='traditional__selector' onChange={(event) => handlStoreChange(event, index)} value={item.store_id} >
-                            {item.store?.map((item: any) => (
-                              <option key={item.id} value={item.store_id}>
-                                {item.store.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-
-                        <div className='td edit'>
-                          <div className='edit-icon'>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                          </div>
-                        </div>
-                        <div className='td delete' onClick={() => deleteBranch(item, index)}>
-                          <div className='delete-icon'>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className=" icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
-                          </div>
-                        </div>
-                      </div>
-                      <div className='tbody-response'>
-                        <div className='td'>
-                          <p className='code-identifier'>{item.code}-{item.name}</p>
-                        </div>
-                        <div className='td movil'>
-                          <input className={`inputs__general`} type='text' value={item?.quantity === null ? '' : item?.quantity} onChange={(e) => handleAmountChange(e, index)} placeholder='Cantidad' />
-                        </div>
-                        <div className='td'>
-                          <select className='traditional__selector' onChange={(event) => handlUnitsChange(event, index)} value={item.unit_id} >
-                            {item.units?.map((item: any) => (
-                              <option key={item.id} value={item.unit_id}>
-                                {item.unit.name}
-                              </option>
-                            ))}
-                          </select>
-
-                        </div>
-
-                        <div className='td'>
-                          <select className='traditional__selector' onChange={(event) => handlStoreChange(event, index)} value={item.store_id} >
-                            {item.store?.map((item: any) => (
-                              <option key={item.id} value={item.store_id}>
-                                {item.store.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-
-                        <div className='td edit'>
-                          <div className='edit-icon'>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                          </div>
-                        </div>
-                        <div className='td delete' onClick={() => deleteBranch(item, index)}>
-                          <div className='delete-icon'>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className=" icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className='text'>No hay máximos y mínimos que mostrar</p>
-              )}
             </div>
           </div>
-          <div className='row__three'>
-            <button className='btn__general-primary' onClick={createTickets}>Crear entrada</button>
-          </div>
+
+          <footer className="modal-req-footer">
+            <button type='button' className='modal-req-btn-cancel' onClick={() => handleModalChange('')}>
+              Cancelar
+            </button>
+            <button
+              type='button'
+              className='modal-req-btn-save'
+              onClick={handleSave}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Guardando...' : 'Crear Requisición'}
+            </button>
+          </footer>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default ModalRequisition;
+export default ModalRequisition

@@ -31,6 +31,21 @@
     display: none;
 }
 
+/* Prevenir scroll horizontal en sidebar colapsado */
+.sidebar.collapsed .sidebar-links {
+    overflow-x: hidden;
+}
+
+.sidebar.collapsed .menu_sidebar {
+    overflow-x: hidden;
+}
+
+/* Ocultar tooltip__content del layout cuando sidebar está colapsado
+   (el popup fixed ya lo reemplaza) */
+.sidebar.collapsed .tooltip__content {
+    display: none !important;
+}
+
 
 /*? search wrapper */
 .search__wrapper {
@@ -273,6 +288,20 @@
     max-height: 220px;
 }
 
+/* El panel de submenú tiene su PROPIO fondo (--sub-menu-bg), distinto al navy
+   del resto del sidebar — en modo claro es un gris muy claro, así que el texto
+   no puede seguir siendo blanco (--text-link, heredado de ".sidebar-links li a"
+   más arriba) o queda ilegible. Mayor especificidad (2 clases) que la regla
+   genérica (1 clase + 2 tipos) para poder pisarla sin !important. */
+.sidebar-links .sub-menu-link {
+    color: var(--sub-menu-text);
+}
+
+.sidebar-links .sub-menu-link:hover {
+    background: var(--sub-menu-hover-bg);
+    color: var(--sub-menu-text);
+}
+
 .sidebar.collapsed .sidebar-links li a {
     color: var(--text-link);
     width: auto;
@@ -421,69 +450,96 @@
     display: none;
 }
 
-/*? profile part */
-.sidebar__profile {
-    margin-top: 1rem;
+/*? logout button */
+.sidebar__logout-wrap {
+    padding: 0 0.85rem 0.6rem;
+    margin-top: auto;
+}
+
+.sidebar__logout-btn {
+    width: 100%;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    flex-direction: row;
-    padding: 0 1rem;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.55rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.06);
     color: var(--text-link);
-    overflow-x: hidden;
-    min-height: 2.6125rem;
-}
-
-.avatar__wrapper {
-    position: relative;
-    display: flex;
-}
-
-.avatar {
-    display: block;
-    width: 2.5rem;
-    height: 2.5rem;
-    object-fit: cover;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
     cursor: pointer;
-    border-radius: 50%;
-}
-
-/* .avatar__name {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
     white-space: nowrap;
-    animation: fadeIn 0.2s ease-in-out;
 }
 
-.user-name {
-    font-weight: 600;
-    text-align: left;
-    color: var(--text-link);
-    animation: fadeIn 0.2s ease-in-out;
+.sidebar__logout-btn:hover {
+    background: rgba(250, 117, 117, 0.14);
+    border-color: rgba(250, 117, 117, 0.45);
+    color: #ff9e9e;
 }
 
-.email {
-    color: var(--text-link);
-    font-size: 0.8125rem;
-    animation: fadeIn 0.2s ease-in-out;
-} */
-
-.logout {
-    animation: fadeIn 0.2s ease-in-out;
-    margin-left: auto;
-}
-
-.logout svg {
+.sidebar__logout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     color: var(--logout);
+    transition: color 0.2s ease;
 }
 
-.sidebar.collapsed .logout {
+.sidebar__logout-btn:hover .sidebar__logout-icon {
+    color: #ff9e9e;
+}
+
+.sidebar__logout-icon svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    stroke-width: 2;
+}
+
+/* Modo colapsado: solo icono centrado en círculo */
+.sidebar.collapsed .sidebar__logout-wrap {
+    padding: 0 0 0.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.sidebar.collapsed .sidebar__logout-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    gap: 0;
+}
+
+.sidebar.collapsed .sidebar__logout-text {
     display: none;
 }
 
-/*? Expand button */
+/* Modo claro */
+[data-theme="light"] .sidebar__logout-btn {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.35);
+    color: var(--text-link);
+}
 
+[data-theme="light"] .sidebar__logout-btn:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+}
+
+[data-theme="light"] .sidebar__logout-icon {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="light"] .sidebar__logout-btn:hover .sidebar__logout-icon {
+    color: #ffffff;
+}
+
+/*? Expand button */
 .expand-btn {
     position: absolute;
     display: grid;
@@ -511,28 +567,6 @@
 
 .bottom-links {
     margin-top: auto;
-}
-
-.sidebar.collapsed .btn__logout {
-    display: none;
-}
-
-.sidebar .btn__logout_close {
-    display: none;
-}
-
-.sidebar.collapsed .btn__logout_close {
-    display: flex;
-}
-
-.sidebar .btn__logout {
-    background-color: var(--primary-color);
-    border: none;
-    height: 40px;
-    width: 100%;
-    border-radius: 5px;
-    cursor: pointer;
-    color: #ffff;
 }
 
 @keyframes fadeIn {

@@ -6,35 +6,106 @@ const APIs = {
     return ConfigurationAPIs.post(path, data);
   },
 
-  cresteUser: async (data: any, customPath?: string) => {
+  createUser: async (data: any, customPath?: string) => {
     const path = customPath || 'users/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  ///////////////////////////////////ONBOARDING////////////////////////////////////////////////////
+
+  getAvailableGiros: async (customPath?: string) => {
+    const path = customPath || 'onboarding/giros';
+    return ConfigurationAPIs.get(path);
+  },
+
+  completeOnboarding: async (data: any, customPath?: string) => {
+    const path = customPath || 'onboarding/complete';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  ///////////////////////////////////LICENCIA////////////////////////////////////////////////////
+
+  activateLicense: async (licenseKey: string, token: string) => {
+    return ConfigurationAPIs.post('licensing/activate-license', { licenseKey });
+  },
+
+  activateModule: async (data: { branchId: number; moduleId: string }, customPath?: string) => {
+    const path = customPath || 'licensing/activate-module';
     return ConfigurationAPIs.post(path, data);
   },
 
 
 
 
+  ///////////////////////////////////GIROS////////////////////////////////////////////////////
+
+  getBusinessTypes: async (customPath?: string, token?: string) => {
+    const path = customPath || 'business-types/get-active';
+    return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
+  },
+
   ///////////////////////////////////COMPANIES////////////////////////////////////////////////////
 
-  cresteCompanies: async (data: any, customPath?: string) => {
+  getCompaniesByUser: async (userId: number, customPath?: string) => {
+    const path = customPath || `companies/get-by-user/${userId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  createCompanies: async (data: any, customPath?: string) => {
     const path = customPath || 'companies/create';
     return ConfigurationAPIs.post(path, data);
   },
 
 
 
-  getCompanies: async (id: number, customPath?: string, token?: string) => {
-    const path = customPath || `companies/get/${id}`;
+  // Lista de empresas DEL USUARIO (id = id de usuario). Antes pegaba a companies/get/:id,
+  // que ahora devuelve UNA empresa por su id, y las pantallas que esperan una lista
+  // (selectores de empresa, Empresas, Grupos, Áreas…) se quedaban vacías.
+  getCompanies: async (userId: number, customPath?: string, token?: string) => {
+    const path = customPath || `companies/get-by-user/${userId}`;
     return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
+  },
+
+  // Una sola empresa por su id.
+  getCompanyById: async (companyId: number, customPath?: string) => {
+    const path = customPath || `companies/get/${companyId}`;
+    return ConfigurationAPIs.get(path);
   },
 
 
 
+  ///////////////////////////////////EMPRESAS////////////////////////////////////////////////////
+
+  createCompany: async (data: any, customPath?: string) => {
+    const path = customPath || 'companies/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  updateCompany: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `companies/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
   ///////////////////////////////////SUCURSALES////////////////////////////////////////////////////
 
-  cresteBranch: async (data: any, customPath?: string) => {
+  getBranchOffices: async (companyId: number, userId: number, customPath?: string) => {
+    const path = customPath || `branch/get/${companyId}/${userId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  createBranch: async (data: any, customPath?: string) => {
     const path = customPath || 'branch/create';
     return ConfigurationAPIs.post(path, data);
+  },
+
+  deleteBranch: async (id: number, customPath?: string) => {
+    const path = customPath || `branch/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  updateBranch: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `branch/${id}`;
+    return ConfigurationAPIs.patch(path, data);
   },
 
   getBranch: async (data: any, customPath?: string, token?: string) => {
@@ -44,11 +115,21 @@ const APIs = {
 
     ///////////////////////////////////SERIES////////////////////////////////////////////////////
 
+    getSeriesXUser: async ({ id, tipo_ducumento }: { id: number, tipo_ducumento: number }, customPath?: string) => {
+      const path = customPath || `series/get?userId=${id}&tipo_documento=${tipo_ducumento}`;
+      return ConfigurationAPIs.get(path);
+    },
+
     createSeries: async (data: any, customPath?: string) => {
       const path = customPath || 'series/create';
       return ConfigurationAPIs.post(path, data);
     },
   
+    updateSeries: async (id: number, data: any, customPath?: string) => {
+      const path = customPath || `series/${id}`;
+      return ConfigurationAPIs.patch(path, data);
+    },
+
     getSeries: async (_: any, customPath?: string) => {
       // const path = customPath || `tickets/get?companyId=${data.companyId}&branchId=${data.branchId}`;
       const path = customPath || `series/get`;
@@ -57,6 +138,7 @@ const APIs = {
 
 
        ///////////////////////////////////AREAS////////////////////////////////////////////////////
+
 
        createAreas: async (data: any, customPath?: string) => {
         const path = customPath || 'areas/create';
@@ -68,7 +150,7 @@ const APIs = {
           companyId?: number;
           branchId?: number;
           production?: boolean;
-          type?: string;
+          typeId?: number;
         },
         customPath?: string,
       ) => {
@@ -82,8 +164,8 @@ const APIs = {
         if (filters?.production != null) {
           params.set('production', String(filters.production));
         }
-        if (filters?.type) {
-          params.set('type', filters.type);
+        if (filters?.typeId != null && filters.typeId > 0) {
+          params.set('typeId', String(filters.typeId));
         }
         const query = params.toString();
         const path = customPath || `areas/get${query ? `?${query}` : ''}`;
@@ -103,6 +185,26 @@ const APIs = {
       getCatalogTypes: async (customPath?: string) => {
         const path = customPath || 'areas/catalog-types';
         return ConfigurationAPIs.get(path);
+      },
+
+      // Catálogo de tipos de área — propio de cada empresa (ya no es una lista fija).
+      // branchId opcional: filtra a los visibles para esa sucursal (los de toda
+      // la empresa + los propios de esa sucursal); sin branchId trae todos.
+      getAreaTypes: async (companyId: number, branchId?: number) => {
+        const query = branchId != null && branchId > 0 ? `&branchId=${branchId}` : ''
+        return ConfigurationAPIs.get(`area-types?companyId=${companyId}${query}`)
+      },
+
+      createAreaType: async (data: { companyId: number; branchId?: number; label: string; description?: string; color?: string; isProduction?: boolean }) => {
+        return ConfigurationAPIs.post('area-types', data)
+      },
+
+      updateAreaType: async (id: number, data: { branchId?: number | null; label?: string; description?: string | null; isProduction?: boolean }) => {
+        return ConfigurationAPIs.patch(`area-types/${id}`, data)
+      },
+
+      deleteAreaType: async (id: number) => {
+        return ConfigurationAPIs.delete(`area-types/${id}`);
       },
 
       getAreaTree: async (companyId?: number, customPath?: string) => {
@@ -135,7 +237,7 @@ const APIs = {
 
   ///////////////////////////////////ALMACEN////////////////////////////////////////////////////
 
-  cresteWarehouses: async (data: any, customPath?: string) => {
+  createWarehouses: async (data: any, customPath?: string) => {
     const path = customPath || 'store/create';
     return ConfigurationAPIs.post(path, data);
   },
@@ -167,7 +269,7 @@ const APIs = {
 
   ///////////////////////////////////UNIDADES////////////////////////////////////////////////////
 
-  cresteUnits: async (data: any, customPath?: string) => {
+  createUnits: async (data: any, customPath?: string) => {
     const path = customPath || 'units/create';
     return ConfigurationAPIs.post(path, data);
   },
@@ -182,7 +284,7 @@ const APIs = {
   },
 
   getUnitOptions: async (
-    data: { companyId?: number; branchId?: number },
+    data: { companyId?: number; branchId?: number; branchIds?: number[] },
     token?: string,
     customPath?: string,
   ) => {
@@ -192,6 +294,10 @@ const APIs = {
     }
     if (data.branchId != null && data.branchId > 0) {
       params.set('branchId', String(data.branchId));
+    }
+    // Solo unidades disponibles en TODAS estas sucursales
+    if (data.branchIds?.length) {
+      params.set('branchIds', data.branchIds.join(','));
     }
     const query = params.toString();
     const path = customPath || `units/options-units${query ? `?${query}` : ''}`;
@@ -212,9 +318,15 @@ const APIs = {
   },
 
 
+  ///////////////////////////////////////////////////////// Administrador ////////////////////////////////////////////////////////
+
+  runMigration: async () => {
+    return ConfigurationAPIs.post('migration/run');
+  },
+
   ///////////////////////////////////PRODUCTO////////////////////////////////////////////////////
 
-  cresteProducts: async (data: any, customPath?: string) => {
+  createProducts: async (data: any, customPath?: string) => {
     const path = customPath || 'products/create';
     return ConfigurationAPIs.post(path, data);
   },
@@ -239,15 +351,176 @@ const APIs = {
   },
 
 
+  ///////////////////////////////////ORDENES DE COMPRA////////////////////////////////////////////////////
+
+  createPurchaseOrder: async (data: any, customPath?: string) => {
+    const path = customPath || 'purchase-orders/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  updatePurchaseOrder: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `purchase-orders/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
+  deletePurchaseOrder: async (id: number, customPath?: string) => {
+    const path = customPath || `purchase-orders/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  getPurchaseOrderById: async (id: number, customPath?: string) => {
+    const path = customPath || `purchase-orders/${id}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  updatePurchaseOrderStatus: async (id: number, status: string, customPath?: string) => {
+    const path = customPath || `purchase-orders/${id}/status`;
+    return ConfigurationAPIs.patch(path, { status });
+  },
+
+  getPurchaseOrders: async (
+    data: {
+      companyId?: number;
+      branchId?: number;
+      serieId?: number;
+      status?: string | number;
+      page?: number;
+      folio?: string;
+      tipo?: number;
+      desde?: string;
+      hasta?: string;
+    },
+    customPath?: string,
+  ) => {
+    const params = new URLSearchParams();
+    if (data.companyId != null && data.companyId > 0) params.set('companyId', String(data.companyId));
+    if (data.branchId != null && data.branchId > 0) params.set('branchId', String(data.branchId));
+    if (data.serieId != null && data.serieId > 0) params.set('serieId', String(data.serieId));
+    if (data.status != null) params.set('status', String(data.status));
+    if (data.page != null) params.set('page', String(data.page));
+    if (data.folio) params.set('folio', data.folio);
+    if (data.tipo != null) params.set('tipo', String(data.tipo));
+    if (data.desde) params.set('desde', data.desde);
+    if (data.hasta) params.set('hasta', data.hasta);
+
+    const query = params.toString();
+    const path = customPath || `purchase-orders/get${query ? `?${query}` : ''}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  getSuppliers: async (
+    data: { id_usuario: number; is_flete?: boolean },
+    customPath?: string,
+  ) => {
+    const params = new URLSearchParams();
+    params.set('id_usuario', String(data.id_usuario));
+    if (data.is_flete !== undefined) params.set('is_flete', String(data.is_flete));
+
+    const query = params.toString();
+    const path = customPath || `suppliers/get${query ? `?${query}` : ''}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  ///////////////////////////////////REQUISICIONES////////////////////////////////////////////////////
+
+  createRequisition: async (data: any, customPath?: string) => {
+    const path = customPath || 'requisitions/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  getMyRequisitions: async (customPath?: string, token?: string) => {
+    const path = customPath || 'requisitions/my';
+    return ConfigurationAPIs.get(path, token ? { headers: { Authorization: token } } : undefined);
+  },
+
+  getRequisitionById: async (id: number, customPath?: string) => {
+    const path = customPath || `requisitions/${id}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  updateRequisitionStatus: async (id: number, status: string, customPath?: string) => {
+    const path = customPath || `requisitions/${id}/status`;
+    return ConfigurationAPIs.patch(path, { status });
+  },
+
+  updateRequisitionItemDelivery: async (itemId: number, deliveredQuantity: number, customPath?: string) => {
+    const path = customPath || `requisitions/items/${itemId}/delivery`;
+    return ConfigurationAPIs.patch(path, { deliveredQuantity });
+  },
+
   ///////////////////////////////////ENTRADAS////////////////////////////////////////////////////
 
-  cresteTickets: async (data: any, customPath?: string) => {
+  createTickets: async (data: any, customPath?: string) => {
     const path = customPath || 'tickets/create';
     return ConfigurationAPIs.post(path, data);
   },
 
+  getRequisitions: async (
+    data: {
+      companyId?: number;
+      branchId?: number;
+      userId?: number;
+      status?: string;
+      page?: number;
+      folio?: string;
+      tipo?: number;
+      desde?: string;
+      hasta?: string;
+      id_serie?: number;
+      id_area?: number;
+    },
+    config?: any,
+    customPath?: string,
+  ) => {
+    const params = new URLSearchParams();
+    if (data.companyId != null && data.companyId > 0) {
+      params.set('companyId', String(data.companyId));
+    }
+    if (data.branchId != null && data.branchId > 0) {
+      params.set('branchId', String(data.branchId));
+    }
+    if (data.userId != null && data.userId > 0) {
+      params.set('userId', String(data.userId));
+    }
+    if (data.status != null) {
+      params.set('status', String(data.status));
+    }
+    if (data.page != null) {
+      params.set('page', String(data.page));
+    }
+    if (data.folio) {
+      params.set('folio', data.folio);
+    }
+    if (data.tipo != null) {
+      params.set('tipo', String(data.tipo));
+    }
+    if (data.desde) {
+      params.set('desde', data.desde);
+    }
+    if (data.hasta) {
+      params.set('hasta', data.hasta);
+    }
+    if (data.id_serie != null && data.id_serie > 0) {
+      params.set('serieId', String(data.id_serie));
+    }
+    if (data.id_area != null && data.id_area > 0) {
+      params.set('areaId', String(data.id_area));
+    }
+    const query = params.toString();
+    const path = customPath || `requisitions${query ? `?${query}` : ''}`;
+    return ConfigurationAPIs.get(path, config);
+  },
+
+  deleteTicket: async (id: string | number, customPath?: string) => {
+    const path = customPath || `tickets/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
   getTickets: async (
-    data: { companyId?: number; branchId?: number },
+    data: {
+      companyId?: number;
+      branchId?: number;
+    },
     customPath?: string,
   ) => {
     const params = new URLSearchParams();
@@ -259,16 +532,6 @@ const APIs = {
     }
     const query = params.toString();
     const path = customPath || `tickets/get${query ? `?${query}` : ''}`;
-    return ConfigurationAPIs.get(path);
-  },
-
-  deleteTicket: async (id: string | number, customPath?: string) => {
-    const path = customPath || `tickets/${id}`;
-    return ConfigurationAPIs.delete(path);
-  },
-
-  getTicketById: async (id: string | number, customPath?: string) => {
-    const path = customPath || `tickets/${id}`;
     return ConfigurationAPIs.get(path);
   },
 
@@ -434,12 +697,20 @@ const APIs = {
     return ConfigurationAPIs.patch(`users/${id}/status`, data)
   },
 
+  getUserById: async (id: number | string) => {
+    return ConfigurationAPIs.get(`users/${id}`)
+  },
+
   getUserPermissionOverrides: async (userId: number) => {
     return ConfigurationAPIs.get(`users/${userId}/permissions`)
   },
 
   getUserEffectivePermissions: async (userId: number) => {
     return ConfigurationAPIs.get(`users/${userId}/permissions/effective`)
+  },
+
+  getLicenseStatus: async () => {
+    return ConfigurationAPIs.get('licensing/status')
   },
 
   setUserPermissionOverrides: async (userId: number, overrides: { permissionId: number; grant: boolean }[]) => {
@@ -466,6 +737,23 @@ const APIs = {
 
   getRolePermissions: async (roleId: number) => {
     return ConfigurationAPIs.get(`roles/${roleId}/permissions`)
+  },
+
+  // Grupos de visibilidad de usuarios (quién puede ver a quién en el panel de Usuarios)
+  getUserGroups: async (companyId: number) => {
+    return ConfigurationAPIs.get(`user-groups?companyId=${companyId}`)
+  },
+
+  createUserGroup: async (data: { name: string; companyId: number; managerIds?: number[]; memberIds?: number[] }) => {
+    return ConfigurationAPIs.post('user-groups', data)
+  },
+
+  updateUserGroup: async (id: number, data: { name?: string; managerIds?: number[]; memberIds?: number[] }) => {
+    return ConfigurationAPIs.patch(`user-groups/${id}`, data)
+  },
+
+  deleteUserGroup: async (id: number) => {
+    return ConfigurationAPIs.delete(`user-groups/${id}`)
   },
 
   // Legacy administradores (mantener compatibilidad temporal)
@@ -534,11 +822,176 @@ const APIs = {
 
 
   ///////////////////////////////////////////////////////// Categorías (API raíz + árbol) ////////////////////////////////////////////////////////
+
+  // --- CASH MODULE ---
+  getCurrentCashShift: async (branchId: number, customPath?: string) => {
+    const path = customPath || `cash/current?branchId=${branchId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  getActiveCashShifts: async (branchId: number, customPath?: string) => {
+    const path = customPath || `cash/active?branchId=${branchId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  openCashShift: async (data: any, customPath?: string) => {
+    const path = customPath || 'cash/open';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  getCashShiftHistory: async (branchId: number, page: number, customPath?: string) => {
+    const path = customPath || `cash/history?branchId=${branchId}&page=${page}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  // Reporte de corte de un turno: fondo, ventas por método de pago, movimientos, esperado y diferencia
+  getCashShiftReport: async (shiftId: number, customPath?: string) => {
+    const path = customPath || `cash/report/${shiftId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  // Usuarios que pueden autorizar un cierre fuera de tolerancia
+  getCashHandoverCandidates: async (shiftId: number) => {
+    return ConfigurationAPIs.get(`cash/handover-candidates/${shiftId}`);
+  },
+
+  handoverCashShift: async (shiftId: number, userId: number) => {
+    return ConfigurationAPIs.patch(`cash/handover/${shiftId}`, { userId });
+  },
+
+  getCashCurrentAssignment: async (branchId: number, userId?: number) => {
+    return ConfigurationAPIs.get(`cash/assignment/current?branchId=${branchId}${userId ? `&userId=${userId}` : ''}`);
+  },
+
+  getCashSellStatus: async (branchId: number) => {
+    return ConfigurationAPIs.get(`cash/sell-status?branchId=${branchId}`);
+  },
+
+  getCashAlerts: async (branchId: number) => {
+    return ConfigurationAPIs.get(`cash/alerts?branchId=${branchId}`);
+  },
+
+  getLocalSyncStatus: async () => {
+    return ConfigurationAPIs.get('local-sync/status');
+  },
+
+  listLocalSyncLinks: async () => {
+    return ConfigurationAPIs.get('local-sync/links');
+  },
+
+  createLocalSyncLink: async (name: string, branchIds: number[] = []) => {
+    return ConfigurationAPIs.post('local-sync/links', { name, branchIds });
+  },
+
+  revokeLocalSyncLink: async (id: number) => {
+    return ConfigurationAPIs.delete(`local-sync/links/${id}`);
+  },
+
+  linkLocalSync: async (data: { cloudUrl: string; token: string; mode: 'replace' | 'merge' }) => {
+    return ConfigurationAPIs.post('local-sync/link', data);
+  },
+
+  pullLocalSync: async (mode: 'replace' | 'merge') => {
+    return ConfigurationAPIs.post('local-sync/pull', { mode });
+  },
+
+  unlinkLocalSync: async () => {
+    return ConfigurationAPIs.delete('local-sync/link');
+  },
+
+  getCashRegisters: async (branchId: number) => {
+    return ConfigurationAPIs.get(`cash/registers?branchId=${branchId}`);
+  },
+
+  createCashRegister: async (branchId: number, data: any) => {
+    return ConfigurationAPIs.post(`cash/registers?branchId=${branchId}`, data);
+  },
+
+  updateCashRegister: async (id: number, data: any) => {
+    return ConfigurationAPIs.patch(`cash/registers/${id}`, data);
+  },
+
+  deleteCashRegister: async (id: number) => {
+    return ConfigurationAPIs.delete(`cash/registers/${id}`);
+  },
+
+  getCashSchedules: async (branchId: number) => {
+    return ConfigurationAPIs.get(`cash/schedules?branchId=${branchId}`);
+  },
+
+  createCashSchedule: async (branchId: number, data: any) => {
+    return ConfigurationAPIs.post(`cash/schedules?branchId=${branchId}`, data);
+  },
+
+  updateCashSchedule: async (id: number, data: any) => {
+    return ConfigurationAPIs.patch(`cash/schedules/${id}`, data);
+  },
+
+  deleteCashSchedule: async (id: number) => {
+    return ConfigurationAPIs.delete(`cash/schedules/${id}`);
+  },
+
+  getCashAssignableUsers: async (branchId: number) => {
+    return ConfigurationAPIs.get(`cash/assignable-users?branchId=${branchId}`);
+  },
+
+  updateCashShift: async (shiftId: number, data: { openingAmount?: number; registerId?: number | null; scheduleId?: number | null }) => {
+    return ConfigurationAPIs.patch(`cash/shifts/${shiftId}`, data);
+  },
+
+  deleteCashShift: async (shiftId: number) => {
+    return ConfigurationAPIs.delete(`cash/shifts/${shiftId}`);
+  },
+
+  getCashSupervisors: async (customPath?: string) => {
+    const path = customPath || 'cash/supervisors';
+    return ConfigurationAPIs.get(path);
+  },
+
+  addCashMovement: async (data: any, customPath?: string) => {
+    const path = customPath || 'cash/movement';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  closeCashShift: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `cash/close/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
+  getCashConfig: async (branchId: number, customPath?: string) => {
+    const path = customPath || `cash/config?branchId=${branchId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  getAuditLog: async (filters: { companyId?: number; branchId?: number; entity?: string; action?: string; from?: string; to?: string; page?: number; pageSize?: number }) => {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '' && !(typeof v === 'number' && v <= 0 && k !== 'page')) params.set(k, String(v));
+    });
+    return ConfigurationAPIs.get(`audit?${params.toString()}`);
+  },
+
+  getPosConfig: async (companyId: number, branchId = 0) => {
+    return ConfigurationAPIs.get(`pos-config?companyId=${companyId}&branchId=${branchId}`);
+  },
+
+  updatePosConfig: async (companyId: number, branchId: number, data: any) => {
+    return ConfigurationAPIs.patch(`pos-config?companyId=${companyId}&branchId=${branchId}`, data);
+  },
+
+  deletePosConfigOverride: async (companyId: number, branchId: number) => {
+    return ConfigurationAPIs.delete(`pos-config?companyId=${companyId}&branchId=${branchId}`);
+  },
+
+  updateCashConfig: async (branchId: number, data: any, customPath?: string) => {
+    const path = customPath || `cash/config?branchId=${branchId}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+  // -------------------
+
   createCategory: async (body: Record<string, unknown>, token: string, customPath?: string) => {
     const path = customPath || 'category/create';
-    return ConfigurationAPIs.post(path, body, {
-      headers: { Authorization: token, 'Content-Type': 'application/json' },
-    });
+    return ConfigurationAPIs.post(path, body);
   },
 
   /** Raíces con subcategories anidados. Opcional ?branchId= o ?companyId= */
@@ -578,15 +1031,14 @@ const APIs = {
     });
   },
 
-  getCategoryOptions: async (branchId: number | undefined, token: string, customPath?: string) => {
+  getCategoryOptions: async (branchId: number | undefined, token: string, customPath?: string, branchIds?: number[]) => {
     const base = customPath || 'category/options-categories';
-    const path =
-      branchId != null && !Number.isNaN(branchId)
-        ? `${base}?branchId=${encodeURIComponent(String(branchId))}`
-        : base;
-    return ConfigurationAPIs.get(path, {
-      headers: { Authorization: token },
-    });
+    const params = new URLSearchParams();
+    if (branchId != null && !Number.isNaN(branchId)) params.set('branchId', String(branchId));
+    // Solo categorías disponibles en TODAS estas sucursales
+    if (branchIds?.length) params.set('branchIds', branchIds.join(','));
+    const query = params.toString();
+    return ConfigurationAPIs.get(query ? `${base}?${query}` : base);
   },
 
   /** Filtrar familias (nivel 1) con POST - Filtros flexibles */
@@ -594,6 +1046,7 @@ const APIs = {
     filters: {
       companyId?: number;
       branchId?: number;
+      branchIds?: number[];
       allowedItemType?: string;
       search?: string;
     },
@@ -601,16 +1054,32 @@ const APIs = {
     customPath?: string
   ) => {
     const path = customPath || 'category/get-categories-familias-filter-level-1';
-    return ConfigurationAPIs.post(path, filters, {
-      headers: { Authorization: token },
-    });
+    return ConfigurationAPIs.post(path, filters);
   },
 
   getCategoryById: async (id: string | number, token: string, customPath?: string) => {
     const path = customPath || `category/${id}`;
-    return ConfigurationAPIs.get(path, {
-      headers: { Authorization: token },
-    });
+    return ConfigurationAPIs.get(path);
+  },
+
+  /** Disponibilidad de una categoría por sucursal (explícita y efectiva) */
+  getCategoryAvailability: async (id: string | number) => {
+    return ConfigurationAPIs.get(`category/${id}/availability`);
+  },
+
+  /** Artículos que dejarían de ofrecerse si la categoría se deshabilita en la sucursal */
+  getCategoryAvailabilityImpact: async (id: string | number, branchId: number) => {
+    return ConfigurationAPIs.get(`category/${id}/availability-impact?branchId=${branchId}`);
+  },
+
+  /** Artículos que dejarían de ofrecerse si la unidad se restringe y se quita esa sucursal */
+  getUnitRestrictionImpact: async (id: string | number, branchId: number) => {
+    return ConfigurationAPIs.get(`units/${id}/impact?branchId=${branchId}`);
+  },
+
+  /** enabled: true | false | null (null quita la excepción y vuelve a heredar) */
+  setCategoryAvailability: async (id: string | number, body: { branchId: number; enabled: boolean | null }) => {
+    return ConfigurationAPIs.patch(`category/${id}/availability`, body);
   },
 
   /** Campos parciales; no envía subcategories */
@@ -775,6 +1244,44 @@ const APIs = {
   deleteProductionOrder: async (id: string | number, customPath?: string) => {
     const path = customPath || `production/${id}`;
     return ConfigurationAPIs.delete(path);
+  },
+
+  ///////////////////////////////////METODOS DE PAGO////////////////////////////////////////////////////
+
+  getPaymentMethods: async (companyId: number, branchId?: number, customPath?: string) => {
+    const params = new URLSearchParams();
+    params.set('companyId', String(companyId));
+    if (branchId != null && branchId > 0) {
+      params.set('branchId', String(branchId));
+    }
+    const query = params.toString();
+    const path = customPath || `payment-methods?${query}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  createPaymentMethod: async (data: any, customPath?: string) => {
+    const path = customPath || 'payment-methods';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  updatePaymentMethod: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `payment-methods/${id}`;
+    return ConfigurationAPIs.put(path, data);
+  },
+
+  deletePaymentMethod: async (id: number, customPath?: string) => {
+    const path = customPath || `payment-methods/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  seedTenant: async (companyId: number, customPath?: string) => {
+    const path = customPath || `seed/tenant/${companyId}`;
+    return ConfigurationAPIs.post(path);
+  },
+
+  seedTenantByUserId: async (userId: number, customPath?: string) => {
+    const path = customPath || `seed/user/${userId}`;
+    return ConfigurationAPIs.post(path);
   },
 
 

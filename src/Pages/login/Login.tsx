@@ -1,14 +1,15 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { createUser } from '../../redux/state/user';
+import { createUser } from '../../redux/state/UserFixora';
 import { useNavigate } from 'react-router-dom';
 import { PrivateRoutes } from '../../models/routes';
 import APIs from '../../services/APIs';
-import { Toaster, toast } from 'sonner'
-import MoralPersonCreate from '../../components/login/MoralPersonCreate';
-import NaturalPersonCreate from '../../components/login/NaturalPersonCreate';
+import { toast } from 'sonner'
+import BusinessRegister from '../../components/login/BusinessRegister';
+import SettingUp from './SettingUp';
+import ActivateLicense from './ActivateLicense';
 import { setStatusLogin } from '../../redux/state/login/Login';
-import astra from '../../assets/astra.svg'
+import logoFixora from '../../assets/logo-fixora.png'
 
 
 import './Login.css'
@@ -16,27 +17,66 @@ import './Login.css'
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('')
   const [password, setPassword] = useState<string>('')
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false)
+  const [pendingSetup, setPendingSetup] = useState<boolean>(false)
+  const [licenseRequired, setLicenseRequired] = useState<boolean>(false)
+  const [activationToken, setActivationToken] = useState<string>('')
 
   const navigate = useNavigate()
+
+  // El login siempre se muestra en modo claro, sin importar el tema guardado.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light')
+  }, [])
   const dispatch = useDispatch();
 
-  const statusCreate = useSelector((state: any) => state.login.statusCreate);
-  const statusLogin = useSelector((state: any) => state.login.statusLogin); // Obtén el valor de statusCreate desde Redux
+  const statusLogin = useSelector((state: any) => state.login.statusLogin);
 
+  // Mientras la cuenta sigue en "sala de espera" (su base en la nube aún no tiene
+  // las tablas listas), reintenta solo cada 10s en vez de obligar al usuario a
+  // seguir dando click — en cuanto el backend confirme que ya está lista, entra.
+  useEffect(() => {
+    if (!pendingSetup) return
+    const interval = setInterval(() => login(true), 10000)
+    return () => clearInterval(interval)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingSetup])
 
-  const login = async () => {
-
+  const login = async (silent = false) => {
+    if (!silent) setIsLoggingIn(true)
     try {
       let result: any = await APIs.login({ email, password })
+      if (result.status == 'pending_setup') {
+        setIsLoggingIn(false)
+        // Si ya estaba en la sala de espera y sigue igual, el click no se "pierde" —
+        // sin esto, reintentar y seguir sin estar lista se ve exactamente igual que
+        // no haber hecho nada.
+        if (!silent && pendingSetup) toast.info('Todavía no está lista. Seguimos intentando…')
+        setPendingSetup(true)
+        return
+      }
       if (result.status == 'warning') {
+        setIsLoggingIn(false)
+        setPendingSetup(false)
         return toast.warning(result.message)
-
+      }
+      if (result.status == 'license_required') {
+        setIsLoggingIn(false)
+        setPendingSetup(false)
+        setActivationToken(result.data?.token ?? '')
+        setLicenseRequired(true)
+        return
       }
       if (result.status == 'success') {
         const payload = result.data?.user ?? result.data;
         const token = result.data?.token;
-        const companyIds: number[] = (payload.userCompanies ?? []).map((uc: any) => uc.companyId).filter(Boolean);
+        // El backend manda "companies" (no "userCompanies") como {id, name}[], y
+        // "branch" anidado (no un "branchId" plano) — con los nombres viejos esto
+        // siempre daba [] / undefined, así que nunca se veían los submódulos de
+        // Empresas/Sucursales en Configuraciones aunque el usuario tuviera varias.
+        const companyIds: number[] = (payload.companies ?? []).map((c: any) => c.id).filter(Boolean);
         const activeCompanyId = companyIds[0] ?? null;
+        const activeBranchId = payload.branch?.id ?? null;
         const userPayload = {
           id: payload.id,
           _id: payload.id,
@@ -47,23 +87,26 @@ const Login: React.FC = () => {
           userKind: payload.userKind,
           role: payload.role,
           permissions: payload.permissions ?? [],
-          branchId: payload.branchId,
+          branchId: payload.branch?.id,
           branch: payload.branch,
           companyId: activeCompanyId,
           companyIds,
           activeCompanyId,
+          activeBranchId,
           active: payload.active,
           token,
         };
         dispatch(createUser(userPayload));
         if (token) {
-          localStorage.setItem('token-eco', token);
+          localStorage.setItem('token-fixora', token);
         }
-        navigate(`/${PrivateRoutes.PRIVATE}`, { replace: true })
+        // Cuenta nueva: primero el onboarding (giro, empresa, sucursal), no la licencia.
+        navigate(result.data?.needsOnboarding ? '/onboarding' : `/${PrivateRoutes.PRIVATE}`, { replace: true })
       }
 
     } catch (error) {
-      toast.error("Ocurri un error al iniciar sesion")
+      setIsLoggingIn(false)
+      if (!silent) toast.error("Ocurrió un error al iniciar sesión")
     }
 
   }
@@ -75,14 +118,39 @@ const Login: React.FC = () => {
     dispatch(setStatusLogin(true));  // Cambiar el estado a false
   };
 
+  // Se ve como si ya estuviera adentro del ERP (mismo header, mismo layout) en vez
+  // de quedarse en la pantalla de login con el panel de marketing — la cuenta ya
+  // existe, solo falta que termine de prepararse su base.
+  if (pendingSetup) {
+    return (
+      <SettingUp
+        retrying={isLoggingIn}
+        onRetry={() => login()}
+        onBack={() => setPendingSetup(false)}
+      />
+    )
+  }
+
+  if (licenseRequired) {
+    return (
+      <ActivateLicense
+        token={activationToken}
+        onActivated={() => {
+          setLicenseRequired(false)
+          login()
+        }}
+        onBack={() => setLicenseRequired(false)}
+      />
+    )
+  }
+
   return (
     <div className='login'>
-      <Toaster richColors expand={false} position="top-right" />
       <div className='login__container'>
         <div className='left'>
           <div className='left__container'>
             <div className="erp__header">
-              <img src={astra} alt="ERP icon" className="erp__icon" />
+              <img src={logoFixora} alt="Fixora ERP" className="erp__icon" />
               <h1>ERP Punto de Venta</h1>
               <p>Potencia tu negocio con herramientas de gestión modernas y eficientes.</p>
             </div>
@@ -96,19 +164,19 @@ const Login: React.FC = () => {
 
             <div className="erp__features">
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(252, 116, 0)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M3 3h18v2H3V3zm2 4h14v14H5V7zm4 2v2h6V9H9zm0 4v2h6v-2H9z" />
                 </svg>
                 <span>Facturación y ventas simplificadas</span>
               </div>
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(252, 116, 0)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M12 4.44L8.34 7h7.32L12 4.44zM4 8v11h16V8H4zm14 9H6v-7h12v7z" />
                 </svg>
                 <span>Control de inventario en tiempo real</span>
               </div>
               <div className="feature">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(242, 165, 65)" viewBox="0 0 24 24" width="24" height="24">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="rgb(252, 116, 0)" viewBox="0 0 24 24" width="24" height="24">
                   <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4zm-2 2h4c2.67 0 8 1.34 8 4v2H2v-2c0-2.66 5.33-4 8-4z" />
                 </svg>
                 <span>Gestión de clientes y usuarios</span>
@@ -121,19 +189,13 @@ const Login: React.FC = () => {
         <div className='right'>
           <div className='form__login' >
             {statusLogin ?
-              <div>
-                {statusCreate ?
-                  <NaturalPersonCreate />
-                  :
-                  <MoralPersonCreate />
-                }
-              </div>
+              <BusinessRegister />
               :
               <div className='form__login_container'>
                 <div className='container_head'>
                   <div className='logo'>
-                    <img width={70} src={astra} alt="Astra logo" />
-                    <p>Astra</p>
+                    <img width={70} src={logoFixora} alt="Fixora logo" />
+                    <p>Fixora</p>
                   </div>
                   <div className='title'>
                     <h2>¡Bienvenido de nuevo!</h2>
@@ -161,7 +223,14 @@ const Login: React.FC = () => {
                 <div className='row__two'>
                   <div>
                     <div className='btn__login'>
-                      <button className='btn__general-purple' type='button' onClick={login}>Iniciar sesión</button>
+                      <button
+                        className='btn__general-purple'
+                        type='button'
+                        onClick={() => login()}
+                        disabled={isLoggingIn}
+                      >
+                        {isLoggingIn ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                      </button>
                     </div>
                     <div className='btn__create_container'>
                       <button className='btn__create' type='button' onClick={handleDemoClick}>Crear una demo</button>

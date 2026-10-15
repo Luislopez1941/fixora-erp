@@ -18,8 +18,13 @@ const Catalogo: React.FC = () => {
                 </Link>
             </div>
             <div className='item'>
-                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.UNITS}`} title="Payments" className="tooltip">
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.UNITS}`} title="Unidades" className="tooltip">
                     <p>Unidades</p>
+                </Link>
+            </div>
+            <div className='item'>
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.PAYMENT_METHODS}`} title="Tipos de Pago" className="tooltip">
+                    <p>Tipos de Pago</p>
                 </Link>
             </div>
             

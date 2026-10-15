@@ -21,17 +21,18 @@ export async function fetchBackendModules(): Promise<BackendModule[]> {
 }
 
 /**
- * Consulta los IDs de los módulos activos (habilitados) para una empresa.
- * Retorna null si no se puede obtener (fallback: mostrar todos).
+ * Consulta los IDs de los módulos activos (habilitados) para una sucursal.
+ * null del backend se trata como [] (ningún módulo activo).
  */
-export async function fetchCompanyActiveModules(companyId: number): Promise<string[] | null> {
+export async function fetchBranchActiveModules(branchId: number): Promise<string[] | null> {
   try {
     const res = await ConfigurationAPIs.get<{ moduleIds: string[] | null }>(
-      `companies/${companyId}/active-modules`
+      `branch/${branchId}/active-modules`
     )
-    return res.moduleIds  // null = empresa nueva → fallback (mostrar todos)
+    // null = sin módulos configurados → tratar como [] (ninguno activo)
+    return res.moduleIds ?? []
   } catch {
-    return null
+    return []
   }
 }
 
@@ -47,23 +48,23 @@ export interface StoreModule {
 }
 
 /**
- * Carga la tienda de módulos para una empresa (precios + estado actual).
+ * Carga la tienda de módulos para una sucursal (precios + estado actual).
  */
-export async function fetchModuleStore(companyId: number): Promise<StoreModule[]> {
+export async function fetchModuleStore(branchId: number): Promise<StoreModule[]> {
   try {
-    return await ConfigurationAPIs.get<StoreModule[]>(`companies/${companyId}/module-store`)
+    return await ConfigurationAPIs.get<StoreModule[]>(`branch/${branchId}/module-store`)
   } catch {
     return []
   }
 }
 
 /**
- * Activa o desactiva un módulo para la empresa.
+ * Activa o desactiva un módulo para la sucursal.
  */
 export async function toggleModuleStore(
-  companyId: number,
+  branchId: number,
   moduleId:  string,
   enabled:   boolean,
 ): Promise<void> {
-  await ConfigurationAPIs.put(`companies/${companyId}/module-store/${moduleId}`, { enabled })
+  await ConfigurationAPIs.put(`branch/${branchId}/module-store/${moduleId}`, { enabled })
 }

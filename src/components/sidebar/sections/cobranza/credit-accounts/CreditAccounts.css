@@ -1,0 +1,361 @@
+/* Cuentas de crédito — todas las clases cuelgan de .credit-accounts (notación padre__hijo).
+   Colores con variables del tema: sirve igual en modo claro y oscuro. */
+
+.credit-accounts {
+  width: 100%;
+  min-width: 0;
+}
+
+.credit-accounts__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.credit-accounts__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.credit-accounts__header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.credit-accounts__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.credit-accounts__search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.credit-accounts__search .inputs__general.credit-accounts__search-input {
+  margin-top: 0;
+  width: 240px;
+  padding-left: 38px;
+}
+
+select.credit-accounts__filter {
+  width: auto;
+  margin-top: 0;
+  min-width: 130px;
+}
+
+/* ── Tabla en filas ── */
+.credit-accounts__list {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.credit-accounts__row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.8fr) 120px minmax(150px, 1.2fr) 120px 120px 110px 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
+}
+
+.credit-accounts__row:last-child {
+  border-bottom: none;
+}
+
+.credit-accounts__row:not(.credit-accounts__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
+}
+
+.credit-accounts__row--head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.credit-accounts__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.credit-accounts__cell--name strong {
+  font-weight: 600;
+}
+
+.credit-accounts__tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.credit-accounts__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.credit-accounts__badge--yes {
+  color: #047857;
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.credit-accounts__badge--no {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .credit-accounts__badge--yes {
+  color: #34d399;
+}
+
+[data-theme="dark"] .credit-accounts__badge--no {
+  color: #f87171;
+}
+
+.credit-accounts__col-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.credit-accounts__icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.credit-accounts__icon-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.credit-accounts__icon-btn:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.credit-accounts__icon-btn--danger:hover {
+  color: var(--danger-color, #dc2626);
+  border-color: var(--danger-color, #dc2626);
+}
+
+.credit-accounts__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.credit-accounts__state p {
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 900px) {
+  .credit-accounts__row--head {
+    display: none;
+  }
+
+  .credit-accounts__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+
+  .credit-accounts__cell[data-label]:not(.credit-accounts__cell--name) {
+    grid-column: 1 / -1;
+  }
+
+  .credit-accounts__cell[data-label]:not(.credit-accounts__cell--name)::before {
+    content: attr(data-label) ': ';
+    color: var(--text-muted);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .credit-accounts__container {
+    padding: 16px;
+  }
+
+  .credit-accounts__search .inputs__general.credit-accounts__search-input {
+    width: 100%;
+  }
+}
+
+.credit-accounts__notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid rgba(252, 116, 0, 0.35);
+  border-radius: 12px;
+  background: rgba(252, 116, 0, 0.08);
+}
+
+.credit-accounts__notice .material-symbols-rounded {
+  color: var(--secondary-color);
+  font-size: 22px;
+}
+
+.credit-accounts__notice div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.credit-accounts__notice strong {
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.credit-accounts__notice span:not(.material-symbols-rounded) {
+  font-size: 0.82rem;
+  color: color-mix(in srgb, var(--text-color) 75%, transparent);
+}
+
+.credit-accounts__header {
+  justify-content: space-between;
+}
+
+.credit-accounts__summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.credit-accounts__card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+}
+
+.credit-accounts__card span {
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.credit-accounts__card b {
+  font-size: 1.3rem;
+  color: var(--text-color);
+}
+
+.credit-accounts .is-debt { color: #b91c1c; }
+.credit-accounts .is-ok { color: #047857; }
+
+[data-theme="dark"] .credit-accounts .is-debt { color: #f87171; }
+[data-theme="dark"] .credit-accounts .is-ok { color: #34d399; }
+
+.credit-accounts__cell--client {
+  display: flex;
+  flex-direction: column;
+  white-space: normal;
+}
+
+.credit-accounts__cell--client strong {
+  font-weight: 600;
+}
+
+.credit-accounts__cell--client span {
+  font-size: 0.76rem;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
+}
+
+.credit-accounts__usage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.credit-accounts__usage small {
+  min-width: 34px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.credit-accounts__bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(7, 42, 87, 0.1);
+  overflow: hidden;
+}
+
+.credit-accounts__bar span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.credit-accounts__bar .is-low { background: #059669; }
+.credit-accounts__bar .is-mid { background: #d97706; }
+.credit-accounts__bar .is-high { background: #dc2626; }
+
+.credit-accounts__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.credit-accounts__badge--active { color: #047857; background: rgba(5, 150, 105, 0.12); }
+.credit-accounts__badge--suspended { color: #b45309; background: rgba(217, 119, 6, 0.14); }
+.credit-accounts__badge--closed { color: color-mix(in srgb, var(--text-color) 70%, transparent); background: rgba(7, 42, 87, 0.1); }
+
+[data-theme="dark"] .credit-accounts__badge--active { color: #34d399; }
+[data-theme="dark"] .credit-accounts__badge--suspended { color: #fbbf24; }
+
+.credit-accounts__icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media screen and (max-width: 900px) {
+  .credit-accounts__summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

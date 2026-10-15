@@ -13,15 +13,40 @@ class ApiService {
 //   }
 
   constructor(baseURL: string = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000') {
+    console.log('DEBUG: ApiService initialized with baseURL:', baseURL);
     this.axiosInstance = axios.create({
       baseURL,
       headers: {
         'Content-Type': 'application/json',
       },
     });
+
+    // El guard global del backend (JwtAuthGuard) exige Authorization en CASI toda
+    // ruta. Antes cada llamada que lo necesitaba tenía que pasarlo a mano (varias
+    // no lo hacían — ej. fetchBranchActiveModules, que por eso siempre recibía 401
+    // y el sidebar ocultaba todos los módulos). Con esto, cualquier llamada que no
+    // mande su propio header ya sale autenticada por default.
+    this.axiosInstance.interceptors.request.use((config) => {
+      if (!config.headers?.Authorization) {
+        const token = localStorage.getItem('token-fixora');
+        if (token) {
+          config.headers = config.headers ?? {};
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+      return config;
+    });
+
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const message = error?.response?.data?.message || error?.message || 'Error de red';
+        return Promise.reject({ message });
+      },
+    );
   }
- 
-  
+
+
   private async request<T>(
     method: string,
     url: string,

@@ -6,7 +6,8 @@ import { setArticles, updateArticles } from '../../../../../redux/state/Articles
 import { PrivateRoutes } from '../../../../../models/routes'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import BranchAvailabilityPicker from '../shared/BranchAvailabilityPicker'
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import Swal from 'sweetalert2'
 import { Variation } from '../VariationsManager'
 import IOSSwitch from '../shared/IOSSwitch'
@@ -48,13 +49,21 @@ const Modal = () => {
   const [code, setCode] = useState('')
   const [companyId, setCompanyId] = useState<number | null>(() => readCompanyId())
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
+  // Sucursales donde se ofrece el artículo (null = todas). El artículo es UNO por empresa.
+  const [tab, setTab] = useState<'info' | 'company'>('info')
+  // Todas las sucursales de la empresa (las informa el selector) para calcular qué opciones sirven
+  const [companyBranchIds, setCompanyBranchIds] = useState<number[]>([])
+  const [enabledBranchIds, setEnabledBranchIds] = useState<number[] | null>(null)
   const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [familyId, setFamilyId] = useState<number | null>(null)
+  const [availableFamilies, setAvailableFamilies] = useState<any[]>([])
   const [unitId, setUnitId] = useState<number | null>(null)
   const [availableCategories, setAvailableCategories] = useState<any[]>([])
   const [availableUnits, setAvailableUnits] = useState<any[]>([])
   const [variations, setVariations] = useState<Variation[]>([])
   const [includesIVA, setIncludesIVA] = useState(false)
   const [discountPercent, setDiscountPercent] = useState('0')
+  const [directPrice, setDirectPrice] = useState('')
   const [isBreakdown, setIsBreakdown] = useState(false)
   const [trackInventory, setTrackInventory] = useState(true)
   const [productionAreas, setProductionAreas] = useState<any[]>([])
@@ -71,7 +80,7 @@ const Modal = () => {
   const [warehouses, setWarehouses] = useState<ArticleWarehouse[]>([])
   const [isSaving, setIsSaving] = useState(false)
 
-  const token = localStorage.getItem('token-eco')
+  const token = localStorage.getItem('token-fixora')
   const isCreate = modalState === 'articles-modal'
 
   const closeModal = () => {
@@ -108,6 +117,7 @@ const Modal = () => {
       setVariations([])
       setIncludesIVA(false)
       setDiscountPercent('0')
+      setDirectPrice('')
       setIsBreakdown(false)
       setTrackInventory(true)
       setProductionRouteAreaIds([])
@@ -117,6 +127,8 @@ const Modal = () => {
       setTempPriceRanges([])
       setCurrentItemId(null)
       setStockModalOpen(false)
+      setEnabledBranchIds(null)
+      setTab('info')
     }
   }, [modalState])
 
@@ -150,17 +162,17 @@ const Modal = () => {
         })
         .filter((store: ArticleWarehouse) => !Number.isNaN(store.id) && store.id > 0)
       setWarehouses(linkedStores)
-      
-      // Normalizar variaciones: soportar itemVariations o variations
-      const vars = Array.isArray(u.itemVariations) 
-        ? u.itemVariations 
-        : Array.isArray(u.variations) 
-        ? u.variations 
+
+      const vars = Array.isArray(u.itemVariations)
+        ? u.itemVariations
+        : Array.isArray(u.variations)
+        ? u.variations
         : []
       setVariations(vars)
-      
+
       setIncludesIVA(Boolean(u.includesIVA))
       setDiscountPercent(String(Number(u.discountPercent ?? 0) || 0))
+      setDirectPrice(String(u.price ?? ''))
       setIsBreakdown(Boolean(u.isBreakdown))
       setTrackInventory(u.trackInventory !== false)
       const routeIds = [...(u.productionRoutes ?? [])]
@@ -171,6 +183,8 @@ const Modal = () => {
       setImages(normalizeImages(u.images))
       setCurrentItemId(u.id ?? null)
       setCompanyId(u.companyId != null ? Number(u.companyId) : readCompanyId())
+      const enabled = (u.branchItems ?? []).filter((b: any) => b.enabled).map((b: any) => Number(b.branchId))
+      setEnabledBranchIds(enabled.length > 0 ? enabled : null)
     }
   }, [modalState, articlesUpdate])
 
@@ -187,6 +201,123 @@ const Modal = () => {
     }
   }, [])
 
+  const loadFamilies = useCallback(async (selectedCompanyId: number, selectedBranchIds: number[]) => {
+    try {
+      const currentToken = localStorage.getItem('token-fixora')
+      if (!currentToken) throw new Error('No token found')
+
+      const res: any = await APIs.filterFamilias(
+        {
+          companyId: selectedCompanyId,
+          branchIds: selectedBranchIds,
+        },
+        currentToken,
+      )
+
+      // Robust data extraction: check res.data, res.data.data, or res
+      let list: any[] = []
+      if (Array.isArray(res)) {
+        list = res
+      } else if (res && Array.isArray(res.data)) {
+        list = res.data
+      } else if (res && res.data && Array.isArray(res.data.data)) {
+        list = res.data.data
+      } else if (res && res.data && Array.isArray(res.data.categories)) {
+        list = res.data.categories
+      }
+
+      // Filter to keep only families that are specifically for ARTICLES or are "BOTH" (null)
+      const filteredList = list.filter(
+        (fam) => fam.allowedItemType === 'ARTICLE' || fam.allowedItemType === null,
+      )
+
+      setAvailableFamilies(filteredList)
+      setFamilyId((current) =>
+        current != null && filteredList.some((fam: any) => fam.id === current) ? current : null,
+      )
+    } catch (err) {
+      console.error('Error loading families:', err)
+      setAvailableFamilies([])
+      setFamilyId(null)
+    }
+  }, [])
+
+  const loadCategories = useCallback(async (selectedBranchIds: number[]) => {
+    try {
+      const currentToken = localStorage.getItem('token-fixora')
+      if (!currentToken) throw new Error('No token found')
+
+      const res: any = await APIs.getCategoryOptions(undefined, currentToken, undefined, selectedBranchIds)
+
+      let list: any[] = []
+      if (Array.isArray(res)) {
+        list = res
+      } else if (res && Array.isArray(res.data)) {
+        list = res.data
+      } else if (res && res.data && Array.isArray(res.data.data)) {
+        list = res.data.data
+      } else if (res && res.data && Array.isArray(res.data.categories)) {
+        list = res.data.categories
+      }
+
+      setAvailableCategories(list)
+      setCategoryId((current) =>
+        current != null && list.some((cat: any) => cat.id === current) ? current : null,
+      )
+    } catch (err) {
+      console.error('Error loading categories:', err)
+      setAvailableCategories([])
+      setCategoryId(null)
+    }
+  }, [])
+
+  const loadUnits = useCallback(async (
+    selectedCompanyId: number,
+    selectedBranchIds: number[],
+    autoSelectDefault = false,
+  ) => {
+    try {
+      const currentToken = localStorage.getItem('token-fixora')
+      if (!currentToken) throw new Error('No token found')
+
+      const res: any = await APIs.getUnitOptions(
+        {
+          companyId: selectedCompanyId,
+          branchIds: selectedBranchIds,
+        },
+        currentToken,
+      )
+
+      let list: any[] = []
+      if (Array.isArray(res)) {
+        list = res
+      } else if (res && Array.isArray(res.data)) {
+        list = res.data
+      } else if (res && res.data && Array.isArray(res.data.data)) {
+        list = res.data.data
+      } else if (res && res.data && Array.isArray(res.data.units)) {
+        list = res.data.units
+      }
+
+      setAvailableUnits(list)
+
+      setUnitId((current) => {
+        if (current != null && list.some((unit: any) => unit.id === current)) {
+          return current
+        }
+        if (autoSelectDefault && list.length > 0) {
+          const defaultUnit = list.find((unit: any) => unit.predetermined) ?? list[0]
+          return defaultUnit?.id != null ? Number(defaultUnit.id) : null
+        }
+        return null
+      })
+    } catch (err) {
+      console.error('Error loading units:', err)
+      setAvailableUnits([])
+      setUnitId(null)
+    }
+  }, [])
+
   useEffect(() => {
     if (modalState !== 'articles-modal' && modalState !== 'articles-modal-update') return
 
@@ -196,10 +327,18 @@ const Modal = () => {
       return
     }
 
-    loadCategories(branchId)
-    loadUnits(companyId, branchId, modalState === 'articles-modal')
+    // Solo se ofrecen familias, categorías y unidades disponibles en TODAS las sucursales elegidas
+    const effective = enabledBranchIds ?? companyBranchIds
+    loadCategories(effective)
+    loadUnits(companyId, effective, modalState === 'articles-modal')
     loadProductionAreas(companyId, branchId)
-  }, [companyId, branchId, modalState, loadProductionAreas])
+    loadFamilies(companyId, effective)
+  }, [companyId, branchId, enabledBranchIds, companyBranchIds, modalState, loadProductionAreas, loadFamilies, loadCategories, loadUnits])
+
+  useEffect(() => {
+    // Reset category when family changes to ensure consistency
+    setCategoryId(null)
+  }, [familyId])
 
   useEffect(() => {
     if (modalState !== 'articles-modal' && modalState !== 'articles-modal-update') return
@@ -229,53 +368,7 @@ const Modal = () => {
     setProductionRouteAreaIds((prev) => prev.filter((id) => id !== areaId))
   }
 
-  const loadCategories = async (selectedBranchId: number) => {
-    try {
-      const res: any = await APIs.getCategoryOptions(selectedBranchId, token as string)
-      const list = Array.isArray(res) ? res : []
-      setAvailableCategories(list)
-      setCategoryId((current) =>
-        current != null && list.some((cat: any) => cat.id === current) ? current : null,
-      )
-    } catch (err) {
-      console.error('Error loading categories:', err)
-      setAvailableCategories([])
-      setCategoryId(null)
-    }
-  }
 
-  const loadUnits = async (
-    selectedCompanyId: number,
-    selectedBranchId: number,
-    autoSelectDefault = false,
-  ) => {
-    try {
-      const res: any = await APIs.getUnitOptions(
-        {
-          companyId: selectedCompanyId,
-          branchId: selectedBranchId > 0 ? selectedBranchId : undefined,
-        },
-        token as string,
-      )
-      const list = Array.isArray(res) ? res : Array.isArray(res?.data) ? res.data : []
-      setAvailableUnits(list)
-
-      setUnitId((current) => {
-        if (current != null && list.some((unit: any) => unit.id === current)) {
-          return current
-        }
-        if (autoSelectDefault && list.length > 0) {
-          const defaultUnit = list.find((unit: any) => unit.predetermined) ?? list[0]
-          return defaultUnit?.id != null ? Number(defaultUnit.id) : null
-        }
-        return null
-      })
-    } catch (err) {
-      console.error('Error loading units:', err)
-      setAvailableUnits([])
-      setUnitId(null)
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -299,7 +392,6 @@ const Modal = () => {
       return
     }
 
-    // Obtener companyId del estado / picker
     if (!companyId || Number.isNaN(companyId)) {
       Swal.fire({
         icon: 'warning',
@@ -310,16 +402,13 @@ const Modal = () => {
       return
     }
 
-    // Agrupar variaciones por color para enviar formato optimizado
     const groupedVariations = variations.reduce((acc: any[], variation: any) => {
       const existing = acc.find(v => v.color === variation.color)
       if (existing) {
-        // Agregar talla al grupo existente
         if (!existing.sizes.includes(variation.size)) {
           existing.sizes.push(variation.size)
         }
       } else {
-        // Crear nuevo grupo de color
         acc.push({
           color: variation.color,
           colorHex: variation.colorHex,
@@ -342,10 +431,13 @@ const Modal = () => {
       trackInventory,
       images,
       companyId,
-      branchId: branchId > 0 ? branchId : null,
+      // El artículo es de la empresa; aquí solo se indica en qué sucursales se ofrece
+      branchIds: enabledBranchIds ?? undefined,
+      familyId,
       categoryId,
       unitId,
       storeIds: warehouses.map((store) => store.id),
+      price: directPrice ? Number(directPrice) : null,
     }
     if (isCreate && tempPriceRanges.length > 0) {
       body.priceRanges = tempPriceRanges
@@ -362,9 +454,12 @@ const Modal = () => {
         itemId = articlesUpdate.id
       }
 
-      if (itemId && !trackInventory) {
+      // La ruta de producción es del módulo de Producción: solo se toca cuando hay algo que guardar o
+      // limpiar. Un artículo normal de inventario (sin ruta) no debe requerir ese módulo.
+      const hadRoute = !isCreate && Array.isArray(articlesUpdate?.productionRoutes) && articlesUpdate.productionRoutes.length > 0
+      if (itemId && !trackInventory && (productionRouteAreaIds.length > 0 || hadRoute)) {
         await APIs.setItemProductionRoute(itemId, productionRouteAreaIds, token)
-      } else if (itemId && trackInventory) {
+      } else if (itemId && trackInventory && hadRoute) {
         await APIs.setItemProductionRoute(itemId, [], token)
       }
 
@@ -376,10 +471,7 @@ const Modal = () => {
       const filtered = list.filter((item: any) => item.type === 'ARTICLE')
       dispatch(setArticles(filtered))
 
-      // Quitar estado de carga inmediatamente
       setIsSaving(false)
-
-      // Cerrar modal antes de Swal para evitar z-index conflict
       closeModal()
 
       Swal.fire({
@@ -406,27 +498,36 @@ const Modal = () => {
 
   return (
     <>
-      <div className={`overlay__articles__modal ${modalState === 'articles-modal' || modalState === 'articles-modal-update' ? 'active' : ''}`}>
-        <div className={`popup__articles__modal ${modalState === 'articles-modal' || modalState === 'articles-modal-update' ? 'active' : ''}`}>
-          <div className='header__modal'>
-            <a
-              href='#close'
-              className='btn-cerrar-popup__articles__modal'
+      <div className={`articles-modal__overlay ${modalState === 'articles-modal' || modalState === 'articles-modal-update' ? 'active' : ''}`}>
+        <div className={`articles-modal__content ${modalState === 'articles-modal' || modalState === 'articles-modal-update' ? 'active' : ''}`}>
+          <div className='articles-modal__header'>
+            <button
+              className='articles-modal__close-btn'
               onClick={(e) => {
                 e.preventDefault()
                 closeModal()
               }}
             >
-              ×
-            </a>
-            <p className='title__modals'>{isCreate ? 'Nuevo artículo' : 'Editar artículo'}</p>
+              <span className='material-symbols-rounded'>close</span>
+            </button>
+            <p className='articles-modal__title'>{isCreate ? 'Nuevo artículo' : 'Editar artículo'}</p>
           </div>
-          <form className='articles__modal' onSubmit={handleSubmit}>
-            <div className='articles__modal_container'>
-              <div className='articles__modal_field articles__modal_field--full article-modal__stores'>
+          <div className='articles-modal-tabs' role='tablist'>
+            <button type='button' role='tab' aria-selected={tab === 'info'} className={`articles-modal-tab ${tab === 'info' ? 'articles-modal-tab--active' : ''}`} onClick={() => setTab('info')}>
+              Información
+            </button>
+            <button type='button' role='tab' aria-selected={tab === 'company'} className={`articles-modal-tab ${tab === 'company' ? 'articles-modal-tab--active' : ''}`} onClick={() => setTab('company')}>
+              Empresa y sucursales
+            </button>
+          </div>
+          <form className='articles-modal__body' onSubmit={handleSubmit} id='articles-form'>
+            <div className='articles-modal__container'>
+              <div className='articles-modal__tabpane' hidden={tab !== 'company'}>
+              <div className='articles-modal__field articles-modal__field--full article-modal__stores'>
                 <div className='article-store-picker'>
                   <CategoriesStorePicker
                     variant='modal'
+                    companyOnly
                     branchId={branchId}
                     onCompanyIdChange={setCompanyId}
                     onBranchIdChange={(id) => {
@@ -437,13 +538,16 @@ const Modal = () => {
                   />
                 </div>
                 <p className='article-modal__store-hint'>
-                  Empresa y sucursal filtran las categorías y unidades disponibles para este artículo.
+                  El artículo es de la empresa; abajo marcas en qué sucursales se ofrece.
                 </p>
+                <BranchAvailabilityPicker companyId={companyId} value={enabledBranchIds} onChange={setEnabledBranchIds} onBranchesLoaded={setCompanyBranchIds} title='Disponible en sucursales' hint='Familia, categoría y unidad solo muestran lo que está disponible en todas las sucursales marcadas.' />
               </div>
+              </div>
+              <div className='articles-modal__tabpane' hidden={tab !== 'info'}>
 
-              <div className='articles__modal_row articles__modal_row--main'>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Código</label>
+              <div className='articles-modal__row articles-modal__row--main'>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Código</label>
                   <input
                     className='inputs__general'
                     type='text'
@@ -452,8 +556,8 @@ const Modal = () => {
                     placeholder='Código del artículo'
                   />
                 </div>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Nombre</label>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Nombre</label>
                   <input
                     className='inputs__general'
                     type='text'
@@ -462,23 +566,57 @@ const Modal = () => {
                     placeholder='Nombre del artículo'
                   />
                 </div>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Categoría</label>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Familia</label>
                   <select
                     className='inputs__general'
-                    value={categoryId ?? ''}
-                    onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
+                    value={familyId ?? ''}
+                    onChange={(e) => setFamilyId(e.target.value ? Number(e.target.value) : null)}
                   >
-                    <option value="">Sin categoría</option>
-                    {availableCategories.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.title}
+                    <option value="">Sin familia</option>
+                    {availableFamilies.map((fam) => (
+                      <option key={fam.id} value={fam.id}>
+                        {fam.title}
                       </option>
                     ))}
                   </select>
                 </div>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Unidad</label>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Categoría</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <select
+                      className='inputs__general'
+                      style={{ flex: 1 }}
+                      value={categoryId ?? ''}
+                      onChange={(e) => setCategoryId(e.target.value ? Number(e.target.value) : null)}
+                      disabled={!familyId}
+                    >
+                      <option value="">
+                        {!familyId ? 'Selecciona familia primero' : 'Sin categoría'}
+                      </option>
+                      {availableCategories
+                        .filter((cat) => cat.parentId === familyId)
+                        .map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.title}
+                          </option>
+                        ))}
+                    </select>
+                    <button
+                      type='button'
+                      className='btn__general-purple'
+                      style={{ padding: '0 10px', display: 'flex', alignItems: 'center' }}
+                      onClick={() => {
+                        // Logic to open category picker will be implemented
+                        console.log('Open category picker')
+                      }}
+                    >
+                      <span className='material-symbols-rounded' style={{ fontSize: '18px' }}>folder_open</span>
+                    </button>
+                  </div>
+                </div>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Unidad</label>
                   <select
                     className='inputs__general'
                     value={unitId ?? ''}
@@ -499,8 +637,8 @@ const Modal = () => {
                     ))}
                   </select>
                 </div>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Descuento (%)</label>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Descuento (%)</label>
                   <input
                     className='inputs__general'
                     type='number'
@@ -512,8 +650,8 @@ const Modal = () => {
                     placeholder='0'
                   />
                 </div>
-                <div className='articles__modal_field'>
-                  <label className='label__general'>Imágenes</label>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Imágenes</label>
                   <button
                     type='button'
                     className='btn__general-purple article-modal__images-trigger'
@@ -526,9 +664,35 @@ const Modal = () => {
                   </button>
                 </div>
               </div>
-
-              <div className='articles__modal_field articles__modal_field--full'>
-                <label className='label__general'>Descripción</label>
+              <div className='articles-modal__row'>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Precio</label>
+                  <input
+                    className='inputs__general'
+                    type='number'
+                    value={directPrice}
+                    onChange={(e) => setDirectPrice(e.target.value)}
+                    placeholder='0.00'
+                    step='0.01'
+                  />
+                </div>
+                <div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Uso de Rangos</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '40px' }}>
+                    <IOSSwitch
+                      checked={tempPriceRanges.length > 0}
+                      onChange={(checked) => {
+                        if (!checked) setTempPriceRanges([]);
+                      }}
+                    />
+                    <span style={{ fontSize: '0.8rem', color: 'var(--modal-text-muted)' }}>
+                      Usar rangos de precios en lugar de precio directo
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className='articles-modal__field articles-modal__field--full'>
+                <label className='articles-modal__label'>Descripción</label>
                 <textarea
                   className='inputs__general'
                   value={description}
@@ -537,19 +701,21 @@ const Modal = () => {
                   rows={3}
                 />
               </div>
-
-              <div className='catalog-modal__switches'>
-                <div className='catalog-modal__switch-row'>
-                  <span>Incluye IVA</span>
-                  <IOSSwitch checked={includesIVA} onChange={setIncludesIVA} ariaLabel='Incluye IVA' />
-                </div>
-                <div className='catalog-modal__switch-row'>
-                  <span>Desglose de IVA</span>
-                  <IOSSwitch checked={isBreakdown} onChange={setIsBreakdown} ariaLabel='Desglose de IVA' />
-                </div>
-                <div className='catalog-modal__switch-row'>
-                  <span>Rastrear inventario</span>
-                  <IOSSwitch checked={trackInventory} onChange={setTrackInventory} ariaLabel='Rastrear inventario' />
+              <div className='catalog-modal__options-section'>
+                <p className='catalog-modal__section-title'>Configuraciones Adicionales</p>
+                <div className='catalog-modal__switches'>
+                  <div className='catalog-modal__switch-row'>
+                    <span>Incluye IVA</span>
+                    <IOSSwitch checked={includesIVA} onChange={setIncludesIVA} ariaLabel='Incluye IVA' />
+                  </div>
+                  <div className='catalog-modal__switch-row'>
+                    <span>Desglose de IVA</span>
+                    <IOSSwitch checked={isBreakdown} onChange={setIsBreakdown} ariaLabel='Desglose de IVA' />
+                  </div>
+                  <div className='catalog-modal__switch-row'>
+                    <span>Rastrear inventario</span>
+                    <IOSSwitch checked={trackInventory} onChange={setTrackInventory} ariaLabel='Rastrear inventario' />
+                  </div>
                 </div>
                 {!trackInventory ? (
                   <p className='article-modal__bajo-pedido-hint'>
@@ -557,12 +723,11 @@ const Modal = () => {
                   </p>
                 ) : null}
               </div>
-
               {!trackInventory ? (
-                <div className='articles__modal_field articles__modal_field--full article-modal__production-route'>
+                <div className='articles-modal__field articles-modal__field--full article-modal__production-route'>
                   <div className='article-modal__route-head'>
                     <div>
-                      <label className='label__general'>Ruta de producción (orden del proceso)</label>
+                      <label className='articles-modal__label'>Ruta de producción (orden del proceso)</label>
                       <p className='article-modal__route-hint'>
                         Cada paso es un área. Al completar en cola, la OP pasa sola a la siguiente.
                       </p>
@@ -633,8 +798,7 @@ const Modal = () => {
                   )}
                 </div>
               ) : null}
-
-              <div className='articles__modal_field articles__modal_field--full'>
+              <div className='articles-modal__field articles-modal__field--full'>
                 <div className='article-modal__actions-grid'>
                   <button
                     type='button'
@@ -678,16 +842,28 @@ const Modal = () => {
                   </button>
                 </div>
               </div>
-
-              <div className='articles__modal_actions'>
-                <button className='btn__general-purple' type='submit' disabled={isSaving}>
-                  {isSaving
-                    ? isCreate ? 'Creando...' : 'Actualizando...'
-                    : isCreate ? 'Crear artículo' : 'Guardar cambios'}
-                </button>
               </div>
             </div>
           </form>
+          <div className='articles-modal__actions'>
+            <button
+              className='btn__general-secondary'
+              type='button'
+              onClick={closeModal}
+            >
+              Cancelar
+            </button>
+            <button
+              className='btn__general-purple'
+              type='submit'
+              form='articles-form'
+              disabled={isSaving}
+            >
+              {isSaving
+                ? isCreate ? 'Creando...' : 'Actualizando...'
+                : isCreate ? 'Crear artículo' : 'Guardar cambios'}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -706,8 +882,8 @@ const Modal = () => {
         />
       )}
 
-      <VariationsModal 
-        variations={variations} 
+      <VariationsModal
+        variations={variations}
         onChange={setVariations}
         isOpen={variationsModalOpen}
         onClose={() => setVariationsModalOpen(false)}

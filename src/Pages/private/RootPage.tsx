@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/sidebar/Sidebar'
 import { Routes, Route } from 'react-router-dom';
 import RouteSales from '../../routes/sections/sales/RouteSales';
 import RouteCobranza from '../../routes/sections/cobranza/RouteCobranza';
+import RouteCash from '../../routes/sections/cash/RouteCash';
 import RouteStore from '../../routes/sections/store/RouteStore';
 import RoutesConfigurations from '../../routes/sections/configurations/RoutesConfigurations';
 import RoutescCatalogos from '../../routes/sections/catalogos/RoutescCatalogos';
@@ -21,18 +23,26 @@ import ModuleStore from '../../components/sidebar/sections/module-store/ModuleSt
 import ProductionMenu from '../../components/sidebar/options-menu/Production';
 import Catalogo from '../../components/sidebar/options-menu/Catalogo';
 import APIs from '../../services/APIs'
-import { updateUser } from '../../redux/state/user'
+import { updateUser } from '../../redux/state/UserFixora'
 
 import { PrivateRoutes } from '../../models/routes';
 import Header from '../../components/header/Header';
+import Profile from '../profile/Profile';
 import './RootPage.css'
 
 const RootPage: React.FC = () => {
   const dispatch = useDispatch()
-  const userId = useSelector((state: any) => state.user?.id ?? state.user?._id)
+  const navigate = useNavigate()
+  const user = useSelector((state: any) => state.user)
+  const userId = user?.id ?? user?._id
 
   useEffect(() => {
     if (!userId) return
+
+    if (!user?.branchId) {
+      navigate('/onboarding');
+      return;
+    }
 
     const loadPermissions = async () => {
       try {
@@ -62,6 +72,7 @@ const RootPage: React.FC = () => {
           <Routes>
             <Route path={`${PrivateRoutes.SALES}/*`} element={<RouteSales />} />
             <Route path={`${PrivateRoutes.COBRANZA}/*`} element={<RouteCobranza />} />
+            <Route path={`${PrivateRoutes.CASH}/*`} element={<RouteCash />} />
             <Route path={`${PrivateRoutes.SHOPPING}/*`} element={<RoutesShopping />} />
             <Route path={`${PrivateRoutes.STORE}/*`} element={<RouteStore />} />
             <Route path={`${PrivateRoutes.PRODUCTION}/*`} element={<RouteProduction />} />
@@ -69,6 +80,7 @@ const RootPage: React.FC = () => {
             <Route path={`${PrivateRoutes.CONFIGURATIONS}/*`} element={<RoutesConfigurations />} />
             <Route path={`${PrivateRoutes.INCOME}/*`} element={<Income />} />
             <Route path={`/options/*`} element={<OptionsMenu />} />
+            <Route path={`/profile`} element={<Profile />} />
             <Route path={`/`} element={<Dashboard />} />
 
             <Route path={PrivateRoutes.MENUSALES} element={<Sales />} />

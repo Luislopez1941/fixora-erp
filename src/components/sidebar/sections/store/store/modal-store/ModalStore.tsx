@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import './ModalStore.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { modal } from '../../../../../../redux/state/modals';
 import APIs from '../../../../../../services/APIs';
 import Swal from 'sweetalert2';
-import CategoriesStorePicker from '../../../categories/CategoriesStorePicker';
+import CategoriesStorePicker from '../../../catalogos/categories/CategoriesStorePicker';
 import { readCategoryBranchId } from '../../../../../../constants/category';
 
 interface ModalStoreProps {
@@ -51,22 +52,31 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
   };
 
   const resolveNames = async (companyId: number, selectedBranchId: number) => {
-    const companiesRes: any = await APIs.getCompanies(userState.id);
-    const companies = companiesRes?.data ?? [];
-    const company = companies.find((c: any) => c.id === companyId);
-    let branchName = 'Sin sucursal';
-
-    if (selectedBranchId > 0) {
-      const branchRes: any = await APIs.getBranch({ userId: userState.id, companyId });
-      const branches = branchRes?.data ?? [];
-      const branch = branches.find((b: any) => b.id === selectedBranchId);
-      branchName = branch?.name ?? branchName;
+    if (!userState?.id) {
+      throw new Error('Usuario no autenticado');
     }
 
-    return {
-      companyName: company?.name ?? '',
-      branchName,
-    };
+    try {
+      const companiesRes: any = await APIs.getCompanies(userState.id);
+      const companies = companiesRes?.data ?? [];
+      const company = companies.find((c: any) => c.id === companyId);
+      let branchName = 'Sin sucursal';
+
+      if (selectedBranchId > 0) {
+        const branchRes: any = await APIs.getBranch({ userId: userState.id, companyId });
+        const branches = branchRes?.data ?? [];
+        const branch = branches.find((b: any) => b.id === selectedBranchId);
+        branchName = branch?.name ?? branchName;
+      }
+
+      return {
+        companyName: company?.name ?? '',
+        branchName,
+      };
+    } catch (error) {
+      console.error('Error resolving names:', error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -103,17 +113,20 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
           text: result.message ?? 'Los cambios se guardaron correctamente.',
         });
       } else {
-        const { companyName, branchName } = await resolveNames(companyId!, branchId);
+        // Un almacén pertenece a UNA sucursal: sin sucursal no se puede crear
+        if (!(branchId > 0)) {
+          setIsSaving(false);
+          Swal.fire({ icon: 'warning', title: 'Sucursal requerida', text: 'Elige la sucursal a la que pertenece el almacén.' });
+          return;
+        }
 
         const payload: Record<string, string> = {
           name: name.trim(),
           companyId: String(companyId),
-          branchId: String(branchId > 0 ? branchId : 0),
-          companyName,
-          branchName,
+          branchId: String(branchId),
         };
 
-        const result: any = await APIs.cresteWarehouses(payload);
+        const result: any = await APIs.createWarehouses(payload);
 
         Swal.fire({
           icon: 'success',
@@ -124,13 +137,15 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
 
       dispatch(modal(''));
       setName('');
+      window.dispatchEvent(new CustomEvent('warehouse-updated'));
       onSaved?.();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error('Error in handleSubmit:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Hubo un problema al guardar el almacén. Inténtalo de nuevo.';
       Swal.fire({
         icon: 'error',
         title: isUpdate ? 'Error al actualizar el almacén' : 'Error al crear el almacén',
-        text: 'Hubo un problema al guardar el almacén. Inténtalo de nuevo.',
+        text: errorMessage,
       });
     } finally {
       setIsSaving(false);
@@ -142,7 +157,8 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
     dispatch(modal(''));
   };
 
-  return (
+  // Portal al <body>: encima del sidebar y el header.
+  return createPortal(
     <div className={`overlay__store_modal ${isOpen ? 'active' : ''}`}>
       <div className={`popup__store_modal ${isOpen ? 'active' : ''}`}>
         <div className='header__modal'>
@@ -190,7 +206,8 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

@@ -42,7 +42,7 @@ const WebOrderFulfillmentModal: React.FC<Props> = ({
 
     const loadDrivers = async () => {
       try {
-        const token = localStorage.getItem('token-eco') ?? ''
+        const token = localStorage.getItem('token-fixora') ?? ''
         const response: any = await APIs.getUsers({
           filtro: 'Todos',
           currentPage: 1,

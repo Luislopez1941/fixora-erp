@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react'
 import './Sidebar.css'
-import astra from '../../assets/astra.svg'
+import logoFixora from '../../assets/logo-fixora.png'
 import { Link } from 'react-router-dom'
 import { PrivateRoutes } from '../../models/routes'
 import { useModules } from '../../core/modules/useModules'
@@ -115,7 +115,7 @@ const Sidebar: React.FC = () => {
       <div className="sidebar-top-wrapper">
         <div className="sidebar-top">
           <a href="#" className="logo__wrapper">
-            <img src={astra} alt="Logo" className="logo-small" />
+            <img src={logoFixora} alt="Fixora" className="logo-small" />
             <span className="hide">Astra</span>
           </a>
         </div>
@@ -165,16 +165,18 @@ const Sidebar: React.FC = () => {
           </div>
         )}
         <div className="divider"></div>
-        <div className="sidebar__profile">
-          <div className="btn__logout_close">
-            <svg xmlns="http://www.w3.org/2000/svg" className="icon icon-tabler icon-tabler-logout" width="24" height="24" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-              <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
-              <path d="M9 12h12l-3 -3"></path>
-              <path d="M18 15l3 -3"></path>
-            </svg>
-          </div>
-          <button className="btn__logout">Cerrar sesion</button>
+        <div className="sidebar__logout-wrap">
+          <button className="sidebar__logout-btn" title="Cerrar sesión">
+            <span className="sidebar__logout-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"></path>
+                <path d="M9 12h12l-3 -3"></path>
+                <path d="M18 15l3 -3"></path>
+              </svg>
+            </span>
+            <span className="sidebar__logout-text">Cerrar sesión</span>
+          </button>
         </div>
       </div>
     </nav>

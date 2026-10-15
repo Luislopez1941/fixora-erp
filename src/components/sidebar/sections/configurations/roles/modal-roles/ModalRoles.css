@@ -1,108 +1,140 @@
-/* ===== Modal Roles — Dark theme ===== */
+/*=================================================
+  Modal "Rol"
+  Todas las clases cuelgan de .roles_modal (notación padre__hijo) para no chocar
+  con los demás modales, que cargan su CSS de forma global.
+=================================================*/
 
-.overlay__roles_modal {
-  background: rgba(0,0,0,.3);
+.roles_modal__overlay {
   position: fixed;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(7, 20, 40, 0.55);
   visibility: hidden;
-  z-index: 1000;
+  /* Por encima del sidebar (hasta 10000) y del header (2000) */
+  z-index: 10001;
 }
 
-.overlay__roles_modal.active {
+.roles_modal__overlay.active {
   visibility: visible;
 }
 
-.popup__roles_modal {
-  background-color: #17191b;
-  border-radius: 5px;
-  width: min(520px, 90vw);
-  max-height: 85vh;
+.roles_modal__popup {
+  position: relative;
+  width: min(640px, 92vw);
+  max-height: 90vh;
   overflow-y: auto;
-  transition: .3s ease all;
+  background-color: var(--modal-bg, var(--card-bg));
+  color: var(--text-color);
+  border: 1px solid var(--panel-border);
+  border-top: 3px solid var(--secondary-color);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
   transform: scale(0.7);
   opacity: 0;
-  position: relative;
+  transition: .3s ease all;
 }
 
-.popup__roles_modal.active {
+.roles_modal__popup.active {
   transform: scale(1);
   opacity: 1;
 }
 
-.header__modal {
+.roles_modal__header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
   display: flex;
-  width: 100%;
-  height: 40px;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--modal-bg, var(--card-bg));
 }
 
-.btn-cerrar-popup__roles_modal {
+.roles_modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .roles_modal__title {
+  color: var(--text-color);
+}
+
+.roles_modal__close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
   width: 32px;
   height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: .2s ease all;
-  color: #6b7280;
-  position: absolute;
-  right: 12px;
-  top: 10px;
+  padding: 0;
+  color: var(--text-muted);
   background: transparent;
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  padding: 0;
+  transition: .2s ease all;
 }
 
-.btn-cerrar-popup__roles_modal:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+.roles_modal__close .material-symbols-rounded {
+  font-size: 20px;
 }
 
-.roles_modal {
-  padding: 10px 20px 20px;
+.roles_modal__close:hover {
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
 }
 
-.roles_modal_container {
+.roles_modal__body {
   display: grid;
   gap: 20px;
-  padding: 20px;
+  padding: 24px;
   width: 100%;
+  box-sizing: border-box;
 }
 
-.roles_modal_container > .row__one {
+.roles_modal__fields {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr 140px;
+  gap: 16px;
 }
 
-.roles_modal_container > .row__three {
+.roles_modal__actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 10px;
 }
 
+.roles_modal__error {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--danger-color, #d33);
+}
+
 /* Labels & inputs */
-.roles_modal .label__general {
+.roles_modal__body .label__general {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #BBBBBB;
+  color: var(--modal-text-muted);
   margin-bottom: 6px;
 }
 
-.roles_modal .inputs__general {
+.roles_modal__body .inputs__general {
   width: 100%;
   min-height: 36px;
   padding: 8px 12px;
-  background: #1f2124;
-  border: 1px solid #2a2d33;
+  background: var(--modal-input-bg);
+  border: 1px solid var(--modal-input-border);
   border-radius: 5px;
-  color: #f5f6f7;
+  color: var(--modal-text);
   font-size: 14px;
   font-family: inherit;
   outline: none;
@@ -110,59 +142,59 @@
   box-sizing: border-box;
 }
 
-.roles_modal .inputs__general:focus {
-  border-color: #586ae9;
+.roles_modal__body .inputs__general:focus {
+  border-color: var(--secondary-color);
 }
 
 /* ===== Modulos de permisos ===== */
-.roles-modal__modules {
+.roles_modal__modules {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.roles-modal__module {
+.roles_modal__module {
   border-radius: 8px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid var(--modal-overlay-border);
 }
 
-.roles-modal__module-header {
+.roles_modal__module-header {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
   padding: 10px 14px;
-  background: rgba(255,255,255,0.04);
+  background: var(--modal-overlay-bg);
   border: none;
 }
 
 /* Checkbox "Ver" en el header del módulo */
-.roles-modal__module-view {
+.roles_modal__module-view {
   display: inline-flex;
   align-items: center;
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
   transition: all 0.15s ease;
-  color: #6b7280;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
   flex-shrink: 0;
 }
 
-.roles-modal__module-view:hover {
-  color: #e5e7eb;
+.roles_modal__module-view:hover {
+  color: var(--modal-hover-text);
 }
 
-.roles-modal__module-view.checked {
-  color: #818cf8;
+.roles_modal__module-view.checked {
+  color: var(--secondary-color);
 }
 
-.roles-modal__module-view input[type='checkbox'] {
+.roles_modal__module-view input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid #4b5563;
+  border: 2px solid var(--text-muted);
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
@@ -174,12 +206,12 @@
   justify-content: center;
 }
 
-.roles-modal__module-view input[type='checkbox']:checked {
-  background: #586ae9;
-  border-color: #586ae9;
+.roles_modal__module-view input[type='checkbox']:checked {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
-.roles-modal__module-view input[type='checkbox']:checked::after {
+.roles_modal__module-view input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -192,7 +224,7 @@
 }
 
 /* Botón expandir módulo */
-.roles-modal__module-toggle {
+.roles_modal__module-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -201,7 +233,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #f5f6f7;
+  color: var(--modal-text);
   font-size: 13px;
   font-weight: 600;
   padding: 0;
@@ -209,44 +241,44 @@
   text-align: left;
 }
 
-.roles-modal__module-toggle:hover {
-  color: #e5e7eb;
+.roles_modal__module-toggle:hover {
+  color: var(--modal-hover-text);
 }
 
-.roles-modal__module-name {
+.roles_modal__module-name {
   text-transform: capitalize;
 }
 
-.roles-modal__module-arrow {
+.roles_modal__module-arrow {
   display: inline-flex;
   transition: transform 0.2s ease;
-  color: #6b7280;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
 }
 
-.roles-modal__module-arrow.open {
+.roles_modal__module-arrow.open {
   transform: rotate(90deg);
 }
 
 /* Módulo deshabilitado */
-.roles-modal__module.module-disabled .roles-modal__module-toggle {
-  color: #6b7280;
+.roles_modal__module.module-disabled .roles_modal__module-toggle {
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
 }
 
-.roles-modal__module.module-disabled .roles-modal__submodule {
+.roles_modal__module.module-disabled .roles_modal__submodule {
   opacity: 0.4;
   pointer-events: none;
 }
 
-.roles-modal__module-body {
+.roles_modal__module-body {
   display: flex;
   flex-direction: column;
   padding: 6px 10px 10px;
   gap: 4px;
-  background: rgba(0,0,0,0.15);
+  background: var(--modal-recessed-bg);
 }
 
 /* Fila de permiso */
-.roles-modal__perm-row {
+.roles_modal__perm-row {
   display: grid;
   grid-template-columns: 26px 110px 1fr;
   align-items: center;
@@ -255,29 +287,29 @@
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  background: rgba(255,255,255,0.03);
+  background: var(--modal-overlay-bg);
   border: 1px solid transparent;
-  color: #9ca3af;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
   position: relative;
 }
 
-.roles-modal__perm-row:hover {
-  background: rgba(255,255,255,0.05);
+.roles_modal__perm-row:hover {
+  background: var(--modal-overlay-hover-bg);
 }
 
-.roles-modal__perm-row.checked {
-  background: rgba(88, 106, 233, 0.10);
-  border-color: rgba(88, 106, 233, 0.25);
-  color: #818cf8;
+.roles_modal__perm-row.checked {
+  background: rgba(252, 116, 0, 0.10);
+  border-color: rgba(252, 116, 0, 0.30);
+  color: var(--secondary-color);
 }
 
 /* Checkbox custom */
-.roles-modal__perm-row input[type='checkbox'] {
+.roles_modal__perm-row input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   width: 16px;
   height: 16px;
-  border: 2px solid #4b5563;
+  border: 2px solid var(--text-muted);
   border-radius: 4px;
   background: transparent;
   cursor: pointer;
@@ -289,12 +321,12 @@
   justify-content: center;
 }
 
-.roles-modal__perm-row input[type='checkbox']:checked {
-  background: #586ae9;
-  border-color: #586ae9;
+.roles_modal__perm-row input[type='checkbox']:checked {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
-.roles-modal__perm-row input[type='checkbox']:checked::after {
+.roles_modal__perm-row input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -306,33 +338,33 @@
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.roles-modal__perm-action {
+.roles_modal__perm-action {
   font-size: 12px;
   font-weight: 600;
   text-transform: capitalize;
   letter-spacing: 0.3px;
 }
 
-.roles-modal__perm-desc {
+.roles_modal__perm-desc {
   font-size: 11px;
-  color: #6b7280;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* Submódulos dropdown */
-.roles-modal__submodule {
+.roles_modal__submodule {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid var(--modal-overlay-border);
 }
 
-.roles-modal__submodule:first-of-type {
+.roles_modal__submodule:first-of-type {
   border-top: none;
 }
 
-.roles-modal__submodule-header {
+.roles_modal__submodule-header {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -343,7 +375,7 @@
 }
 
 /* Checkbox "Ver" en el header del submódulo */
-.roles-modal__submodule-view {
+.roles_modal__submodule-view {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -351,24 +383,24 @@
   padding: 4px 6px;
   border-radius: 6px;
   transition: all 0.15s ease;
-  color: #6b7280;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
   flex-shrink: 0;
 }
 
-.roles-modal__submodule-view:hover {
-  color: #e5e7eb;
+.roles_modal__submodule-view:hover {
+  color: var(--modal-hover-text);
 }
 
-.roles-modal__submodule-view.checked {
-  color: #818cf8;
+.roles_modal__submodule-view.checked {
+  color: var(--secondary-color);
 }
 
-.roles-modal__submodule-view input[type='checkbox'] {
+.roles_modal__submodule-view input[type='checkbox'] {
   appearance: none;
   -webkit-appearance: none;
   width: 14px;
   height: 14px;
-  border: 2px solid #4b5563;
+  border: 2px solid var(--text-muted);
   border-radius: 3px;
   background: transparent;
   cursor: pointer;
@@ -380,12 +412,12 @@
   justify-content: center;
 }
 
-.roles-modal__submodule-view input[type='checkbox']:checked {
-  background: #586ae9;
-  border-color: #586ae9;
+.roles_modal__submodule-view input[type='checkbox']:checked {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
-.roles-modal__submodule-view input[type='checkbox']:checked::after {
+.roles_modal__submodule-view input[type='checkbox']:checked::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -398,7 +430,7 @@
 }
 
 /* Botón expandir submódulo (flecha + nombre) */
-.roles-modal__submodule-toggle {
+.roles_modal__submodule-toggle {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -407,35 +439,35 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #9ca3af;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
   padding: 4px 0;
   transition: color 0.15s ease;
   text-align: left;
 }
 
-.roles-modal__submodule-toggle:hover {
-  color: #e5e7eb;
+.roles_modal__submodule-toggle:hover {
+  color: var(--modal-hover-text);
 }
 
-.roles-modal__submodule-name {
+.roles_modal__submodule-name {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.roles-modal__submodule-arrow {
+.roles_modal__submodule-arrow {
   display: inline-flex;
   transition: transform 0.2s ease;
-  color: #6b7280;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
 }
 
-.roles-modal__submodule-arrow.open {
+.roles_modal__submodule-arrow.open {
   transform: rotate(90deg);
-  color: #586ae9;
+  color: var(--secondary-color);
 }
 
-.roles-modal__submodule-body {
+.roles_modal__submodule-body {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -443,32 +475,30 @@
 }
 
 /* Fila deshabilitada cuando no tiene Ver */
-.roles-modal__perm-row.disabled {
+.roles_modal__perm-row.disabled {
   opacity: 0.4;
   pointer-events: none;
   cursor: not-allowed;
 }
 
-.roles-modal__perm-row.disabled input[type='checkbox'] {
-  border-color: #374151;
+.roles_modal__perm-row.disabled input[type='checkbox'] {
+  border-color: var(--panel-border);
   background: transparent;
 }
 
-.roles-modal__perm-row.disabled .roles-modal__perm-action,
-.roles-modal__perm-row.disabled .roles-modal__perm-desc {
-  color: #4b5563;
+.roles_modal__perm-row.disabled .roles_modal__perm-action,
+.roles_modal__perm-row.disabled .roles_modal__perm-desc {
+  color: var(--text-muted);
 }
 
-.roles-modal__perm-row.checked .roles-modal__perm-desc {
+.roles_modal__perm-row.checked .roles_modal__perm-desc {
   color: inherit;
   opacity: 0.7;
 }
 
+
 @media (max-width: 720px) {
-  .roles_modal_container > .row__one {
+  .roles_modal__fields {
     grid-template-columns: 1fr;
-  }
-  .popup__roles_modal {
-    width: 95vw;
   }
 }

@@ -271,12 +271,6 @@ const StockModal: React.FC<StockModalProps> = ({
             </>
           )}
         </div>
-
-        <div className='article-stock-modal-footer'>
-          <button type='button' className='btn__general-purple' onClick={onClose}>
-            Cerrar
-          </button>
-        </div>
       </div>
     </div>
   )

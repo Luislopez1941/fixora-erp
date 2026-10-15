@@ -56,7 +56,7 @@ const ModalInventory = () => {
     }
 
     try {
-      APIs.cresteProducts(data)
+      APIs.createProducts(data)
     } catch (error) {
 
     }

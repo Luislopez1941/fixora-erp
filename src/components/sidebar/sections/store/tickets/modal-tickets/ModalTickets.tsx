@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { modal } from '../../../../../../redux/state/modals';
 import APIs from '../../../../../../services/APIs';
 import Swal from 'sweetalert2';
-import CategoriesStorePicker from '../../../categories/CategoriesStorePicker';
+import CategoriesStorePicker from '../../../catalogos/categories/CategoriesStorePicker';
 import { readCategoryBranchId } from '../../../../../../constants/category';
 
 const LS_COMPANY = 'categories-picker-company-id';
@@ -153,22 +153,26 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
   const [loadingTicket, setLoadingTicket] = useState(false);
 
   const resolveNames = async (companyId: number, selectedBranchId: number) => {
-    const companiesRes: any = await APIs.getCompanies(userState.id);
-    const companies = companiesRes?.data ?? [];
-    const company = companies.find((c: any) => c.id === companyId);
-    let branchName = 'Sin sucursal';
+    try {
+      const companyRes: any = await APIs.getCompanyById(companyId);
+      const company = companyRes?.data;
+      let branchName = 'Sin sucursal';
 
-    if (selectedBranchId > 0) {
-      const branchRes: any = await APIs.getBranch({ userId: userState.id, companyId });
-      const branches = branchRes?.data ?? [];
-      const branchItem = branches.find((b: any) => b.id === selectedBranchId);
-      branchName = branchItem?.name ?? branchName;
+      if (selectedBranchId > 0) {
+        const branchRes: any = await APIs.getBranch({ userId: userState.id, companyId });
+        const branches = branchRes?.data ?? [];
+        const branchItem = branches.find((b: any) => b.id === selectedBranchId);
+        branchName = branchItem?.name ?? branchName;
+      }
+
+      return {
+        companyName: company?.name ?? '',
+        branchName,
+      };
+    } catch (error) {
+      console.error('Error resolving names:', error);
+      return { companyName: '', branchName: 'Sin sucursal' };
     }
-
-    return {
-      companyName: company?.name ?? '',
-      branchName,
-    };
   };
 
   const handleModalChange = (value: any) => {
@@ -402,8 +406,18 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
       return
     }
 
+    if (!userState?.id) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Usuario no autenticado',
+        text: 'No pudimos encontrar tu ID de usuario. Por favor, reinicia sesión.',
+        confirmButtonColor: '#3085d6',
+      });
+      return;
+    }
+
     try {
-      const { companyName, branchName } = await resolveNames(companyId, branchId);
+      const { companyName, branchName } = await resolveNames(companyId, branchId || 0);
 
       const payload = {
         companyId,
@@ -426,7 +440,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
       if (isUpdate && editingTicketId) {
         response = await APIs.updateTicket(editingTicketId, payload);
       } else {
-        response = await APIs.cresteTickets({
+        response = await APIs.createTickets({
           ...payload,
           userId: Number(userState.id),
         });
@@ -660,18 +674,18 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
   }
 
   return (
-    <div className={`overlay__tickets_modal ${isOpen ? 'active' : ''}`}>
-      <div className={`popup__tickets_modal ${isOpen ? 'active' : ''}`}>
+    <div className={`overlay__store_tickets_modal ${isOpen ? 'active' : ''}`}>
+      <div className={`popup__store_tickets_modal ${isOpen ? 'active' : ''}`}>
         <div className='header__modal'>
-          <a href="#" className="btn-cerrar-popup__tickets_modal" onClick={() => handleModalChange('')}>
+          <a href="#" className="btn-cerrar-popup__store_tickets_modal" onClick={() => handleModalChange('')}>
             <svg className='svg__close' xmlns="http://www.w3.org/2000/svg" height="16" width="12" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" /></svg>
           </a>
           <p className='title__modals'>
             {isUpdate ? 'Editar entrada' : 'Nueva entrada'}
           </p>
         </div>
-        <div className='tickets_modal'>
-          <div className='tickets_modal_container'>
+        <div className='store_tickets_modal'>
+          <div className='store_tickets_modal_container'>
             <div className='tickets-meta-row'>
               <CategoriesStorePicker
                 variant='modal'
@@ -780,7 +794,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
                 <span className='tickets-add-count'>{concepts.length}</span>
               </div>
             </div>
-            <div className='table__tickets_modal tickets-entry-table'>
+            <div className='store_tickets_table tickets-entry-table'>
               <div className='tickets-entry-table__scroll'>
               <div className='table__head'>
                 <div className='thead'>
@@ -900,6 +914,14 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
             </div>
           </div>
           <div className='row__three'>
+            <button
+              type='button'
+              className='btn__general-secondary'
+              onClick={() => handleModalChange('')}
+              disabled={loadingTicket}
+            >
+              Cancelar
+            </button>
             <button
               className='btn__general-primary'
               onClick={saveTicket}

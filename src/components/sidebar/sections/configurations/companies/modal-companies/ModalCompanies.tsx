@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import './ModalCompanies.css';
 import { useDispatch, useSelector } from "react-redux";
 import { modal } from '../../../../../../redux/state/modals';
@@ -7,49 +8,20 @@ import APIs from '../../../../../../services/APIs';
 import { setCompanies } from '../../../../../../redux/state/Configurations/Companies';
 import Swal from 'sweetalert2';
 
-
+const EMPTY_FIELDS = { name: '', businessName: '', taxId: '' };
 
 const ModalCompanies = () => {
-
   const dispatch = useDispatch();
-
-  // Asegúrate de que el tipo de state es AppStore
   const modalState = useSelector((state: any) => state.modals);
   const userState = useSelector((store: any) => store.user);
 
-  const administratorUpdate = useSelector((state: any) => state.administrator);
-
-
-  useEffect(() => {
-    if (administratorUpdate) {
-     
-    }
-  }, [administratorUpdate])
-
-
-
-
-  // Estado inicial para los campos del formulario
-  const [fields, setFields] = useState<any>({
-    name: '',
-    businessName: '',
-    email: '',
-    type: 'NATURAL_PERSON',
-    user_id: userState.id
-    // token: token
-  });
-
-
-  const createAdministrator = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-  };
-
+  const [fields, setFields] = useState<any>(EMPTY_FIELDS);
   const [preview, setPreview] = useState<string | null>(null);
-
+  const [saving, setSaving] = useState(false);
 
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
+    if (!file) return;
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result as string);
@@ -62,95 +34,104 @@ const ModalCompanies = () => {
     accept: { 'image/*': [] },
     multiple: false
   });
+
   const handleModalChange = (value: any) => {
     dispatch(modal(value));
-    // dispatch(updateAdministrator('reset'));
-    setFields({
-      name: '',
-      surnames: '',
-      email: '',
-      password: '',
-      rol: '',
-    });
-
+    if (!value) {
+      setFields(EMPTY_FIELDS);
+      setPreview(null);
+    }
   };
 
+  const canSave = !!fields.name.trim() && !!fields.businessName.trim() && !saving;
 
-  const createCompanies = async () => {
+  const createCompanies = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSave) return;
+    setSaving(true);
     try {
-      const response: any = await APIs.cresteCompanies(fields);
-      
-      // Mostrar alerta de éxito
+      const response: any = await APIs.createCompanies({
+        name: fields.name.trim(),
+        businessName: fields.businessName.trim(),
+        // El RFC es opcional: vacío no se manda (el campo es único en la base)
+        taxId: fields.taxId.trim() || undefined,
+        user_id: userState.id,
+      });
+
       Swal.fire({
         icon: 'success',
         title: 'Empresa creada',
         text: response.message,
       });
-  
+
       const result: any = await APIs.getCompanies(userState.id);
       dispatch(setCompanies(result.data));
-      dispatch(modal(''));
-      setFields({
-        name: '',
-        businessName: '',
-      });
-    } catch (error) {
+      handleModalChange('');
+    } catch (error: any) {
       console.error(error);
-  
-      // Mostrar alerta de error
+
+      // Si el backend manda un mensaje claro (ej. límite de la licencia), es una
+      // regla de negocio esperada — se muestra como warning, no como error.
+      const backendMessage = error?.response?.data?.message || error?.message;
       Swal.fire({
-        icon: 'error',
-        title: 'Error al crear empresa',
-        text: 'Hubo un problema al crear la empresa. Inténtalo de nuevo.',
+        icon: backendMessage ? 'warning' : 'error',
+        title: backendMessage ? 'No se pudo crear la empresa' : 'Error al crear empresa',
+        text: backendMessage || 'Hubo un problema al crear la empresa. Inténtalo de nuevo.',
       });
+    } finally {
+      setSaving(false);
     }
   };
-  return (
-    <div className={`overlay__companies_modal ${modalState === 'companies_modal' ? 'active' : ''}`}>
-      <div className={`popup__companies_modal ${modalState === 'companies_modal' ? 'active' : ''}`}>
-        <div className='header__modal'>
-          <a href="#" className="btn-cerrar-popup__companies_modal" onClick={() => handleModalChange('')}>
-            <svg className='svg__close' xmlns="http://www.w3.org/2000/svg" height="16" width="12" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" /></svg>
+
+  const open = modalState === 'companies_modal';
+
+  // Portal al <body>: encima del sidebar y el header.
+  return createPortal(
+    <div className={`companies_modal__overlay ${open ? 'active' : ''}`}>
+      <div className={`companies_modal__popup ${open ? 'active' : ''}`}>
+        <div className='companies_modal__header'>
+          <a href="#" className="companies_modal__close" onClick={(e) => { e.preventDefault(); handleModalChange('') }}>
+            <span className='material-symbols-rounded'>close</span>
           </a>
-          <p className='title__modals'>Nueva empresa</p>
+          <p className='companies_modal__title'>Nueva empresa</p>
         </div>
-        <form className='companies_modal' onSubmit={createAdministrator}>
-          <div className='companies_modal_container'>
-            <div className='row__one'>
+        <form onSubmit={createCompanies}>
+          <div className='companies_modal__body'>
+            <div className='companies_modal__fields'>
               <div>
                 <label className='label__general'>Nombre comercial</label>
                 <input className='inputs__general' value={fields.name} onChange={(e) => setFields({ ...fields, name: e.target.value })} placeholder='Nombre comercial' type="text" />
               </div>
               <div>
-                <label className='label__general'>Razon social</label>
-                <input className='inputs__general' value={fields.businessName} onChange={(e) => setFields({ ...fields, businessName: e.target.value })} placeholder='Razon social' type="text" />
+                <label className='label__general'>Razón social</label>
+                <input className='inputs__general' value={fields.businessName} onChange={(e) => setFields({ ...fields, businessName: e.target.value })} placeholder='Razón social' type="text" />
               </div>
-            </div>
-            <div className='row__two'>
-              <div className='image'>
-                <div {...getRootProps({ className: 'dropzone' })}>
-                  <input {...getInputProps()} />
-                  {
-                    isDragActive
-                      ? <p className="dropzone__text">Suelta la imagen aquí...</p>
-                      : preview
-                        ? <img src={preview} alt="preview" className="preview-image" />
-                        : <p className="dropzone__text">Haz clic o arrastra una imagen</p>
-                  }
-                </div>
-              </div>
-            </div>
-            <div className='row__three'>
               <div>
-                <button className='btn__general-primary' onClick={createCompanies}>Crear nueva empresa</button>
+                <label className='label__general'>RFC (opcional)</label>
+                <input className='inputs__general' value={fields.taxId} onChange={(e) => setFields({ ...fields, taxId: e.target.value })} placeholder='RFC de la empresa' type="text" />
               </div>
             </div>
-
+            <div {...getRootProps({ className: `companies_modal__dropzone ${isDragActive ? 'is-active' : ''}` })}>
+              <input {...getInputProps()} />
+              {preview
+                ? <img src={preview} alt="Logo de la empresa" className="companies_modal__preview" />
+                : (
+                  <>
+                    <span className='material-symbols-rounded'>add_photo_alternate</span>
+                    <p>{isDragActive ? 'Suelta la imagen aquí...' : 'Haz clic o arrastra el logo de la empresa'}</p>
+                  </>
+                )}
+            </div>
+            <div className='companies_modal__actions'>
+              <button className='btn__general-primary' type='submit' disabled={!canSave}>
+                {saving ? 'Creando...' : 'Crear nueva empresa'}
+              </button>
+            </div>
           </div>
-
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

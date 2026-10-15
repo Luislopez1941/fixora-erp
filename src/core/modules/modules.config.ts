@@ -32,6 +32,7 @@ export const MODULES: ModuleManifest[] = [
       { key: 'sales.sheet', label: 'Ficha de venta', path: 'sales/sales-sheet', requiredPermission: 'sales.sheet.view' },
       { key: 'sales.quote', label: 'Cotización', path: 'sales/sales-sheet', requiredPermission: 'sales.quote.view' },
       { key: 'sales.order', label: 'Orden de venta', path: 'sales/sales-sheet', requiredPermission: 'sales.order.view' },
+      { key: 'sales.config', label: 'Configurar cobro', path: 'sales/pos-config', requiredPermission: 'sales.config.view' },
     ],
   },
   {
@@ -54,7 +55,7 @@ export const MODULES: ModuleManifest[] = [
     requiredPermission: 'shopping.view',
     children: [
       { key: 'shopping.requisition', label: 'Requisición', path: 'shopping/requisitions', requiredPermission: 'shopping.requisition.view' },
-      { key: 'shopping.purchase', label: 'Orden de compra', path: 'shopping', requiredPermission: 'shopping.purchase.view' },
+      { key: 'shopping.purchase', label: 'Orden de compra', path: 'shopping/purchaseorders', requiredPermission: 'shopping.purchase.view' },
     ],
   },
   {
@@ -64,7 +65,13 @@ export const MODULES: ModuleManifest[] = [
     order: 50,
     requiredPermission: 'cash.view',
     children: [
-      { key: 'cash.register', label: 'Caja Actual', path: 'shopping', requiredPermission: 'cash.register.view' },
+      { key: 'cash-register.current', label: 'Caja Actual', path: 'cash/current', requiredPermission: 'cash.current.view' },
+      { key: 'cash-register.movements', label: 'Movimientos de Caja', path: 'cash/movements', requiredPermission: 'cash.movements.view' },
+      { key: 'cash-register.cuts', label: 'Cortes de Caja', path: 'cash/cuts', requiredPermission: 'cash.cuts.view' },
+      { key: 'cash-register.shifts', label: 'Turnos', path: 'cash/shifts', requiredPermission: 'cash.shifts.view' },
+      { key: 'cash-register.registers', label: 'Cajas', path: 'cash/registers', requiredPermission: 'cash.registers.view' },
+      { key: 'cash-register.schedules', label: 'Programación de turnos', path: 'cash/schedules', requiredPermission: 'cash.schedules.view' },
+      { key: 'cash-register.config', label: 'Configuración de Caja', path: 'cash/config', requiredPermission: 'cash.config.view' },
     ],
   },
   {
@@ -91,6 +98,7 @@ export const MODULES: ModuleManifest[] = [
       { key: 'store.tickets', label: 'Entradas', path: 'store/tickets', requiredPermission: 'store.tickets.view' },
       { key: 'store.orders', label: 'Pedidos', path: 'store/orders', requiredPermission: 'store.orders.view' },
       { key: 'store.departures', label: 'Salidas', path: 'store/departures', requiredPermission: 'store.departures.view' },
+      { key: 'store.transfers', label: 'Traspasos', path: 'store/transfers', requiredPermission: 'store.transfers.view' },
     ],
   },
   {
@@ -103,11 +111,12 @@ export const MODULES: ModuleManifest[] = [
       { key: 'catalogos.types', label: 'Áreas', path: 'catalogos/types', requiredPermission: 'catalogos.types.view' },
       { key: 'catalogos.areas', label: 'SubÁreas', path: 'catalogos/areas', requiredPermission: 'catalogos.areas.view' },
       { key: 'catalogos.familias', label: 'Familias', path: 'catalogos/familias', requiredPermission: 'catalogos.familias.view' },
-      { key: 'catalogos.containers', label: 'Contenedores', path: 'catalogos/contenedores', requiredPermission: 'catalogos.containers.view' },
+      { key: 'catalogos.categories', label: 'Categorías', path: 'catalogos/categories', requiredPermission: 'catalogos.containers.view' },
       { key: 'catalogos.units', label: 'Unidades', path: 'catalogos/units', requiredPermission: 'catalogos.units.view' },
       { key: 'catalogos.services', label: 'Servicios', path: 'catalogos/services', requiredPermission: 'catalogos.services.view' },
       { key: 'catalogos.articles', label: 'Artículos', path: 'catalogos/articles', requiredPermission: 'catalogos.articles.view' },
       { key: 'catalogos.prices', label: 'Rangos de Precio', path: 'catalogos/price-ranges', requiredPermission: 'catalogos.prices.view' },
+      { key: 'catalogos.payment-methods', label: 'Tipos de Pago', path: 'catalogos/payment-methods', requiredPermission: 'catalogos.payment-methods.view' },
     ],
   },
   {
@@ -157,6 +166,8 @@ export const MODULES: ModuleManifest[] = [
       { key: 'configurations.series', label: 'Series', path: 'configurations/series', requiredPermission: 'configurations.series.view' },
       { key: 'configurations.areas', label: 'Áreas', path: 'configurations/areas', requiredPermission: 'configurations.areas.view' },
       { key: 'configurations.users', label: 'Usuarios', path: 'configurations/users', requiredPermission: 'configurations.users.view' },
+      { key: 'configurations.audit', label: 'Auditoría', path: 'configurations/audit', requiredPermission: 'configurations.audit.view' },
+      { key: 'configurations.userGroups', label: 'Grupos de usuarios', path: 'configurations/grupos-usuarios', requiredPermission: 'configurations.userGroups.view' },
       { key: 'configurations.roles', label: 'Roles', path: 'configurations/roles', requiredPermission: 'configurations.roles.view' },
       { key: 'configurations.franchise', label: 'Franquicia', path: 'configurations/categories', requiredPermission: 'configurations.franchise.view' },
     ],

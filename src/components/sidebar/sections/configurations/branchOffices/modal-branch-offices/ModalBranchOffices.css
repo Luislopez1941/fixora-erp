@@ -1,99 +1,111 @@
-
-
-
 /*=================================================
- 
-  Modal de precios del modal del articulo 
-  
+  Modal "Nueva sucursal"
+  Todas las clases cuelgan de .branch-offices_modal (notación padre__hijo)
+  para no chocar con los otros modales, que cargan su CSS de forma global.
 =================================================*/
 
-
-.overlay__branch-offices_modal {
-	background: rgba(0,0,0,.3);
+.branch-offices_modal__overlay {
 	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
+	inset: 0;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	display: flex;
+	background: rgba(7, 20, 40, 0.55);
 	visibility: hidden;
-	z-index: 1;
+	/* Por encima del sidebar (hasta 10000) y del header (2000) */
+	z-index: 10001;
 }
 
-.overlay__branch-offices_modal.active {
+.branch-offices_modal__overlay.active {
 	visibility: visible;
 }
 
-.header__modal {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-
-
-}
-
-
-.popup__branch-offices_modal {
-	background-color: #17191b;  
-	border-radius: 5px;
-	width: 40vw;
-    height: auto;
-	transition: .3s ease all;
+.branch-offices_modal__popup {
+	width: min(860px, 92vw);
+	background-color: var(--modal-bg, var(--card-bg));
+	color: var(--text-color);
+	border: 1px solid var(--panel-border);
+	border-top: 3px solid var(--secondary-color);
+	border-radius: 14px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
 	transform: scale(0.7);
 	opacity: 0;
-    overflow: hidden;
-}
-
-.administrator-modal {
-    padding: 10px 20px 20px 20px;
-}
-
-
-.popup__branch-offices_modal .btn-cerrar-popup__branch-offices_modal {
-	font-size: 16px;
-	display: block;
 	transition: .3s ease all;
-	color: #BBBBBB;
-    position: absolute;
-    right: 15px;
-    top: 13px;
 }
 
-/* ------------------------- */
-/* ANIMACIONES */
-/* ------------------------- */
-.popup__branch-offices_modal.active {	transform: scale(1); opacity: 1; }
+.branch-offices_modal__popup.active {
+	transform: scale(1);
+	opacity: 1;
+}
 
-.branch-offices_modal_container {
+.branch-offices_modal__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	border-bottom: 1px solid var(--panel-border);
+	background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
+}
+
+.branch-offices_modal__title {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--primary-color);
+}
+
+[data-theme="dark"] .branch-offices_modal__title {
+	color: var(--text-color);
+}
+
+.branch-offices_modal__close {
+	position: absolute;
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: block;
+	color: var(--text-muted);
+	transition: .3s ease all;
+}
+
+.branch-offices_modal__close:hover {
+	color: var(--secondary-color);
+}
+
+.branch-offices_modal__close-icon {
+	fill: currentColor;
+}
+
+.branch-offices_modal__body {
 	display: grid;
-	gap: 20px;
-	padding: 20px;
+	gap: 22px;
+	padding: 24px;
 }
 
-.branch-offices_modal_container > .row__one {
+.branch-offices_modal__fields {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 20px;
-
 }
 
-.branch-offices_modal_container > .row__two {
-    display: flex;
-    justify-content: center;
+.branch-offices_modal__fields--two {
+	grid-template-columns: repeat(2, 1fr);
 }
 
-
-.branch-offices_modal_container > .row__one .search .inputs__general_icons {
-	margin: 0;
+.branch-offices_modal__actions {
+	display: flex;
+	justify-content: center;
 }
 
+.branch-offices_modal__actions .btn__general-primary {
+	min-width: 220px;
+}
 
-
-
-
-
-
+@media (max-width: 700px) {
+	.branch-offices_modal__fields,
+	.branch-offices_modal__fields--two {
+		grid-template-columns: 1fr;
+	}
+}

@@ -1,0 +1,172 @@
+.print-container {
+  display: none;
+  padding: 40px;
+  background: white;
+  color: #333;
+  font-family: 'Poppins', sans-serif;
+  width: 210mm; /* A4 Width */
+  margin: 0 auto;
+}
+
+.print-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 3px solid var(--primary-color, #586ae9);
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.print-company-info h1 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--primary-color, #586ae9);
+  text-transform: uppercase;
+}
+
+.print-company-info p {
+  margin: 2px 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.print-doc-title {
+  text-align: right;
+}
+
+.print-doc-title h2 {
+  margin: 0;
+  font-size: 28px;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.print-doc-title p {
+  margin: 5px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.print-details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-bottom: 30px;
+}
+
+.print-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.print-detail-section h3 {
+  font-size: 14px;
+  color: var(--primary-color, #586ae9);
+  border-bottom: 1px solid #eee;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.print-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.print-detail-row span:first-child {
+  color: #666;
+}
+
+.print-detail-row span:last-child {
+  font-weight: 600;
+  color: #333;
+}
+
+.print-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+}
+
+.print-table th {
+  background: var(--surface-variant, #f8f9fa);
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  padding: 10px;
+  border: 1px solid #eee;
+  text-align: left;
+}
+
+.print-table td {
+  padding: 10px;
+  border: 1px solid #eee;
+  font-size: 12px;
+  color: #333;
+}
+
+.print-totals {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 40px;
+}
+
+.print-totals-table {
+  width: 250px;
+  border-collapse: collapse;
+}
+
+.print-totals-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+}
+
+.print-totals-row.grand-total {
+  border-bottom: none;
+  border-top: 2px solid var(--primary-color, #586ae9);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--primary-color, #586ae9);
+  margin-top: 10px;
+}
+
+.print-footer {
+  margin-top: 50px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 100px;
+  text-align: center;
+}
+
+.signature-line {
+  border-top: 1px solid #333;
+  padding-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-container, .print-container * {
+    visibility: visible;
+  }
+  .print-container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

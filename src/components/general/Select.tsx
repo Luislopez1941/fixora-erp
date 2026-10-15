@@ -70,7 +70,7 @@ const Select: React.FC<SelectProps> = ({ dataSelects, instanceId, nameSelect }) 
             className={`options ${selects ? "active" : ""}`}
             style={{ opacity: selects ? "1" : "0" }}
           >
-            {dataSelects?.dataSelect?.map((select: any) => (
+            {(Array.isArray(dataSelects?.dataSelect) ? dataSelects.dataSelect : []).map((select: any) => (
               <li key={uuidv4()} onClick={() => handleSelectsChange(select)}>
                 {select[dataSelects?.options] || "No disponible"}
               </li>

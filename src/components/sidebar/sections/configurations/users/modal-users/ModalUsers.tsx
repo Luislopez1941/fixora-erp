@@ -1,8 +1,10 @@
+import BranchAvailabilityPicker from '../../../catalogos/shared/BranchAvailabilityPicker'
 import React, { useEffect, useState } from 'react'
 import './ModalUsers.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
 import APIs from '../../../../../../services/APIs'
+import { fetchBranchActiveModules } from '../../../../../../core/modules/kernel.service'
 import Swal from 'sweetalert2'
 import { getRoleLabel } from '../../../../../../constants/userRoles'
 
@@ -38,17 +40,19 @@ const ModalUsers: React.FC<Props> = ({
   const modalState = useSelector((state: any) => state.modals)
   const userState = useSelector((state: any) => state.user)
   const userId = Number(userState?.id ?? userState?._id)
-  const authToken = localStorage.getItem('token-eco') || undefined
+  const authToken = localStorage.getItem('token-fixora') || undefined
   const [fields, setFields] = useState(emptyFields)
   const [roles, setRoles] = useState<any[]>([])
   const [branches, setBranches] = useState<any[]>([])
+  // Sucursales donde puede operar (null = todas). La principal es la actual si sigue marcada, si no la primera.
+  const [userBranchIds, setUserBranchIds] = useState<number[] | null>(null)
   const [areas, setAreas] = useState<any[]>([])
   const [companies, setCompanies] = useState<any[]>([])
   const [saving, setSaving] = useState(false)
   const [_allPermissions, setAllPermissions] = useState<any[]>([])
   const [rolePermissions, setRolePermissions] = useState<Set<number>>(new Set())
   const [permissionOverrides, setPermissionOverrides] = useState<Map<number, boolean>>(new Map())
-  const [activeTab, setActiveTab] = useState<'info' | 'permissions'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'company' | 'permissions'>('info')
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const isEdit = Boolean(user?.id)
 
@@ -80,6 +84,13 @@ const ModalUsers: React.FC<Props> = ({
     requisition: 'Requisición',
     purchase: 'Orden de compra',
     register: 'Caja Actual',
+    current: 'Caja Actual',
+    movements: 'Movimientos de Caja',
+    cuts: 'Cortes de Caja',
+    shifts: 'Turnos',
+    registers: 'Cajas',
+    schedules: 'Programación de turnos',
+    config: 'Configuración',
     orders: 'Órdenes de producción',
     queue: 'Cola',
     areas: 'Áreas',
@@ -90,7 +101,7 @@ const ModalUsers: React.FC<Props> = ({
     departures: 'Salidas',
     types: 'Tipos y áreas',
     familias: 'Familias',
-    containers: 'Contenedores',
+    containers: 'Categorías',
     units: 'Unidades',
     services: 'Servicios',
     articles: 'Artículos',
@@ -99,6 +110,7 @@ const ModalUsers: React.FC<Props> = ({
     branch: 'Sucursales',
     series: 'Series',
     franchise: 'Franquicia',
+    userGroups: 'Grupos de usuarios',
     staff: 'Personal',
   }
 
@@ -179,6 +191,7 @@ const ModalUsers: React.FC<Props> = ({
 
   const [modules, setModules] = useState<ModuleGroup[]>([])
   const [expandedSubmodules, setExpandedSubmodules] = useState<Set<string>>(new Set())
+  const [activeModuleIds, setActiveModuleIds] = useState<string[] | null>(null)
 
   const toggleModule = (key: string) => {
     setExpandedModules((prev) => {
@@ -272,6 +285,12 @@ const ModalUsers: React.FC<Props> = ({
     }
   }, [modalState, user, companyId])
 
+  useEffect(() => {
+    if (modalState !== 'users_modal') return
+    setUserBranchIds(user?.branchIds?.length ? user.branchIds : null)
+    setActiveTab('info')
+  }, [modalState, user])
+
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
@@ -288,22 +307,54 @@ const ModalUsers: React.FC<Props> = ({
     })
   }
 
-  const loadAllPermissions = async () => {
+  const loadAllPermissions = async (moduleIds?: string[] | null) => {
     try {
       const res: any = await APIs.getRolesCatalog()
-      const perms = new Map<number, any>()
-      ;(res?.data ?? []).forEach((role: any) => {
-        ;(role.permissions ?? []).forEach((p: any) => {
-          const perm = p.permission ?? p
-          if (perm?.id) perms.set(perm.id, perm)
+      // Catálogo COMPLETO de permisos del sistema — antes esto se armaba
+      // recorriendo los permisos ya asignados a algún rol (res.data), así que
+      // si ningún rol tenía todavía cierto permiso asignado, ese permiso NUNCA
+      // aparecía aquí para poder dárselo a un usuario. res.catalog.permissions
+      // es la lista real de TODO lo que existe, se le haya asignado a un rol o no.
+      let flatPerms = res?.catalog?.permissions ?? []
+
+      // Filtrar solo permisos de módulos activos de la empresa
+      if (moduleIds && moduleIds.length > 0) {
+        // El prefijo del permiso no siempre es el id del módulo licenciado (cash -> cash-register)
+        const moduleAliases: Record<string, string> = { cash: 'cash-register' }
+        flatPerms = flatPerms.filter((perm: any) => {
+          const moduleKey = perm.name.split('.')[0]
+          return moduleIds.includes(moduleKey) || (moduleAliases[moduleKey] ? moduleIds.includes(moduleAliases[moduleKey]) : false)
         })
-      })
-      const flatPerms = Array.from(perms.values())
+      }
+
       setAllPermissions(flatPerms)
       setModules(buildModulesFromPermissions(flatPerms))
     } catch {
       setAllPermissions([])
       setModules([])
+    }
+  }
+
+  const loadActiveModules = async (branchId?: number | null) => {
+    const targetId = branchId ?? (isEdit ? user?.branch?.id : (fields.branchId ? Number(fields.branchId) : null))
+    if (!targetId) {
+      // Sin sucursal resuelta todavía (usuario nuevo sin sucursal elegida aún,
+      // o un usuario existente sin sucursal asignada) — antes esto se salía
+      // sin cargar el catálogo de permisos, dejando la pestaña Permisos
+      // completamente vacía. Carga igual el catálogo completo, sin filtrar
+      // por módulos activos de ninguna sucursal en particular.
+      setActiveModuleIds(null)
+      await loadAllPermissions(null)
+      return
+    }
+    try {
+      const ids = await fetchBranchActiveModules(targetId)
+      setActiveModuleIds(ids)
+      // Recargar permisos filtrados con los módulos activos
+      await loadAllPermissions(ids)
+    } catch {
+      setActiveModuleIds(null)
+      await loadAllPermissions(null)
     }
   }
 
@@ -344,16 +395,20 @@ const ModalUsers: React.FC<Props> = ({
   const toggleOverride = (permissionId: number) => {
     setPermissionOverrides((prev) => {
       const next = new Map(prev)
-      const current = next.get(permissionId)
-      if (current === undefined) {
-        // Heredado del rol → bloquear (-)
-        next.set(permissionId, false)
-      } else if (current === false) {
-        // Bloqueado → conceder (+)
-        next.set(permissionId, true)
-      } else {
-        // Concedido → heredado (quitar override)
+      if (next.has(permissionId)) {
+        // Ya había un override puesto (de un click anterior) → lo quita y
+        // vuelve a heredar del rol.
         next.delete(permissionId)
+      } else {
+        // Sin override todavía: pone el OPUESTO de lo que el checkbox está
+        // mostrando AHORA (heredado del rol) — así el primer click siempre
+        // se nota de inmediato. Antes esto siempre ponía "bloqueado" sin
+        // importar el estado heredado, así que si el rol YA no lo concedía
+        // (checkbox sin marcar), el primer click lo dejaba "bloqueado
+        // explícito" — visualmente IDÉNTICO a como ya estaba — y hacía
+        // falta un segundo click para que se viera algún cambio.
+        const inherited = rolePermissions.has(permissionId)
+        next.set(permissionId, !inherited)
       }
       return next
     })
@@ -368,11 +423,11 @@ const ModalUsers: React.FC<Props> = ({
     }
   }, [fields.companyId])
 
-  // Cargar permisos cuando abre el modal
+  // Cargar módulos activos y permisos cuando abre el modal o cambia sucursal
   useEffect(() => {
     if (modalState !== 'users_modal') return
-    loadAllPermissions()
-  }, [modalState])
+    loadActiveModules()
+  }, [modalState, selectedCompanyId, fields.branchId])
 
   // Cargar permisos del rol seleccionado
   useEffect(() => {
@@ -413,6 +468,12 @@ const ModalUsers: React.FC<Props> = ({
       return
     }
 
+    // Sucursales elegidas: la principal es la actual si sigue marcada; si no, la primera marcada
+    const allBranchIds: number[] = branches.map((b: any) => b.id)
+    const chosen: number[] = branches.length > 1 ? (userBranchIds ?? allBranchIds) : allBranchIds
+    const currentMain = fields.branchId ? Number(fields.branchId) : null
+    const mainBranchId = chosen.includes(currentMain as number) ? (currentMain as number) : (chosen[0] ?? null)
+
     setSaving(true)
     try {
       const payload = {
@@ -424,7 +485,8 @@ const ModalUsers: React.FC<Props> = ({
         phone: fields.phone.trim(),
         roleId: Number(fields.roleId),
         companyId: targetCompanyId,
-        branchId: fields.branchId ? Number(fields.branchId) : undefined,
+        branchId: mainBranchId ?? undefined,
+        branchIds: chosen.filter((b) => b !== mainBranchId),
         areasId: fields.areasId ? Number(fields.areasId) : undefined,
         createdByUserId,
         userKind: fields.userKind,
@@ -464,11 +526,12 @@ const ModalUsers: React.FC<Props> = ({
       handleModalChange('')
       onSaved?.()
     } catch (error: any) {
-      const message =
-        error?.response?.data?.message ??
-        error?.message ??
-        'No se pudo guardar el usuario'
-      Swal.fire('Error', Array.isArray(message) ? message.join('. ') : message, 'error')
+      // Si el backend manda un mensaje claro (ej. límite de la licencia), es una
+      // regla de negocio esperada — se muestra como warning, no como error.
+      const backendMessage = error?.response?.data?.message
+      const message = backendMessage ?? error?.message ?? 'No se pudo guardar el usuario'
+      const text = Array.isArray(message) ? message.join('. ') : message
+      Swal.fire(backendMessage ? 'Atención' : 'Error', text, backendMessage ? 'warning' : 'error')
     } finally {
       setSaving(false)
     }
@@ -504,6 +567,13 @@ const ModalUsers: React.FC<Props> = ({
           </button>
           <button
             type='button'
+            className={`users-modal__tab ${activeTab === 'company' ? 'active' : ''}`}
+            onClick={() => setActiveTab('company')}
+          >
+            Empresa y sucursales
+          </button>
+          <button
+            type='button'
             className={`users-modal__tab ${activeTab === 'permissions' ? 'active' : ''}`}
             onClick={() => setActiveTab('permissions')}
           >
@@ -521,29 +591,6 @@ const ModalUsers: React.FC<Props> = ({
                   El personal inicia sesión con su correo y contraseña. Asigna empresa,
                   rol, sucursal y área de trabajo según su función.
                 </p>
-
-                {(companies.length > 1 || branches.length > 1) && (
-                  <div className='row__one'>
-                    {companies.length > 1 && (
-                      <div>
-                        <label className='label__general'>Empresa</label>
-                        <select className='inputs__general' name='companyId' value={fields.companyId} onChange={handleChange} required disabled={isEdit}>
-                          <option value=''>Selecciona empresa</option>
-                          {companies.map((co: any) => <option key={co.id} value={co.id}>{co.name}</option>)}
-                        </select>
-                      </div>
-                    )}
-                    {branches.length > 1 && (
-                      <div>
-                        <label className='label__general'>Sucursal</label>
-                        <select className='inputs__general' name='branchId' value={fields.branchId} onChange={handleChange}>
-                          <option value=''>Sin sucursal</option>
-                          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 <div className='row__one'>
                   <div>
@@ -612,6 +659,30 @@ const ModalUsers: React.FC<Props> = ({
             )}
 
             {/* ─── TAB PERMISOS ─── */}
+            {/* ─── TAB EMPRESA Y SUCURSALES ─── */}
+            {activeTab === 'company' && (
+              <div className='users-modal__company'>
+                <div>
+                  <label className='label__general'>Empresa</label>
+                  {!isEdit && companies.length > 1 ? (
+                    <select className='inputs__general' name='companyId' value={fields.companyId} onChange={handleChange} required>
+                      <option value=''>Selecciona empresa</option>
+                      {companies.map((co: any) => <option key={co.id} value={co.id}>{co.name}</option>)}
+                    </select>
+                  ) : (
+                    <p className='users-modal__static'>{companies.find((co: any) => String(co.id) === String(fields.companyId))?.name ?? companies[0]?.name ?? '—'}</p>
+                  )}
+                </div>
+                <BranchAvailabilityPicker
+                  companyId={Number(fields.companyId) || companyId || null}
+                  value={userBranchIds}
+                  onChange={setUserBranchIds}
+                  title='Sucursales donde puede trabajar'
+                  hint={branches.length > 1 ? 'Marca todas las sucursales donde este usuario puede operar; la primera es su sucursal principal.' : undefined}
+                />
+              </div>
+            )}
+
             {activeTab === 'permissions' && (
               <div className='users-modal__permissions-tab'>
                 <p className='users-modal__perm-hint'>

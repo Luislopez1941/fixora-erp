@@ -203,9 +203,9 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
         </div>
         {selectedSizes.length > 0 && (
           <div className='variations-manager__selected-sizes'>
-            <span style={{ fontSize: '13px', color: '#aaa' }}>Seleccionadas: </span>
+            <span className='variations-manager__selected-sizes-label'>Seleccionadas: </span>
             {selectedSizes.map((size, idx) => (
-              <span key={idx} style={{ fontSize: '13px', color: '#fff', marginRight: '8px' }}>
+              <span key={idx} className='variations-manager__selected-size'>
                 {size}
               </span>
             ))}
@@ -344,18 +344,9 @@ const VariationsManager: React.FC<VariationsManagerProps> = ({ variations, onCha
                       </div>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      <div className='variations-manager__table-sizes'>
                         {group.sizes.map((size, idx) => (
-                          <span 
-                            key={idx}
-                            style={{
-                              background: '#2a2d35',
-                              padding: '4px 10px',
-                              borderRadius: '4px',
-                              fontSize: '13px',
-                              color: '#fff'
-                            }}
-                          >
+                          <span key={idx} className='variations-manager__table-size-chip'>
                             {size}
                           </span>
                         ))}

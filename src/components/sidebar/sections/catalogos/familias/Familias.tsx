@@ -5,8 +5,9 @@ import { modal } from '../../../../../redux/state/modals';
 import ModalFamilias from './ModalFamilias';
 import APIs from '../../../../../services/APIs';
 import { readCategoryBranchId, categoryId } from '../../../../../constants/category';
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
 import Swal from 'sweetalert2'
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -21,7 +22,7 @@ const Familias: React.FC = () => {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'ARTICLE' | 'SERVICE'>('ALL')
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const dispatch = useDispatch();
 
   const handleModalChange = (value: any) => {
@@ -41,7 +42,7 @@ const Familias: React.FC = () => {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#d33',
-      cancelButtonColor: '#586ae9',
+      cancelButtonColor: '#072a57',
       confirmButtonText: 'Sí, eliminar',
       cancelButtonText: 'Cancelar',
     })
@@ -49,7 +50,7 @@ const Familias: React.FC = () => {
     if (!result.isConfirmed) return
 
     try {
-      const token = localStorage.getItem('token-eco')
+      const token = localStorage.getItem('token-fixora')
       if (!token) {
         Swal.fire({ icon: 'warning', title: 'Sesión', text: 'No hay token de autenticación' })
         return
@@ -59,7 +60,7 @@ const Familias: React.FC = () => {
         icon: 'success',
         title: 'Familia eliminada',
         text: 'La familia se eliminó correctamente.',
-        confirmButtonColor: '#586ae9',
+        confirmButtonColor: '#072a57',
       })
       fetchFamilias()
     } catch (err: any) {
@@ -68,7 +69,7 @@ const Familias: React.FC = () => {
         icon: 'error',
         title: 'Error',
         text: err?.response?.data?.message ?? err?.message ?? 'No se pudo eliminar la familia',
-        confirmButtonColor: '#586ae9',
+        confirmButtonColor: '#072a57',
       })
     }
   }
@@ -99,7 +100,7 @@ const Familias: React.FC = () => {
     fetchingRef.current = true
     setIsLoading(true)
     try {
-      const token = localStorage.getItem('token-eco')
+      const token = localStorage.getItem('token-fixora')
       if (!token) return
 
       const filters: Record<string, unknown> = {}
@@ -138,155 +139,117 @@ const Familias: React.FC = () => {
     fetchFamilias()
   }, [fetchFamilias])
 
+  const typeLabel = (type?: string | null) =>
+    type === 'ARTICLE' ? 'Artículos' : type === 'SERVICE' ? 'Servicios' : 'Ambos'
+
   return (
     <div className='familias'>
       <div className='familias__container'>
         <div className='familias__header'>
-          <div className='familias__toolbar'>
-            <div className='familias__toolbar-left'>
-              <CategoriesStorePicker branchId={branchId} onBranchIdChange={persistBranchId} onCompanyIdChange={persistCompanyId} />
-            </div>
-            <div className='familias__toolbar-right'>
-            <div className='familias__search-field'>
-              <div className='familias__search-field__input-wrap'>
-                <input
-                  className='inputs__general'
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  type='text'
-                  placeholder='Buscar familia'
-                  aria-label='Buscar familias'
-                />
-              </div>
-              <div className='familias__search-field__icon' aria-hidden>
-                <svg xmlns='http://www.w3.org/2000/svg' height='22px' viewBox='0 -960 960 960' width='22px' fill='#f5f6f7'>
-                  <path d='M380-320q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z' />
-                </svg>
-              </div>
+          <div className='familias__header-left'>
+            <CategoriesStorePicker
+              branchId={branchId}
+              onBranchIdChange={persistBranchId}
+              onCompanyIdChange={persistCompanyId}
+            />
+            <div className='familias__search'>
+              <span className='familias__search-icon material-symbols-rounded' aria-hidden>search</span>
+              <input
+                className='inputs__general familias__search-input'
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                type='text'
+                placeholder='Buscar familia'
+                aria-label='Buscar familias'
+              />
             </div>
             <select
               className='inputs__general familias__filter'
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as 'ALL' | 'ARTICLE' | 'SERVICE')}
+              aria-label='Filtrar por tipo de items'
             >
               <option value='ALL'>Todos</option>
               <option value='ARTICLE'>Artículos</option>
               <option value='SERVICE'>Servicios</option>
             </select>
-            <button
-              className='btn__general-primary familias__btn-create'
-              onClick={() => handleModalChange('familias-modal')}
-            >
-              Nueva familia
-            </button>
-            </div>
           </div>
+          <button className='btn__general-primary' onClick={() => handleModalChange('familias-modal')}>
+            Nueva familia
+          </button>
         </div>
 
-        <div className='table__familias'>
-          <div>
-            {familias.length > 0 ? (
-              <div className='table__numbers'>
-                <p className='text'>Total de Familias</p>
-                <div className='quantities_tables'>{familias.length}</div>
-              </div>
-            ) : (
-              <p className='text'>No hay familias creadas</p>
-            )}
+        {/* La tabla siempre se ve; el skeleton va dentro */}
+        <div className='familias__list'>
+          <div className='familias__row familias__row--head'>
+            <span>Familia</span>
+            <span>Tipo de items</span>
+            <span>Categorías</span>
+            <span>Estado</span>
+            <span className='familias__col-actions'>Acciones</span>
           </div>
 
-          <div className='table__head'>
-            <div className='thead'>
-              <div className='th'>
-                <p>Nombre</p>
-              </div>
-              <div className='th'>
-                <p>Tipo de Items</p>
-              </div>
-              <div className='th'>
-                <p>Contenedores</p>
-              </div>
-              <div className='th'>
-                <p>Estado</p>
-              </div>
-              <div className='th'>
-                <p>Acciones</p>
-              </div>
-            </div>
-          </div>
-
-          <div className='table__body'>
-            {isLoading ? (
-              <div className='familias__loading'>
-                <div className='familias__spinner' />
-                <p>Cargando familias...</p>
-              </div>
-            ) : familias.length > 0 ? (
-              familias.map((familia: any, index: number) => (
-                <div className='tbody__container' key={index}>
-                  <div className='tbody'>
-                    <div className='td'>
-                      <div className='familia__info'>
-                        {familia.image && (
-                          <img src={familia.image} alt={familia.title} className='familia__image' />
-                        )}
-                        <div>
-                          <p className='familia__title'>{familia.title}</p>
-                          {familia.description && (
-                            <p className='familia__description'>{familia.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='td'>
-                      <p>
-                        {familia.allowedItemType === 'ARTICLE' && 'Artículos'}
-                        {familia.allowedItemType === 'SERVICE' && 'Servicios'}
-                        {!familia.allowedItemType && 'Ambos'}
-                      </p>
-                    </div>
-                    <div className='td'>
-                      <p>{familia.subcategories?.length || 0} contenedores</p>
-                    </div>
-                    <div className='td'>
-                      <div className={`status ${familia.status === 'ACTIVE' ? 'active' : 'inactive'}`}>
-                        {familia.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
-                      </div>
-                    </div>
-                    <div className='td familias__actions-cell'>
-                      <button
-                        className='btn__general-purple familias__btn-edit'
-                        onClick={() => {
-                          setSelectedFamilia(familia)
-                          handleModalChange('familias-modal-update');
-                        }}
-                      >
-                        Editar
-                      </button>
-                      <button
-                        type='button'
-                        className='familias__btn-delete'
-                        title='Eliminar familia'
-                        aria-label='Eliminar familia'
-                        onClick={() => handleDelete(familia)}
-                      >
-                        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 448 512' aria-hidden>
-                          <path
-                            fill='currentColor'
-                            d='M135.2 17.7L128 32H32C14.3 32 0 46.3 0 64s14.3 32 32 32H416c17.7 0 32-14.3 32-32s-14.3-32-32-32H320l-7.2-14.3C307.4 6.8 296.3 0 284.2 0H163.8c-12.1 0-23.2 6.8-28.6 17.7zM416 128H32l21.2 339c1.6 25.3 22.6 45 47.9 45H346.9c25.3 0 46.3-19.7 47.9-45L416 128z'
-                          />
-                        </svg>
-                      </button>
-                    </div>
+          {isLoading ? (
+            <TableSkeleton rowClassName='familias__row' cols={[{ avatar: true }, { pill: true, width: '80px' }, { width: '50%' }, { pill: true, width: '60px' }, { actions: 2 }]} />
+          ) : familias.length > 0 ? (
+            familias.map((familia: any, index: number) => (
+              <div className='familias__row' key={familia.id ?? index}>
+                <div className='familias__cell familias__cell--name' data-label='Familia'>
+                  {familia.image ? (
+                    <img src={familia.image} alt={familia.title} className='familias__thumb' />
+                  ) : (
+                    <span className='familias__thumb familias__thumb--empty material-symbols-rounded'>category</span>
+                  )}
+                  <div className='familias__name-text'>
+                    <strong>{familia.title}</strong>
+                    {familia.description && <span>{familia.description}</span>}
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className='empty__state'>
-                <p>No hay familias registradas</p>
+                <div className='familias__cell' data-label='Tipo de items'>
+                  <span className='familias__tag'>{typeLabel(familia.allowedItemType)}</span>
+                </div>
+                <div className='familias__cell' data-label='Categorías'>
+                  {familia.subcategories?.length || 0}
+                </div>
+                <div className='familias__cell' data-label='Estado'>
+                  <span className={`familias__badge ${familia.status === 'ACTIVE' ? 'familias__badge--active' : 'familias__badge--inactive'}`}>
+                    {familia.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+                  </span>
+                  {familia.availableInBranch === false && (
+                    <span className='familias__badge familias__badge--inactive' title='La familia está deshabilitada en la sucursal seleccionada'>No disponible aquí</span>
+                  )}
+                </div>
+                <div className='familias__cell familias__col-actions'>
+                  <button
+                    type='button'
+                    className='familias__icon-btn'
+                    title='Editar familia'
+                    aria-label='Editar familia'
+                    onClick={() => {
+                      setSelectedFamilia(familia)
+                      handleModalChange('familias-modal-update')
+                    }}
+                  >
+                    <span className='material-symbols-rounded'>edit</span>
+                  </button>
+                  <button
+                    type='button'
+                    className='familias__icon-btn familias__icon-btn--danger'
+                    title='Eliminar familia'
+                    aria-label='Eliminar familia'
+                    onClick={() => handleDelete(familia)}
+                  >
+                    <span className='material-symbols-rounded'>delete</span>
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
+            ))
+          ) : (
+            <div className='familias__state'>
+              <p>No hay familias registradas</p>
+              <span>Crea la primera con "Nueva familia"</span>
+            </div>
+          )}
         </div>
       </div>
       <ModalFamilias selectedFamilia={selectedFamilia} onSaved={fetchFamilias} />

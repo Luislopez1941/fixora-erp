@@ -1,0 +1,119 @@
+/* Disponibilidad por sucursal — todas las clases cuelgan de .branch-availability */
+.branch-availability {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.branch-availability__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.branch-availability__heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.branch-availability__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.branch-availability__count {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.branch-availability__all {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  cursor: pointer;
+}
+
+.branch-availability__all:hover {
+  text-decoration: underline;
+}
+
+.branch-availability__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.branch-availability__card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.branch-availability__card:hover {
+  border-color: var(--secondary-color);
+}
+
+.branch-availability__card--on {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+}
+
+.branch-availability__icon {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.branch-availability__card--on .branch-availability__icon {
+  color: var(--primary-color);
+}
+
+.branch-availability__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-availability__check {
+  font-size: 20px;
+  color: var(--panel-border);
+}
+
+.branch-availability__card--on .branch-availability__check {
+  color: var(--primary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.branch-availability__hint {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.branch-availability__card--locked {
+  cursor: default;
+}
+
+.branch-availability__card--locked:hover {
+  border-color: var(--primary-color);
+}

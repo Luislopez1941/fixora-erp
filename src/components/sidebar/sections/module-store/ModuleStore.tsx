@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
-import { useSelector } from 'react-redux'
+import { useSelector, useDispatch } from 'react-redux'
 import { fetchModuleStore, toggleModuleStore } from '../../../../core/modules/kernel.service'
 import type { StoreModule } from '../../../../core/modules/kernel.service'
 import { renderIcon } from '../../../../core/modules/icons'
+import { setActiveBranch } from '../../../../redux/state/UserFixora'
+import APIs from '../../../../services/APIs'
 import './ModuleStore.css'
 
 const MOD_ICON: Record<string, string> = {
@@ -86,15 +88,22 @@ function ModCard({
 }
 
 export default function ModuleStore() {
-  const activeCompanyId: number | null = useSelector((s: any) => s.user?.activeCompanyId ?? null)
-  const companyIds: number[]            = useSelector((s: any) => s.user?.companyIds ?? [])
-  const companyId = activeCompanyId ?? companyIds[0] ?? null
+  const dispatch = useDispatch()
+  const userState = useSelector((s: any) => s.user)
+  const userId = Number(userState?.id ?? userState?._id)
+  const authToken = localStorage.getItem('token-fixora') || undefined
+
+  const [companies, setCompanies] = useState<any[]>([])
+  const [selectedCompanyId, setSelectedCompanyId] = useState<number | null>(null)
+  const [branches, setBranches] = useState<any[]>([])
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null)
 
   const [modules,  setModules]  = useState<StoreModule[]>([])
   const [loading,  setLoading]  = useState(true)
   const [error,    setError]    = useState<string | null>(null)
   const [toggling, setToggling] = useState<string | null>(null)
   const [toasts,   setToasts]   = useState<Toast[]>([])
+  const [confirmingMod, setConfirmingMod] = useState<StoreModule | null>(null)
 
   const addToast = (text: string, ok: boolean) => {
     const id = Date.now()
@@ -102,28 +111,99 @@ export default function ModuleStore() {
     setTimeout(() => setToasts(p => p.filter(t => t.id !== id)), 3000)
   }
 
+  // Cargar empresas del usuario
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res: any = await APIs.getCompanies(userId, undefined, authToken)
+        const list = Array.isArray(res?.data) ? res.data : []
+        if (cancelled) return
+        setCompanies(list)
+        if (!selectedCompanyId && list.length > 0) {
+          setSelectedCompanyId(list[0].id)
+        }
+      } catch {
+        setCompanies([])
+      }
+    })()
+    return () => { cancelled = true }
+  }, [userId, authToken])
+
+  // Cargar sucursales de la empresa seleccionada
+  useEffect(() => {
+    if (!selectedCompanyId || !userId) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res: any = await APIs.getBranch({ companyId: selectedCompanyId, userId }, undefined, authToken)
+        const list = Array.isArray(res?.data) ? res.data : []
+        if (cancelled) return
+        setBranches(list)
+        if (list.length > 0) {
+          const firstBranchId = list[0].id
+          setSelectedBranchId(firstBranchId)
+          dispatch(setActiveBranch(firstBranchId) as any)
+        }
+      } catch {
+        setBranches([])
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedCompanyId, userId, authToken, dispatch])
+
   const load = useCallback(async () => {
-    if (!companyId) { setLoading(false); return }
+    if (!selectedBranchId) { setLoading(false); return }
     setLoading(true); setError(null)
-    try { setModules(await fetchModuleStore(companyId)) }
+    try { setModules(await fetchModuleStore(selectedBranchId)) }
     catch { setError('No se pudo cargar la tienda de módulos.') }
     finally { setLoading(false) }
-  }, [companyId])
+  }, [selectedBranchId])
 
   useEffect(() => { load() }, [load])
 
   const handleToggle = async (mod: StoreModule) => {
-    if (!companyId || toggling) return
+    if (!selectedBranchId || toggling) return
+
+    if (!mod.enabled && mod.priceMonthly > 0) {
+      setConfirmingMod(mod)
+      return
+    }
+
     setToggling(mod.moduleId)
     const next = !mod.enabled
     try {
-      await toggleModuleStore(companyId, mod.moduleId, next)
+      if (next) {
+        await APIs.activateModule({ branchId: selectedBranchId, moduleId: mod.moduleId })
+      } else {
+        await toggleModuleStore(selectedBranchId, mod.moduleId, next)
+      }
       setModules(prev => prev.map(m =>
         m.moduleId === mod.moduleId ? { ...m, enabled: next } : m
       ))
       addToast(next ? `✓ ${mod.name} activado` : `${mod.name} desactivado`, true)
     } catch {
       addToast(`Error al ${next ? 'activar' : 'desactivar'} ${mod.name}`, false)
+    } finally {
+      setToggling(null) }
+  }
+
+  const confirmActivation = async () => {
+    if (!confirmingMod) return
+    const mod = confirmingMod
+    setConfirmingMod(null)
+
+    if (!selectedBranchId) return
+    setToggling(mod.moduleId)
+    try {
+      await APIs.activateModule({ branchId: selectedBranchId, moduleId: mod.moduleId })
+      setModules(prev => prev.map(m =>
+        m.moduleId === mod.moduleId ? { ...m, enabled: true } : m
+      ))
+      addToast(`✓ ${mod.name} activado`, true)
+    } catch {
+      addToast(`Error al activar ${mod.name}`, false)
     } finally {
       setToggling(null) }
   }
@@ -148,6 +228,52 @@ export default function ModuleStore() {
           </h1>
           <p>Activa o desactiva módulos. Cada módulo activo entra en tu corte mensual o anual.</p>
         </div>
+
+        {/* Selector de empresa */}
+        {companies.length > 1 && (
+          <div className="ms-company-picker">
+            <label className="ms-company-label">Empresa</label>
+            <select
+              className="ms-company-select"
+              value={selectedCompanyId ?? ''}
+              onChange={(e) => setSelectedCompanyId(Number(e.target.value))}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {companies.length === 1 && (
+          <div className="ms-company-picker ms-company-picker--single">
+            <span className="ms-company-name">{companies[0]?.name}</span>
+          </div>
+        )}
+
+        {/* Selector de sucursal */}
+        {branches.length > 1 && (
+          <div className="ms-company-picker">
+            <label className="ms-company-label">Sucursal</label>
+            <select
+              className="ms-company-select"
+              value={selectedBranchId ?? ''}
+              onChange={(e) => {
+                const id = Number(e.target.value)
+                setSelectedBranchId(id)
+                dispatch(setActiveBranch(id) as any)
+              }}
+            >
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {branches.length === 1 && (
+          <div className="ms-company-picker ms-company-picker--single">
+            <span className="ms-company-name">{branches[0]?.name}</span>
+          </div>
+        )}
       </div>
 
       {/* Resumen */}
@@ -232,6 +358,21 @@ export default function ModuleStore() {
           {t.text}
         </div>
       ))}
+
+      {/* Modal de Confirmación de Pago */}
+      {confirmingMod && (
+        <div className="ms-modal-overlay">
+          <div className="ms-modal">
+            <h2>Activar Módulo</h2>
+            <p>Estás a punto de activar el módulo <strong>{confirmingMod.name}</strong>.</p>
+            <p>Este módulo tiene un costo de <strong>{fmt(confirmingMod.priceMonthly, currency)}</strong> mensuales.</p>
+            <div className="ms-modal-actions">
+              <button className="ms-btn-secondary" onClick={() => setConfirmingMod(null)}>Cancelar</button>
+              <button className="ms-btn-primary" onClick={confirmActivation}>Confirmar y Activar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

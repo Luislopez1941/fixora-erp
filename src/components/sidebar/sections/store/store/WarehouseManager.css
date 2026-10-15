@@ -1,0 +1,244 @@
+/* Almacenes — todas las clases cuelgan de .warehouses (notación padre__hijo).
+   Colores con variables del tema: sirve igual en modo claro y oscuro. */
+
+.warehouses {
+  width: 100%;
+  min-width: 0;
+}
+
+.warehouses__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.warehouses__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.warehouses__header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.warehouses__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.warehouses__search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.warehouses__search .inputs__general.warehouses__search-input {
+  margin-top: 0;
+  width: 240px;
+  padding-left: 38px;
+}
+
+select.warehouses__filter {
+  width: auto;
+  margin-top: 0;
+  min-width: 130px;
+}
+
+/* ── Tabla en filas ── */
+.warehouses__list {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.warehouses__row {
+  display: grid;
+  grid-template-columns: minmax(200px, 2fr) minmax(140px, 1.2fr) minmax(140px, 1.2fr) 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
+}
+
+.warehouses__row:last-child {
+  border-bottom: none;
+}
+
+.warehouses__row:not(.warehouses__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
+}
+
+.warehouses__row--head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.warehouses__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.warehouses__cell--name strong {
+  font-weight: 600;
+}
+
+.warehouses__tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.warehouses__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.warehouses__badge--yes {
+  color: #047857;
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.warehouses__badge--no {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .warehouses__badge--yes {
+  color: #34d399;
+}
+
+[data-theme="dark"] .warehouses__badge--no {
+  color: #f87171;
+}
+
+.warehouses__col-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.warehouses__icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.warehouses__icon-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.warehouses__icon-btn:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.warehouses__icon-btn--danger:hover {
+  color: var(--danger-color, #dc2626);
+  border-color: var(--danger-color, #dc2626);
+}
+
+.warehouses__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.warehouses__state p {
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 900px) {
+  .warehouses__row--head {
+    display: none;
+  }
+
+  .warehouses__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+
+  .warehouses__cell[data-label]:not(.warehouses__cell--name) {
+    grid-column: 1 / -1;
+  }
+
+  .warehouses__cell[data-label]:not(.warehouses__cell--name)::before {
+    content: attr(data-label) ': ';
+    color: var(--text-muted);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .warehouses__container {
+    padding: 16px;
+  }
+
+  .warehouses__search .inputs__general.warehouses__search-input {
+    width: 100%;
+  }
+}
+
+.warehouses__cell--name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.warehouses__row-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 20px;
+  color: #fff;
+  background: var(--primary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.warehouses__cell--muted {
+  color: color-mix(in srgb, var(--text-color) 70%, transparent);
+}

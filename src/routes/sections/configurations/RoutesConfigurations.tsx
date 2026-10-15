@@ -5,8 +5,10 @@ import Companies from '../../../components/sidebar/sections/configurations/compa
 import BranchOffices from '../../../components/sidebar/sections/configurations/branchOffices/BranchOffices';
 import Roles from '../../../components/sidebar/sections/configurations/roles/Roles';
 import Series from '../../../components/sidebar/sections/configurations/series/Series';
-import Areas from '../../../components/sidebar/sections/configurations/areas/Areas';
+import CatalogTypes from '../../../components/sidebar/sections/catalogos/types/CatalogTypes';
 import Users from '../../../components/sidebar/sections/configurations/users/Users';
+import AuditLog from '../../../components/sidebar/sections/configurations/audit/AuditLog';
+import UserGroups from '../../../components/sidebar/sections/configurations/userGroups/UserGroups';
 
 const RoutesConfigurations: React.FC = () => {
   return (
@@ -16,7 +18,9 @@ const RoutesConfigurations: React.FC = () => {
         <Route path={`/${PrivateRoutes.USERS}`} element={<Users />} />
         <Route path={`/${PrivateRoutes.ROLES}`} element={<Roles />} />
         <Route path={`/${PrivateRoutes.SERIES}`} element={<Series />} />
-        <Route path={`/${PrivateRoutes.AREAS}`} element={<Areas />} />
+        <Route path={`/${PrivateRoutes.AREAS}`} element={<CatalogTypes />} />
+        <Route path={`/${PrivateRoutes.AUDIT}`} element={<AuditLog />} />
+        <Route path={`/${PrivateRoutes.USER_GROUPS}`} element={<UserGroups />} />
     </Routes>
   )
 }

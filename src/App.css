@@ -1,8 +1,8 @@
 :root {
 
   --border-radius-general: 5px;
-  --primary-color: rgb(63, 125, 192);
-  --secondary-color: #F2A541;
+  --primary-color: #072a57;
+  --secondary-color: #fc7400;
 
   --danger-color: #df4941c5;
   --orange-color: #bf6903;
@@ -22,7 +22,7 @@
   --table-border-color: #1f2124;
   --first-body-table-color: #17191b;
   --second-body-table-color: #222222;
-  --hover-body-table-color: rgba(63, 125, 192, 0.39);
+  --hover-body-table-color: rgba(7, 42, 87, 0.39);
 
   --text-color: #fff;
 
@@ -41,7 +41,7 @@
   --surface: #1f2228;
   --card-bg: #1f2228;
   --card-background: #1f2228;
-  --card-border: rgba(63, 125, 192, 0.22);
+  --card-border: rgba(7, 42, 87, 0.22);
   --panel-border: rgba(255, 255, 255, 0.08);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.28);
   --text-light: #a8adb8;
@@ -49,6 +49,8 @@
   --dashboard-bg-start: #1a1d22;
   --dashboard-bg-end: #17191b;
   --sub-menu-bg: #1f2124;
+  --sub-menu-text: #ffffff;
+  --sub-menu-hover-bg: var(--sidebar-primary-hover);
   --company-select-bg: rgba(255, 255, 255, 0.05);
   --company-select-border: rgba(255, 255, 255, 0.1);
   --radius-md: 10px;
@@ -57,12 +59,38 @@
   --sidebar-icon-color: rgba(255, 255, 255, 0.45);
   --sidebar-icon-hover: #ffffff;
   --sidebar-link-hover-bg: var(--sidebar-primary-hover);
+
+  /* --input-color: usada por .traditional__selector/.container__password_users
+     etc. — nunca estaba definida (ni aquí ni en modo claro), así que esos
+     fondos quedaban completamente transparentes. Mismo tono que los inputs
+     de modal para que se vea consistente. */
+  --input-color: #1f2124;
+
+  /* Modales tipo "Nuevo usuario"/"Nuevo rol" — valores iguales a los hex que ya
+     tenían hardcodeados, para que el modo oscuro no cambie ni un pixel. */
+  --modal-bg: #17191b;
+  --modal-input-bg: #1f2124;
+  --modal-input-border: #2a2d33;
+  --modal-text: #f5f6f7;
+  --modal-text-muted: #bbbbbb;
+  --modal-text-faint: #6b7280;
+  --modal-placeholder: #666666;
+  --modal-overlay-bg: rgba(255, 255, 255, 0.04);
+  --modal-overlay-hover-bg: rgba(255, 255, 255, 0.06);
+  --modal-overlay-border: rgba(255, 255, 255, 0.06);
+  --modal-hover-text: #d1d5db;
+  --modal-accent-indigo: #818cf8;
+  --modal-accent-red: #f87171;
+  --modal-accent-green: #34d399;
+  /* Panel "hundido" bajo un módulo expandido (lista de permisos) — negro
+     semitransparente oscurece un poco un fondo ya oscuro, se ve bien aquí. */
+  --modal-recessed-bg: rgba(0, 0, 0, 0.15);
 }
 
 /* ====== MODO CLARO ====== */
 [data-theme="light"] {
-  --primary-color: #3F7DC0;
-  --secondary-color: #F2A541;
+  --primary-color: #072a57;
+  --secondary-color: #fc7400;
 
   --danger-color: #BA1A1A;
   --orange-color: #865300;
@@ -70,19 +98,18 @@
   --white: #FFFFFF;
   --sidebar-primary: #2d6aa8;
   --sidebar-primary-hover: #245a93;
-  --sidebar-background: #3F7DC0;
+  --sidebar-background: #072a57;
   --background: #F7F9FB;
   --text-link: #FFFFFF;
-  --headline: #414750;
   --expand-button: #2d6aa8;
   --logout: #BA1A1A;
 
   /* COLORES DE TABLA */
-  --table-head-color: #3F7DC0;
+  --table-head-color: #072a57;
   --table-border-color: #E0E3E5;
   --first-body-table-color: #FFFFFF;
   --second-body-table-color: #F2F4F6;
-  --hover-body-table-color: rgba(63, 125, 192, 0.08);
+  --hover-body-table-color: rgba(7, 42, 87, 0.08);
 
   --text-color: #191C1E;
 
@@ -92,8 +119,8 @@
   --header-border: rgba(0, 0, 0, 0.07);
   --icon-bg: #EEF2F7;
   --icon-color: #414750;
-  --breadcrumb-bg: rgba(63, 125, 192, 0.07);
-  --breadcrumb-border: rgba(63, 125, 192, 0.18);
+  --breadcrumb-bg: rgba(7, 42, 87, 0.07);
+  --breadcrumb-border: rgba(7, 42, 87, 0.18);
   --breadcrumb-text: #727781;
   --breadcrumb-text-active: #191C1E;
   --breadcrumb-sep: #C1C7D2;
@@ -101,7 +128,7 @@
   --surface: #FFFFFF;
   --card-bg: #FFFFFF;
   --card-background: #FFFFFF;
-  --card-border: rgba(63, 125, 192, 0.15);
+  --card-border: rgba(7, 42, 87, 0.15);
   --panel-border: rgba(0, 0, 0, 0.07);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
   --text-light: #414750;
@@ -109,15 +136,48 @@
   --dashboard-bg-start: #F2F4F6;
   --dashboard-bg-end: #F7F9FB;
   --sub-menu-bg: #EEF2F7;
-  --company-select-bg: rgba(63, 125, 192, 0.06);
-  --company-select-border: rgba(63, 125, 192, 0.2);
+  /* El panel de submenú es claro aquí (a diferencia del navy del resto del
+     sidebar) — el texto NO puede seguir heredando --text-link (blanco), o
+     queda blanco sobre casi-blanco e ilegible. Mismo motivo para el hover:
+     un overlay blanco semitransparente no se nota sobre fondo ya claro. */
+  --sub-menu-text: #191C1E;
+  --sub-menu-hover-bg: rgba(7, 42, 87, 0.08);
+  --company-select-bg: rgba(7, 42, 87, 0.06);
+  --company-select-border: rgba(7, 42, 87, 0.2);
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-full: 9999px;
   --sidebar-icon-color: rgba(255, 255, 255, 0.75);
   --sidebar-icon-hover: #ffffff;
   --sidebar-link-hover-bg: rgba(255, 255, 255, 0.15);
-  --headline: rgba(255, 255, 255, 0.7);
+  /* Opaco a propósito — el sidebar sigue azul marino en modo claro, y
+     .sidebar-links h2 YA le aplica opacity:0.7. Si aquí también se le baja el
+     alpha (como estaba: rgba(255,255,255,0.7)), el atenuado se aplica DOS veces
+     (0.7 × 0.7 = 0.49 efectivo) y el contraste de "MAIN"/"SETTINGS" contra el
+     navy cae a ~4.48:1, justo por debajo del mínimo WCAG AA (4.5:1). */
+  --headline: #FFFFFF;
+
+  --input-color: #f7f9fb;
+
+  /* Modales tipo "Nuevo usuario"/"Nuevo rol" en modo claro. */
+  --modal-bg: #ffffff;
+  --modal-input-bg: #f7f9fb;
+  --modal-input-border: #d7dbe3;
+  --modal-text: #191c1e;
+  --modal-text-muted: #6b7280;
+  --modal-text-faint: #6b7280;
+  --modal-placeholder: #9aa0ac;
+  --modal-overlay-bg: rgba(7, 42, 87, 0.04);
+  --modal-overlay-hover-bg: rgba(7, 42, 87, 0.07);
+  --modal-overlay-border: rgba(7, 42, 87, 0.1);
+  --modal-hover-text: #191c1e;
+  --modal-accent-indigo: #4338ca;
+  --modal-accent-red: #dc2626;
+  --modal-accent-green: #059669;
+  /* En negro semitransparente, sobre el modal ya blanco, se veía como una
+     mancha gris sucia — aquí el mismo "hundido" se logra con un tinte navy
+     muy sutil, consistente con el resto de overlays claros de la app. */
+  --modal-recessed-bg: rgba(7, 42, 87, 0.035);
 }
 
 body {
@@ -168,34 +228,39 @@ textarea {
   font-family: 'Poppins', sans-serif;
 }
 
+/* Estas clases las usan docenas de modales en toda la app (título, labels,
+   inputs) — antes tenían colores fijos de modo oscuro (#fff, #f5f6f7,
+   #1f2124), así que CUALQUIER modal se veía oscuro sin importar el tema,
+   encima de una página ya clara. Con --modal-* (ver :root/[data-theme=light]
+   arriba) cambian solas con el tema. */
 .title__modals {
-  color: #fff;
+  color: var(--modal-text);
 }
 
 
 .svg__close {
-  fill: #fff;
+  fill: var(--modal-text);
 }
 
 .container__inputs_general {
   position: relative;
   text-align: justify;
 }
-  
+
 
 .label__general {
   font-weight: 500;
   display: block;
   border-radius: var(--border-radius-general);
-  color: #f5f6f7;
+  color: var(--modal-text);
 }
 
 .inputs__generic {
   border: none;
   outline: none;
   width: 100%;
-  background-color: #1f2124;
-  color: #f5f6f7;
+  background-color: var(--modal-input-bg);
+  color: var(--modal-text);
   text-indent: 15px;
 }
 
@@ -203,22 +268,24 @@ textarea {
 
 .inputs__general {
   width: 100%;
-  background-color: #1f2124;
-  color: #f5f6f7;
+  background-color: var(--modal-input-bg);
+  color: var(--modal-text);
   margin-top: 10px;
-  border: none;
+  border: 1px solid var(--modal-input-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
   outline: none;
-  padding: 10px 0;
-  border-radius: 3px;
-  text-indent: 15px;
-  
-
+  box-sizing: border-box;
+  min-height: 38px;
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+  text-indent: 0;
 }
 
 .inputs__general_icons {
   display: flex;
   width: 100%;
-  background-color: #1f2124;
+  background-color: var(--modal-input-bg);
   color: var(--text-color);
   margin-top: 10px;
   border: none;
@@ -232,13 +299,14 @@ textarea {
 
 
 .inputs__general:hover {
-  outline: 2px solid var(--primary-color);
- 
+  border-color: var(--modal-text-faint);
 }
 
 
 .inputs__general:focus {
-  outline: 2px solid var(--primary-color);
+  border-color: var(--primary-color);
+  background-color: var(--modal-overlay-hover-bg);
+  box-shadow: 0 0 0 3px rgba(7, 42, 87, 0.1);
 }
 
 
@@ -262,7 +330,7 @@ textarea {
   border: none;
   outline: none;
   border-radius: 3px;
-  padding: 10px 0;
+  padding: 8px 12px;
   text-indent: 15px;
 }
 
@@ -294,14 +362,50 @@ textarea {
 
 .btn__general-primary {
   display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background-color: var(--primary-color);
-  padding: 10px 10px;
+  padding: 10px 16px;
   color: #fff;
+  font-weight: 600;
+  font-size: 0.88rem;
   border: none;
   cursor: pointer;
   border-radius: var(--border-radius-general);
-  transition: all 400ms;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+  white-space: nowrap;
+}
 
+/* Usado en varios modales (ej. "Cancelar" junto al botón primario) — no tenía
+   NINGÚN estilo definido en ningún lado, salía como botón de navegador sin
+   formato, al lado de un botón primario ya pulido. */
+.btn__general-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: transparent;
+  padding: 10px 16px;
+  color: var(--modal-text);
+  font-weight: 600;
+  font-size: 0.88rem;
+  border: 1px solid var(--modal-overlay-border);
+  cursor: pointer;
+  border-radius: var(--border-radius-general);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn__general-secondary:hover {
+  background-color: var(--modal-overlay-hover-bg);
+  border-color: var(--modal-text-faint);
+}
+
+.btn__general-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn__edit-table_button {
@@ -329,23 +433,43 @@ textarea {
 }
 
 .btn__general-primary:hover {
-  transform: scale(1.05);
+  background-color: var(--sidebar-primary-hover, var(--primary-color));
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 .btn__general-primary:active {
-  transform: scale(.9);
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.btn__general-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 
 
 
 .btn__general-danger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background-color: var(--danger-color);
   padding: 8px 10px;
   color: #fff;
   border: none;
   cursor: pointer;
   border-radius: var(--border-radius-general);
+  transition: opacity 0.2s ease;
+}
+
+.btn__general-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .btn__general-success {
@@ -433,7 +557,7 @@ textarea {
 /* STYLES OF SELECT */
 
 ::selection{
-  background: rgba(63, 125, 192, 0.3);
+  background: rgba(7, 42, 87, 0.3);
 }
 .select__container {
 width: 100%;
@@ -470,12 +594,12 @@ cursor: pointer;
 .select__container .select-btn {
 height: 40px;
 padding: 0 20px;
-background: #1f2124;
-color: #f5f6f7;
+background: var(--modal-input-bg);
+color: var(--modal-text);
 border-radius: 5px 5px 5px 5px;
 justify-content: space-between;
 box-shadow: 0 10px 25px rgba(0,0,0,0.1);
- 
+
 }
 
 
@@ -505,7 +629,7 @@ box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 .select__container .search .chevron__down {
   top: 50%;
   left: 15px;
-  color: #999;
+  color: var(--modal-text-faint);
   pointer-events: none;
   transform: translateY(-50%);
   position: absolute;
@@ -524,7 +648,7 @@ box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   /* top: 70px; */
   width: 100%;
   height: 0;
-  background: #1f2124;
+  background: var(--modal-input-bg);
   border-radius: 0 0 5px 5px;
   z-index: 1;
   transition: all 500ms;
@@ -569,14 +693,14 @@ background: #b3b3b3;
 .select__container .options li{
 height: 40px;
 padding: 0 13px;
-color: #f5f6f7;
+color: var(--modal-text);
 
 }
 .select__container .options li:hover, li.selected{
 border-radius: 5px;
 /* background: #f2f2f2; */
 background-color: var(--primary-color);
-color: #f5f6f7;
+color: #fff;
 }
 
 .select-btn p:focus{
@@ -585,7 +709,7 @@ color: #f5f6f7;
 
 
 .chevron__down {
-  fill: #f5f6f7;
+  fill: var(--modal-text);
 }
 
 .select-btn__general {
@@ -604,10 +728,10 @@ color: #f5f6f7;
 	border: none;
 	outline: none;
 	border-radius: 5px 5px 5px 5px;
-	background-color: #1f2124;
-	color: var(--text-color);
+	background-color: var(--modal-input-bg);
+	color: var(--modal-text);
   margin-top: 10px;
-	
+
 }
 
 
@@ -693,7 +817,7 @@ input:checked + .slider:before {
 
 
 .text {
-  color: #f5f6f7;
+  color: var(--text-color);
 }
 
 
@@ -709,7 +833,7 @@ input:checked + .slider:before {
 .table__numbers {
   display: flex;
   margin: 10px 0;
-  color: #f5f6f7;
+  color: var(--text-color);
 }
 
 .quantities_tables {
@@ -773,6 +897,33 @@ input:checked + .slider:before {
 
 
 .delete-icon {
+  display: flex;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: #ff52523a;
+  border-radius: 5px;
+  font-weight: 600;
+  color: #FF5252;
+  cursor: pointer;
+}
+
+/* Mismo lenguaje visual que .edit-icon/.delete-icon, para acciones de
+   activar/desactivar (ej. tabla de Usuarios) — el color indica qué pasará
+   al hacer click: verde = se activará, rojo = se desactivará. */
+.activate-icon {
+  display: flex;
+  padding: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: #22c55e2e;
+  border-radius: 5px;
+  font-weight: 600;
+  color: #22c55e;
+  cursor: pointer;
+}
+
+.deactivate-icon {
   display: flex;
   padding: 5px;
   justify-content: center;

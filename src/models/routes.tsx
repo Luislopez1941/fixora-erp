@@ -18,6 +18,7 @@ export const PrivateRoutes = {
   ///////////////////////////SALES///////////////////////////////
   SALES: 'sales',
   SALES_SHEET: 'sales-sheet',
+  POS_CONFIG: 'pos-config',
   QUOTATION: 'quotation',
   SALESORDER: 'salesorder',
 
@@ -43,11 +44,23 @@ export const PrivateRoutes = {
 
 
 
+  ///////////////////////////Caja///////////////////////////////
+  CASH: 'cash',
+  CASH_CURRENT: 'current',
+  CASH_MOVEMENTS: 'movements',
+  CASH_CUTS: 'cuts',
+  CASH_SHIFTS: 'shifts',
+  CASH_REGISTERS: 'registers',
+  CASH_SCHEDULES: 'schedules',
+  CASH_CONFIG: 'config',
+  MENU_CASH: 'menu-cash',
+
   ///////////////////////////ALMACEN///////////////////////////////
   STORE: 'store',
   INVENTORY: 'inventory',
   TICKETS: 'tickets',
   DEPARTURES: 'departures',
+  TRANSFERS: 'transfers',
   ORDERS: 'orders',
 
   ///////////////////////////CONFIGURACIONES///////////////////////////////
@@ -57,7 +70,9 @@ export const PrivateRoutes = {
   ROLES: 'roles',
   USERS: 'users',
   SERIES: 'series',
+  AUDIT: 'audit',
   AREAS: 'areas',
+  USER_GROUPS: 'grupos-usuarios',
 
 
 
@@ -67,6 +82,7 @@ export const PrivateRoutes = {
   UNITS: 'units',
   SERVICES: 'services',
   ARTICLES: 'articles',
+  PAYMENT_METHODS: 'payment-methods',
 
   INCOME: 'income',
 

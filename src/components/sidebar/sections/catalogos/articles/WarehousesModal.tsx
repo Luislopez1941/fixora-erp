@@ -169,11 +169,6 @@ const WarehousesModal: React.FC<WarehousesModalProps> = ({
           )}
         </div>
 
-        <div className='article-warehouses-modal-footer'>
-          <button type='button' className='btn__general-purple' onClick={onClose}>
-            Listo
-          </button>
-        </div>
       </div>
     </div>
   )

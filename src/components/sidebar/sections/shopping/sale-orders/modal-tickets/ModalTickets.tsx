@@ -230,7 +230,7 @@ const ModalTickets: React.FC<any> = ({ companies, branch }) => {
     };
 
     try {
-      let response: any = await APIs.cresteTickets(data);
+      let response: any = await APIs.createTickets(data);
       Swal.fire({
         icon: 'success',
         title: 'Serie creada correctamente',
@@ -315,6 +315,7 @@ const ModalTickets: React.FC<any> = ({ companies, branch }) => {
         <div className='tickets_modal'>
           <div className='tickets_modal_container'>
             <div className='row__one'>
+              {(selectCompany?.companies?.length ?? 0) > 1 && (
               <div className='select__container'>
                 <label className='label__general'>Empresa</label>
                 <div className='select-btn__general'>
@@ -333,6 +334,8 @@ const ModalTickets: React.FC<any> = ({ companies, branch }) => {
                   </div>
                 </div>
               </div>
+              )}
+              {(selectBranch?.branch?.filter((b: any) => b.id !== 0).length ?? 0) > 1 && (
               <div className='select__container'>
                 <label className='label__general'>Sucursal</label>
                 <div className='select-btn__general'>
@@ -351,6 +354,7 @@ const ModalTickets: React.FC<any> = ({ companies, branch }) => {
                   </div>
                 </div>
               </div>
+              )}
               <div className="col-4 comments">
                 <label className='label__general'>Comentarios</label>
                 <input className={`inputs__general`} type='text' value={fields.field} onChange={(e) => setFields({ ...fields, field: e.target.value })} placeholder='Comentarios' />

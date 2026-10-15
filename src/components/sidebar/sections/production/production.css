@@ -38,6 +38,24 @@
   font-size: 0.86rem;
 }
 
+/* Modo claro — este archivo se escribió solo para modo oscuro (texto casi
+   blanco, borde blanco translúcido); sobre el fondo claro quedaba ilegible. */
+[data-theme="light"] .production__header {
+  border-bottom-color: var(--panel-border);
+}
+
+[data-theme="light"] .production__eyebrow {
+  color: var(--primary-color);
+}
+
+[data-theme="light"] .production__title {
+  color: var(--text-color);
+}
+
+[data-theme="light"] .production__subtitle {
+  color: var(--text-muted);
+}
+
 .production__toolbar {
   display: flex;
   flex-wrap: wrap;

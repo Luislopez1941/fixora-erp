@@ -17,6 +17,7 @@ export interface UserInfo {
   companyId?: number | null;
   companyIds?: number[];
   activeCompanyId?: number | null;
+  activeBranchId?: number | null;
   active?: boolean;
   token?: string;
 }

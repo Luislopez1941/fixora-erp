@@ -87,8 +87,8 @@ const PriceRangesManager: React.FC<PriceRangesManagerProps> = ({
   };
 
   return (
-    <div className="price-ranges-modal">
-      <div className="price-ranges-content">
+    <div className="price-ranges-modal active">
+      <div className="price-ranges-content active">
         <div className="price-ranges-header">
           <h2>Rangos de Precios</h2>
           <button className="btn-close" onClick={onClose}>×</button>

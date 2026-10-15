@@ -1,7 +1,7 @@
 /* =========================================
    DASHBOARD — Professional Insight System
    Font: Hanken Grotesk
-   Primary: #3F7DC0  Secondary: #F2A541
+   Primary: #072a57  Secondary: #fc7400
    ========================================= */
 
 .dashboard {
@@ -127,7 +127,7 @@
 }
 
 .dashboard-date-range__trigger:hover {
-  border-color: rgba(63, 125, 192, 0.45);
+  border-color: rgba(7, 42, 87, 0.45);
   background: var(--sub-menu-bg);
 }
 
@@ -248,7 +248,7 @@
 }
 
 .dashboard-date-range__popup .rdrInRange {
-  background: rgba(63, 125, 192, 0.15);
+  background: rgba(7, 42, 87, 0.15);
 }
 
 .dashboard-date-range__popup .rdrMonthPicker select,
@@ -357,7 +357,7 @@
 }
 
 .dashboard-kpi--income .dashboard-kpi__icon-wrap {
-  background: rgba(63, 125, 192, 0.12);
+  background: rgba(7, 42, 87, 0.12);
   color: var(--primary-color);
 }
 .dashboard-kpi--sales .dashboard-kpi__icon-wrap {
@@ -600,7 +600,7 @@
   transition: width 0.6s ease;
 }
 
-.dashboard-progress__fill--orange { background: #F2A541; }
+.dashboard-progress__fill--orange { background: #fc7400; }
 .dashboard-progress__fill--blue   { background: var(--primary-color); }
 
 /* Stock donut */
@@ -724,8 +724,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(63, 125, 192, 0.25);
-  border: 1px solid rgba(63, 125, 192, 0.35);
+  background: rgba(7, 42, 87, 0.25);
+  border: 1px solid rgba(7, 42, 87, 0.35);
   color: #c5cbff;
   font-weight: 700;
   font-size: 0.9rem;
@@ -806,7 +806,7 @@
 }
 
 .dashboard-orders__body::-webkit-scrollbar-thumb {
-  background: rgba(63, 125, 192, 0.45);
+  background: rgba(7, 42, 87, 0.45);
   border-radius: 5px;
 }
 
@@ -823,7 +823,7 @@
 }
 
 .dashboard-orders__row:hover {
-  background: rgba(63, 125, 192, 0.1);
+  background: rgba(7, 42, 87, 0.1);
 }
 
 .dashboard-orders__folio {
@@ -903,7 +903,7 @@
 }
 
 .dashboard-notify__item--low {
-  border-color: rgba(63, 125, 192, 0.25);
+  border-color: rgba(7, 42, 87, 0.25);
 }
 
 .dashboard-notify__icon {
@@ -967,15 +967,15 @@
 [data-theme="light"] .dashboard-kpi--refund .dashboard-kpi__value { color: #7b1fa2; }
 [data-theme="light"] .dashboard-kpi--profit .dashboard-kpi__value { color: #00695c; }
 [data-theme="light"] .dashboard-recent__avatar {
-  background: rgba(63, 125, 192, 0.1);
-  border-color: rgba(63, 125, 192, 0.2);
-  color: #3F7DC0;
+  background: rgba(7, 42, 87, 0.1);
+  border-color: rgba(7, 42, 87, 0.2);
+  color: #072a57;
 }
 [data-theme="light"] .dashboard-recent__amount { color: #2e7d32; }
 [data-theme="light"] .dashboard-recent__amount--negative { color: #ba1a1a; }
 [data-theme="light"] .dashboard-orders__folio { color: var(--primary-color); }
-[data-theme="light"] .dashboard-orders__row:nth-child(even) { background: rgba(63, 125, 192, 0.04); }
-[data-theme="light"] .dashboard-orders__row:hover { background: rgba(63, 125, 192, 0.07); }
+[data-theme="light"] .dashboard-orders__row:nth-child(even) { background: rgba(7, 42, 87, 0.04); }
+[data-theme="light"] .dashboard-orders__row:hover { background: rgba(7, 42, 87, 0.07); }
 [data-theme="light"] .dashboard-badge--ok { background: rgba(46, 125, 50, 0.1); color: #2e7d32; }
 [data-theme="light"] .dashboard-badge--low { background: rgba(134, 83, 0, 0.1); color: #865300; }
 [data-theme="light"] .dashboard-badge--out { background: rgba(186, 26, 26, 0.1); color: #ba1a1a; }

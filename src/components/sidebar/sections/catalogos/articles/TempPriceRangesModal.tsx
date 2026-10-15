@@ -138,12 +138,6 @@ const TempPriceRangesModal: React.FC<TempPriceRangesModalProps> = ({ ranges, onC
             </div>
           </div>
         </div>
-
-        <div className='temp-price-ranges-modal-footer'>
-          <button className='btn__general-purple' onClick={onClose}>
-            Listo
-          </button>
-        </div>
       </div>
     </div>
   );

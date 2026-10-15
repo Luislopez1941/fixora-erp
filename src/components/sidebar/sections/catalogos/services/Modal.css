@@ -1,105 +1,168 @@
-.overlay__services__modal {
-  background: rgba(0, 0, 0, 0.3);
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  align-items: center;
-  justify-content: center;
+/*=================================================
+  Modal "Servicio"
+  Todas las clases cuelgan de .services_modal (notación padre__hijo)
+  para no chocar con los otros modales, que cargan su CSS de forma global.
+=================================================*/
+
+.services_modal__overlay {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(7, 20, 40, 0.55);
+	visibility: hidden;
+	/* Por encima del sidebar (hasta 10000) y del header (2000) */
+	z-index: 10001;
+}
+
+.services_modal__overlay.active {
+	visibility: visible;
+}
+
+.services_modal__popup {
+	width: min(560px, 92vw);
+	max-height: 90vh;
+	overflow-y: auto;
+	background-color: var(--modal-bg, var(--card-bg));
+	color: var(--text-color);
+	border: 1px solid var(--panel-border);
+	border-top: 3px solid var(--secondary-color);
+	border-radius: 14px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	transform: scale(0.7);
+	opacity: 0;
+	transition: .3s ease all;
+}
+
+.services_modal__popup.active {
+	transform: scale(1);
+	opacity: 1;
+}
+
+.services_modal__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	border-bottom: 1px solid var(--panel-border);
+	background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
+}
+
+.services_modal__title {
+	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--primary-color);
+}
+
+[data-theme="dark"] .services_modal__title {
+	color: var(--text-color);
+}
+
+.services_modal__close {
+	position: absolute;
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: block;
+	color: var(--text-muted);
+	transition: .3s ease all;
+}
+
+.services_modal__close:hover {
+	color: var(--secondary-color);
+}
+
+.services_modal__close .material-symbols-rounded {
+	font-size: 20px;
+}
+
+.services_modal__body {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 24px;
+}
+
+.services_modal__actions {
+	display: flex;
+	justify-content: center;
+}
+
+.services_modal__actions .btn__general-primary {
+	min-width: 220px;
+}
+
+
+.services_modal__field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.services_modal__field textarea.inputs__general {
+	resize: vertical;
+	min-height: 72px;
+}
+
+.services_modal__field select.inputs__general {
+	cursor: pointer;
+}
+
+/* Pestañas con subrayado, pegadas bajo el encabezado (mismo diseño que familias) */
+.services_modal-tabs {
   display: flex;
-  visibility: hidden;
-  z-index: 1000;
+  gap: 24px;
+  flex-shrink: 0;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--panel-border);
 }
 
-.overlay__services__modal.active {
-  visibility: visible;
-}
-
-.popup__services__modal {
-  background-color: #17191b;
-  border-radius: 5px;
-  width: 90%;
-  max-width: 520px;
-  max-height: 90vh;
-  transition: 0.3s ease all;
-  transform: scale(0.7);
-  opacity: 0;
-  overflow: auto;
-  position: relative;
-}
-
-.popup__services__modal.active {
-  transform: scale(1);
-  opacity: 1;
-}
-
-.popup__services__modal .header__modal {
-  display: flex;
-  width: 100%;
-  height: 40px;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-}
-
-.btn-cerrar-popup__services__modal {
-  font-size: 16px;
-  display: block;
-  transition: 0.3s ease all;
-  color: #bbbbbb;
-  position: absolute;
-  right: 15px;
-  top: 13px;
-  text-decoration: none;
+.services_modal-tab {
+  margin-bottom: -1px;
+  padding: 10px 2px 9px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.services__modal {
-  padding: 10px 20px 20px;
+.services_modal-tab:hover {
+  color: var(--text-color);
 }
 
-.services__modal_container {
+.services_modal-tab--active,
+.services_modal-tab--active:hover {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.services_modal-tabpane {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.services__modal_container > .row__one {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.services_modal-tabpane[hidden] {
+  display: none;
 }
 
-.services__modal_container .label__general {
-  color: #f5f6f7;
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin-bottom: 4px;
-  display: block;
+.services_modal-company-note {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
 }
 
-.services__modal_container .inputs__general {
-  width: 100%;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  color: #f5f6f7;
-  font-size: 0.9rem;
-  outline: none;
-  box-sizing: border-box;
+.services_modal__header {
+	height: 44px;
 }
 
-.services__modal_container .inputs__general:focus {
-  border-color: #586ae9;
-}
-
-.services__modal_container textarea.inputs__general {
-  resize: vertical;
-  min-height: 72px;
-}
-
-.services__modal_container select.inputs__general {
-  cursor: pointer;
+.services_modal__title {
+	font-size: 1rem;
 }

@@ -56,9 +56,10 @@ const ModalAreas: React.FC = () => {
       setFields((prevState: any) => ({
         ...prevState,
         companyId: response.data[0].id,
-        branchId: result.data[0].id,
+        // Con una sola sucursal real se usa esa por defecto (el select se oculta).
+        branchId: (result.data.filter((b: any) => b.id !== 0).length === 1 ? result.data.find((b: any) => b.id !== 0) : result.data[0]).id,
         companyName: response.data[0].name,
-        branchName: result.data[0].name,
+        branchName: (result.data.filter((b: any) => b.id !== 0).length === 1 ? result.data.find((b: any) => b.id !== 0) : result.data[0]).name,
       }));
 
     } catch (error) {
@@ -212,6 +213,7 @@ const ModalAreas: React.FC = () => {
         <div className='areas_modal'>
           <div className='areas_modal_container'>
             <div className='row__one'>
+              {(selectCompany?.companies?.length ?? 0) > 1 && (
               <div className='select__container'>
                 <label className='label__general'>Empresa</label>
                 <div className='select-btn__general'>
@@ -230,6 +232,8 @@ const ModalAreas: React.FC = () => {
                   </div>
                 </div>
               </div>
+              )}
+              {(selectBranch?.branch?.filter((b: any) => b.id !== 0).length ?? 0) > 1 && (
               <div className='select__container'>
                 <label className='label__general'>Sucursal</label>
                 <div className='select-btn__general'>
@@ -248,6 +252,7 @@ const ModalAreas: React.FC = () => {
                   </div>
                 </div>
               </div>
+              )}
               <div>
                 <label className='label__general'>Nombre</label>
                 <input className='inputs__general' value={fields.name} onChange={(e) => setFields({ ...fields, name: e.target.value })} placeholder='Nombre' type="text" />

@@ -14,7 +14,7 @@ const Modal = () => {
 
   const administratorUpdate = useSelector((state: any) => state.administrator);
   
-  const token: any = localStorage.getItem('token-eco');
+  const token: any = localStorage.getItem('token-fixora');
 
   const handleModalChange = (value: any) => {
     dispatch(modal(value));

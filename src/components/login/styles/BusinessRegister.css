@@ -1,0 +1,228 @@
+.business-register {
+  padding: 2rem;
+  max-width: 520px;
+  margin: 0 auto;
+  background: #18191b;
+  border-radius: 12px;
+  position: relative;
+}
+
+.business-register__head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.business-register__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.business-register__logo img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
+.business-register__head h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.business-register__head p {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+}
+
+.business-register__progress {
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.business-register__progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color) 0%, #5a9fd4 100%);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(7, 42, 87, 0.4);
+}
+
+.business-register__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.business-register__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.business-register__section-title {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: rgba(7, 42, 87, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0;
+  padding-bottom: 8px;
+}
+
+.business-register__row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.business-register__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.business-register__field--full {
+  grid-column: 1 / -1;
+}
+
+.business-register__divider {
+  height: 1px;
+  background: var(--panel-border);
+  margin: 2px 0;
+}
+
+.business-register__actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.business-register__btn-primary {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  background: var(--primary-color);
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.business-register__btn-primary:hover {
+  background: #5a9fd4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(7, 42, 87, 0.3);
+}
+
+.business-register__login-btn {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 20px auto 0;
+  text-align: center;
+  display: block;
+}
+
+.business-register__login-btn:hover {
+  background: rgba(7, 42, 87, 0.12);
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.business-register__btn-secondary {
+  flex: 1;
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.business-register__btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.business-register__loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(24, 25, 27, 0.98);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.business-register__loading-content {
+  text-align: center;
+  padding: 2rem;
+}
+
+.business-register__loading-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8px;
+  margin-top: 20px;
+}
+
+.business-register__loading-content p {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin: 0;
+}
+
+.business-register__spinner {
+  width: 50px;
+  height: 50px;
+  margin: 0 auto;
+  border: 3px solid rgba(7, 42, 87, 0.2);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.business-register__btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generar Iconos PWA</title>
+</head>
+<body>
+    <h2>Generador de iconos temporales</h2>
+    <button onclick="generateIcons()">Generar Iconos</button>
+    <div id="output"></div>
+
+    <script>
+        function generateIcons() {
+            // Icono 192x192
+            const canvas192 = document.createElement('canvas');
+            canvas192.width = 192;
+            canvas192.height = 192;
+            const ctx192 = canvas192.getContext('2d');
+            
+            // Fondo azul
+            ctx192.fillStyle = '#3f7dc0';
+            ctx192.fillRect(0, 0, 192, 192);
+            
+            // Texto "F"
+            ctx192.fillStyle = '#ffffff';
+            ctx192.font = 'bold 120px Arial';
+            ctx192.textAlign = 'center';
+            ctx192.textBaseline = 'middle';
+            ctx192.fillText('F', 96, 96);
+
+            // Icono 512x512
+            const canvas512 = document.createElement('canvas');
+            canvas512.width = 512;
+            canvas512.height = 512;
+            const ctx512 = canvas512.getContext('2d');
+            
+            ctx512.fillStyle = '#3f7dc0';
+            ctx512.fillRect(0, 0, 512, 512);
+            
+            ctx512.fillStyle = '#ffffff';
+            ctx512.font = 'bold 320px Arial';
+            ctx512.textAlign = 'center';
+            ctx512.textBaseline = 'middle';
+            ctx512.fillText('F', 256, 256);
+
+            // Mostrar para descargar
+            const output = document.getElementById('output');
+            output.innerHTML = `
+                <h3>Haz click derecho → Guardar imagen como...</h3>
+                <p><strong>icon-192.png:</strong></p>
+                <img src="${canvas192.toDataURL()}" style="border: 1px solid #ccc;">
+                <p><strong>icon-512.png:</strong></p>
+                <img src="${canvas512.toDataURL()}" style="border: 1px solid #ccc; width: 192px;">
+                <p style="color: red;">Guárdalas en: /public/icon-192.png y /public/icon-512.png</p>
+            `;
+        }
+    </script>
+</body>
+</html>

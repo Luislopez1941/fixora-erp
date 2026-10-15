@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { modal } from '../../../../../redux/state/modals';
 import ConfigurationAPIs from '../../../../../services/configurationAPIs';
+import PriceRangesManager from '../articles/PriceRangesManager';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
 import './PriceRanges.css';
 
 interface Item {
@@ -10,41 +10,26 @@ interface Item {
   code: string;
 }
 
-interface PriceRange {
-  id: number;
-  itemId: number;
-  minQuantity: number;
-  maxQuantity: number | null;
-  price: string;
-  item?: Item;
-}
-
 const PriceRanges = () => {
-  const dispatch = useDispatch();
   const [items, setItems] = useState<Item[]>([]);
-  const [_priceRanges, setPriceRanges] = useState<PriceRange[]>([]);
-  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  // Artículo cuyo administrador de rangos está abierto (null = cerrado)
+  const [managerItemId, setManagerItemId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
-  useEffect(() => {
-    if (selectedItemId) {
-      fetchPriceRanges();
-    }
-  }, [selectedItemId]);
-
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token-eco');
+      const token = localStorage.getItem('token-fixora');
       const data = await ConfigurationAPIs.get('item', {
         headers: { Authorization: token },
       });
-      setItems(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : Array.isArray((data as any)?.data) ? (data as any).data : [];
+      setItems(list);
     } catch (error) {
       console.error('Error al cargar items:', error);
       setItems([]);
@@ -53,74 +38,74 @@ const PriceRanges = () => {
     }
   };
 
-  const fetchPriceRanges = async () => {
-    if (!selectedItemId) return;
-    
-    setLoading(true);
-    try {
-      const data = await ConfigurationAPIs.get<PriceRange[]>(
-        `item/price-range/item/${selectedItemId}`
-      );
-      setPriceRanges(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error al cargar rangos de precios:', error);
-      setPriceRanges([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleOpenModal = (itemId: number) => {
-    setSelectedItemId(itemId);
-    dispatch(modal('price-ranges-modal'));
-  };
-
+  const q = search.trim().toLowerCase();
   const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    (item.code && item.code.toLowerCase().includes(search.toLowerCase()))
+    !q ||
+    item.name?.toLowerCase().includes(q) ||
+    (item.code && item.code.toLowerCase().includes(q))
   );
 
   return (
     <div className='price-ranges'>
-      <div className='price-ranges__header'>
-        <h1>Rangos de Precios</h1>
-        <p>Configura precios escalonados por cantidad para tus productos</p>
-      </div>
-
-      <div className='price-ranges__search'>
-        <input
-          type='text'
-          placeholder='Buscar artículo por nombre o código...'
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className='price-ranges__search-input'
-        />
-      </div>
-
-      <div className='price-ranges__content'>
-        {loading ? (
-          <p className='price-ranges__loading'>Cargando...</p>
-        ) : filteredItems.length === 0 ? (
-          <p className='price-ranges__empty'>No se encontraron artículos</p>
-        ) : (
-          <div className='price-ranges__grid'>
-            {filteredItems.map((item) => (
-              <div key={item.id} className='price-ranges__card'>
-                <div className='price-ranges__card-header'>
-                  <h3>{item.name}</h3>
-                  {item.code && <span className='price-ranges__card-code'>{item.code}</span>}
-                </div>
-                <button
-                  className='btn__general-orange'
-                  onClick={() => handleOpenModal(item.id)}
-                >
-                  💰 Configurar Rangos
-                </button>
-              </div>
-            ))}
+      <div className='price-ranges__container'>
+        <div className='price-ranges__header'>
+          <div className='price-ranges__search'>
+            <span className='price-ranges__search-icon material-symbols-rounded' aria-hidden>search</span>
+            <input
+              type='text'
+              placeholder='Buscar artículo por nombre o código'
+              aria-label='Buscar artículos'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className='inputs__general price-ranges__search-input'
+            />
           </div>
-        )}
+          <p className='price-ranges__hint'>Configura precios escalonados por cantidad para cada artículo</p>
+        </div>
+
+        {/* La tabla siempre se ve; el skeleton va dentro */}
+        <div className='price-ranges__list'>
+          <div className='price-ranges__row price-ranges__row--head'>
+            <span>Código</span>
+            <span>Artículo</span>
+            <span className='price-ranges__col-actions'>Acciones</span>
+          </div>
+
+          {loading ? (
+            <TableSkeleton rowClassName='price-ranges__row' cols={[{ pill: true, width: '64px' }, { width: '55%' }, { actions: 1 }]} />
+          ) : filteredItems.length === 0 ? (
+            <div className='price-ranges__state'>
+              <p>{q ? 'No se encontraron artículos con ese criterio' : 'No hay artículos registrados'}</p>
+            </div>
+          ) : (
+            filteredItems.map((item) => (
+              <div className='price-ranges__row' key={item.id}>
+                <div className='price-ranges__cell' data-label='Código'>
+                  {item.code ? <span className='price-ranges__tag'>{item.code}</span> : '—'}
+                </div>
+                <div className='price-ranges__cell price-ranges__cell--name' data-label='Artículo'>
+                  <strong>{item.name}</strong>
+                </div>
+                <div className='price-ranges__cell price-ranges__col-actions'>
+                  <button
+                    type='button'
+                    className='price-ranges__icon-btn'
+                    title='Configurar rangos de precio'
+                    aria-label='Configurar rangos de precio'
+                    onClick={() => setManagerItemId(item.id)}
+                  >
+                    <span className='material-symbols-rounded'>sell</span>
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
+
+      {managerItemId != null && (
+        <PriceRangesManager itemId={managerItemId} onClose={() => setManagerItemId(null)} />
+      )}
     </div>
   );
 };

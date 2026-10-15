@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import './ModalRoles.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
@@ -50,6 +51,13 @@ const submoduleLabels: Record<string, string> = {
   purchase: 'Orden de compra',
   // Caja
   register: 'Caja Actual',
+  current: 'Caja Actual',
+  movements: 'Movimientos de Caja',
+  cuts: 'Cortes de Caja',
+  shifts: 'Turnos',
+  registers: 'Cajas',
+  schedules: 'Programación de turnos',
+  config: 'Configuración',
   // Producción
   orders: 'Órdenes de producción',
   queue: 'Cola',
@@ -63,7 +71,7 @@ const submoduleLabels: Record<string, string> = {
   // Catálogos
   types: 'Tipos y áreas',
   familias: 'Familias',
-  containers: 'Contenedores',
+  containers: 'Categorías',
   units: 'Unidades',
   services: 'Servicios',
   articles: 'Artículos',
@@ -73,6 +81,7 @@ const submoduleLabels: Record<string, string> = {
   branch: 'Sucursales',
   series: 'Series',
   franchise: 'Franquicia',
+  userGroups: 'Grupos de usuarios',
   // Usuarios
   staff: 'Personal',
 }
@@ -160,8 +169,12 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [expandedSubmodules, setExpandedSubmodules] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
+  const [touched, setTouched] = useState(false)
 
-  const handleModalChange = (value: string) => dispatch(modal(value))
+  const handleModalChange = (value: string) => {
+    dispatch(modal(value))
+    if (!value) setTouched(false)
+  }
 
   // Carga permisos: edición → petición específica por rol; creación → catálogo general
   const loadPermissions = async () => {
@@ -228,17 +241,24 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
     })
   }
 
+  // Validaciones (se muestran bajo el campo al intentar guardar)
+  const levelNum = Number(level)
+  const nameError = !name.trim()
+    ? 'El nombre es requerido'
+    : name.trim().length > 40
+      ? 'Máximo 40 caracteres'
+      : ''
+  const levelError = !level
+    ? 'El nivel es requerido'
+    : !Number.isInteger(levelNum) || levelNum < 1
+      ? 'Debe ser un entero mayor o igual a 1 (el 0 es de Super Admin)'
+      : ''
+  const permissionsError = selectedPermissionIds.size === 0 ? 'Selecciona al menos un permiso' : ''
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim() || !level) {
-      Swal.fire('Atención', 'Nombre y nivel son obligatorios', 'warning')
-      return
-    }
-    const levelNum = Number(level)
-    if (levelNum === 0) {
-      Swal.fire('Atención', 'El nivel 0 (Super Admin) no se puede editar.', 'warning')
-      return
-    }
+    setTouched(true)
+    if (nameError || levelError || permissionsError) return
 
     setSaving(true)
     try {
@@ -263,31 +283,35 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
     }
   }
 
-  return (
-    <div className={`overlay__roles_modal ${modalState === 'roles_modal' ? 'active' : ''}`}>
-      <div className={`popup__roles_modal ${modalState === 'roles_modal' ? 'active' : ''}`}>
-        <div className='header__modal'>
-          <button type='button' className='btn-cerrar-popup__roles_modal' onClick={() => handleModalChange('')} aria-label='Cerrar'>
-            <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'><line x1='18' y1='6' x2='6' y2='18'></line><line x1='6' y1='6' x2='18' y2='18'></line></svg>
+  // Portal al <body>: encima del sidebar y el header.
+  return createPortal(
+    <div className={`roles_modal__overlay ${modalState === 'roles_modal' ? 'active' : ''}`}>
+      <div className={`roles_modal__popup ${modalState === 'roles_modal' ? 'active' : ''}`}>
+        <div className='roles_modal__header'>
+          <button type='button' className='roles_modal__close' onClick={() => handleModalChange('')} aria-label='Cerrar'>
+            <span className='material-symbols-rounded'>close</span>
           </button>
-          <p className='title__modals'>{isEdit ? 'Editar rol' : 'Nuevo rol'}</p>
+          <p className='roles_modal__title'>{isEdit ? 'Editar rol' : 'Nuevo rol'}</p>
         </div>
 
-        <form className='roles_modal' onSubmit={handleSubmit}>
-          <div className='roles_modal_container'>
-            <div className='row__one'>
+        <form onSubmit={handleSubmit} noValidate>
+          <div className='roles_modal__body'>
+            <div className='roles_modal__fields'>
               <div>
                 <label className='label__general'>Nombre del rol</label>
-                <input className='inputs__general' value={name} onChange={(e) => setName(e.target.value)} placeholder='ej. supervisor' required />
+                <input className='inputs__general' value={name} onChange={(e) => setName(e.target.value)} placeholder='ej. supervisor' />
+                {touched && nameError && <small className='roles_modal__error'>{nameError}</small>}
               </div>
               <div>
                 <label className='label__general'>Nivel</label>
-                <input className='inputs__general' type='number' min='1' value={level} onChange={(e) => setLevel(e.target.value)} placeholder='1' required />
+                <input className='inputs__general' type='number' min='1' value={level} onChange={(e) => setLevel(e.target.value)} placeholder='1' />
+                {touched && levelError && <small className='roles_modal__error'>{levelError}</small>}
               </div>
             </div>
 
-            <label className='label__general'>Permisos por modulo</label>
-            <div className='roles-modal__modules'>
+            <label className='label__general'>Permisos por módulo</label>
+            {touched && permissionsError && <small className='roles_modal__error'>{permissionsError}</small>}
+            <div className='roles_modal__modules'>
               {modules.map((mod) => {
                 const isExpanded = expandedModules.has(mod.key)
                 const viewPerm = mod.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))
@@ -295,9 +319,9 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
                 const viewChecked = viewPerm ? selectedPermissionIds.has(viewPerm.id) : false
 
                 return (
-                  <div key={mod.key} className={`roles-modal__module ${!viewChecked ? 'module-disabled' : ''}`}>
-                    <div className='roles-modal__module-header'>
-                      <label className={`roles-modal__module-view ${viewChecked ? 'checked' : ''}`} title='Acceso al módulo'>
+                  <div key={mod.key} className={`roles_modal__module ${!viewChecked ? 'module-disabled' : ''}`}>
+                    <div className='roles_modal__module-header'>
+                      <label className={`roles_modal__module-view ${viewChecked ? 'checked' : ''}`} title='Acceso al módulo'>
                         <input
                           type='checkbox'
                           checked={viewChecked}
@@ -319,29 +343,29 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
                           }}
                         />
                       </label>
-                      <button type='button' className='roles-modal__module-toggle' onClick={() => toggleModule(mod.key)}>
-                        <span className='roles-modal__module-name'>{mod.label}</span>
-                        <span className={`roles-modal__module-arrow ${isExpanded ? 'open' : ''}`}>
+                      <button type='button' className='roles_modal__module-toggle' onClick={() => toggleModule(mod.key)}>
+                        <span className='roles_modal__module-name'>{mod.label}</span>
+                        <span className={`roles_modal__module-arrow ${isExpanded ? 'open' : ''}`}>
                           <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
                         </span>
                       </button>
                     </div>
 
                     {isExpanded && (
-                      <div className='roles-modal__module-body'>
+                      <div className='roles_modal__module-body'>
                         {/* Permisos generales del módulo (excluyendo Ver) */}
                         {otherPerms.map((perm) => {
                           const checked = selectedPermissionIds.has(perm.id)
                           return (
-                            <label key={perm.id} className={`roles-modal__perm-row ${checked ? 'checked' : ''} ${!viewChecked ? 'disabled' : ''}`}>
+                            <label key={perm.id} className={`roles_modal__perm-row ${checked ? 'checked' : ''} ${!viewChecked ? 'disabled' : ''}`}>
                               <input
                                 type='checkbox'
                                 checked={checked}
                                 disabled={!viewChecked}
                                 onChange={() => togglePermission(perm.id)}
                               />
-                              <span className='roles-modal__perm-action'>{perm.actionLabel || perm.name}</span>
-                              <span className='roles-modal__perm-desc'>{perm.description}</span>
+                              <span className='roles_modal__perm-action'>{perm.actionLabel || perm.name}</span>
+                              <span className='roles_modal__perm-desc'>{perm.description}</span>
                             </label>
                           )
                         })}
@@ -356,9 +380,9 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
                           const subDisabled = !viewChecked // bloqueado si el módulo padre no tiene Ver
 
                           return (
-                            <div key={sub.key} className={`roles-modal__submodule ${subDisabled ? 'submodule-disabled' : ''}`}>
-                              <div className='roles-modal__submodule-header'>
-                                <label className={`roles-modal__submodule-view ${subViewChecked ? 'checked' : ''}`} title='Acceso al submódulo'>
+                            <div key={sub.key} className={`roles_modal__submodule ${subDisabled ? 'submodule-disabled' : ''}`}>
+                              <div className='roles_modal__submodule-header'>
+                                <label className={`roles_modal__submodule-view ${subViewChecked ? 'checked' : ''}`} title='Acceso al submódulo'>
                                   <input
                                     type='checkbox'
                                     checked={subViewChecked}
@@ -380,30 +404,30 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
                                 </label>
                                 <button
                                   type='button'
-                                  className='roles-modal__submodule-toggle'
+                                  className='roles_modal__submodule-toggle'
                                   disabled={subDisabled}
                                   onClick={() => toggleSubmodule(`${mod.key}.${sub.key}`)}
                                 >
-                                  <span className='roles-modal__submodule-name'>{sub.label}</span>
-                                  <span className={`roles-modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
+                                  <span className='roles_modal__submodule-name'>{sub.label}</span>
+                                  <span className={`roles_modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
                                     <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
                                   </span>
                                 </button>
                               </div>
                               {subExpanded && (
-                                <div className='roles-modal__submodule-body'>
+                                <div className='roles_modal__submodule-body'>
                                   {subOtherPerms.map((perm) => {
                                     const checked = selectedPermissionIds.has(perm.id)
                                     return (
-                                      <label key={perm.id} className={`roles-modal__perm-row ${checked ? 'checked' : ''} ${!subViewChecked ? 'disabled' : ''}`}>
+                                      <label key={perm.id} className={`roles_modal__perm-row ${checked ? 'checked' : ''} ${!subViewChecked ? 'disabled' : ''}`}>
                                         <input
                                           type='checkbox'
                                           checked={checked}
                                           disabled={!subViewChecked}
                                           onChange={() => togglePermission(perm.id)}
                                         />
-                                        <span className='roles-modal__perm-action'>{perm.actionLabel || perm.name}</span>
-                                        <span className='roles-modal__perm-desc'>{perm.description}</span>
+                                        <span className='roles_modal__perm-action'>{perm.actionLabel || perm.name}</span>
+                                        <span className='roles_modal__perm-desc'>{perm.description}</span>
                                       </label>
                                     )
                                   })}
@@ -419,7 +443,7 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
               })}
             </div>
 
-            <div className='row__three'>
+            <div className='roles_modal__actions'>
               <button type='button' className='btn__general-secondary' onClick={() => handleModalChange('')}>Cancelar</button>
               <button type='submit' className='btn__general-primary' disabled={saving}>
                 {saving ? 'Guardando...' : isEdit ? 'Guardar cambios' : 'Crear rol'}
@@ -428,7 +452,8 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

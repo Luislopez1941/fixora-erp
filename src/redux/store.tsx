@@ -1,7 +1,7 @@
 // src/redux/store.ts
 import { configureStore } from "@reduxjs/toolkit";
 import { UserInfo } from "../models/user.model";
-import userSliceReducer from "./state/user";
+import userSliceReducer from "./state/UserFixora";
 import modalsSliceReducer from "./state/modals";
 import Sales from './state/Sales'
 import Categories from './state/Categories'

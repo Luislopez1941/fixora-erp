@@ -22,7 +22,11 @@ const Sales: React.FC = () => {
                     <p>Orden de venta</p>
                 </Link>
             </div>
-            
+            <div className='item'>
+                <Link to={`/${PrivateRoutes.PRIVATE}/${PrivateRoutes.SALES}/${PrivateRoutes.POS_CONFIG}`} title="Configuración de cobro" className="tooltip">
+                    <p>Configurar cobro</p>
+                </Link>
+            </div>
         </div>
     )
 }

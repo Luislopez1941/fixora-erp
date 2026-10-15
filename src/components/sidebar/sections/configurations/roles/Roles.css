@@ -1,4 +1,5 @@
-/* ===== Roles — Dark theme ===== */
+/* Roles — todas las clases cuelgan de .roles (notación padre__hijo).
+   Colores con variables del tema: sirve igual en modo claro y oscuro. */
 
 .roles {
   width: 100%;
@@ -6,119 +7,116 @@
 }
 
 .roles__container {
-  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  padding: 24px;
 }
 
-.roles__header-row {
+.roles__header {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  justify-content: flex-end;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
 }
 
-/* ── Count bar ── */
-.roles__count-bar {
+.roles__list {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-}
-
-.roles__count-num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(88, 106, 233, 0.18);
-  color: #818cf8;
-  font-size: 12px;
-  font-weight: 800;
-  min-width: 24px;
-  height: 24px;
-  padding: 0 7px;
-  border-radius: 999px;
-}
-
-/* ── Table ── */
-.roles__table {
-  width: 100%;
-  border-radius: 14px;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255,255,255,0.07);
-}
-
-.roles__thead {
-  display: grid;
-  grid-template-columns: 1.5fr 80px 90px 2fr 100px;
-  background: rgba(255,255,255,0.05);
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-
-.roles__th {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: #4b5563;
-  display: flex;
-  align-items: center;
-}
-
-.roles__tbody {
-  display: flex;
-  flex-direction: column;
 }
 
 .roles__row {
   display: grid;
-  grid-template-columns: 1.5fr 80px 90px 2fr 100px;
-  padding: 12px 16px;
-  align-items: flex-start;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
-  transition: background 0.12s ease;
+  grid-template-columns: minmax(180px, 1.2fr) 100px 90px minmax(260px, 3fr) 70px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
 }
 
 .roles__row:last-child {
   border-bottom: none;
 }
 
-.roles__row:hover {
-  background: rgba(255,255,255,0.03);
+.roles__row:not(.roles__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
 }
 
-.roles__td {
+.roles__row--head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.roles__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.roles__cell--name {
   display: flex;
   align-items: center;
-  min-width: 0;
-  padding-right: 10px;
-  font-size: 13px;
-  color: #d1d5db;
+  gap: 12px;
 }
 
-.roles__td--name {
+.roles__name-text {
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  min-width: 0;
 }
 
-.roles__name {
-  font-weight: 700;
-  color: #f3f4f6;
-  font-size: 14px;
+.roles__name-text strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .roles__sub {
-  font-size: 11px;
-  color: #6b7280;
+  font-size: 0.75rem;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
 }
 
-/* ── Permission chips ── */
+.roles__row-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 20px;
+  color: #fff;
+  background: var(--primary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.roles__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.roles__muted {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* ── Chips de permisos: neutros, con un punto del color del módulo ── */
 .roles__permissions {
   display: flex;
   flex-wrap: wrap;
@@ -126,93 +124,157 @@
 }
 
 .roles__chip {
-  background: rgba(255,255,255,0.06);
+  --chip-dot: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
   border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 11px;
-  color: #9ca3af;
-  border: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.74rem;
   font-weight: 500;
-  letter-spacing: 0.2px;
-  transition: transform 0.1s ease;
+  color: var(--text-color);
+  background: rgba(7, 42, 87, 0.07);
+  border: 1px solid var(--panel-border);
 }
 
-.roles__chip:hover {
-  transform: translateY(-1px);
+.roles__chip::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--chip-dot);
 }
 
-/* Colores por módulo */
 .roles__chip--users {
-  background: rgba(59, 130, 246, 0.12);
-  color: #60a5fa;
-  border-color: rgba(59, 130, 246, 0.2);
+  --chip-dot: #2563eb;
 }
 
 .roles__chip--roles {
-  background: rgba(139, 92, 246, 0.12);
-  color: #a78bfa;
-  border-color: rgba(139, 92, 246, 0.2);
+  --chip-dot: #7c3aed;
 }
 
 .roles__chip--sales {
-  background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.2);
+  --chip-dot: #059669;
 }
 
 .roles__chip--store,
 .roles__chip--inventory {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.2);
+  --chip-dot: #d97706;
 }
 
 .roles__chip--production {
-  background: rgba(236, 72, 153, 0.12);
-  color: #f472b6;
-  border-color: rgba(236, 72, 153, 0.2);
+  --chip-dot: #db2777;
 }
 
 .roles__chip--delivery {
-  background: rgba(14, 165, 233, 0.12);
-  color: #38bdf8;
-  border-color: rgba(14, 165, 233, 0.2);
+  --chip-dot: #0284c7;
 }
 
 .roles__chip--reports {
-  background: rgba(99, 102, 241, 0.12);
-  color: #818cf8;
-  border-color: rgba(99, 102, 241, 0.2);
+  --chip-dot: #4f46e5;
 }
 
 .roles__chip--configurations {
-  background: rgba(107, 114, 128, 0.12);
-  color: #d1d5db;
-  border-color: rgba(107, 114, 128, 0.2);
+  --chip-dot: #475569;
 }
 
-.roles__chip--default {
-  background: rgba(255,255,255,0.06);
-  color: #9ca3af;
-  border-color: rgba(255,255,255,0.04);
+.roles__chip--more {
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.1);
+  border-color: rgba(252, 116, 0, 0.3);
+  font-weight: 600;
 }
 
-.roles__chip-more {
-  background: rgba(88, 106, 233, 0.12);
-  color: #818cf8;
-  border-color: rgba(88, 106, 233, 0.2);
+.roles__chip--more::before {
+  display: none;
 }
 
-.roles__td--actions {
+.roles__col-actions {
+  display: flex;
   justify-content: flex-end;
+  gap: 6px;
 }
 
-/* ── Loading / Empty ── */
-.roles__loading,
-.roles__empty {
-  padding: 48px 24px;
+.roles__icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.roles__icon-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.roles__icon-btn:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.roles__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
   text-align: center;
-  color: #4b5563;
-  font-size: 14px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
 }
 
+.roles__state p {
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.roles__spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(7, 42, 87, 0.1);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: roles-spin 0.8s linear infinite;
+}
+
+@keyframes roles-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media screen and (max-width: 900px) {
+  .roles__row--head {
+    display: none;
+  }
+
+  .roles__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+
+  .roles__cell[data-label]:not(.roles__cell--name) {
+    grid-column: 1 / -1;
+  }
+
+  .roles__cell[data-label]:not(.roles__cell--name)::before {
+    content: attr(data-label) ': ';
+    color: var(--text-muted);
+  }
+
+  .roles__cell--wrap::before {
+    display: block;
+    margin-bottom: 4px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .roles__container {
+    padding: 16px;
+  }
+}

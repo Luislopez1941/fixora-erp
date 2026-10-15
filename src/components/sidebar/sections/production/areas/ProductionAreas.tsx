@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import Swal from 'sweetalert2'
-import '../../categories/Categories.css'
+import '../../catalogos/categories/Categories.css'
 import '../production.css'
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
 

@@ -5,7 +5,7 @@ import { format, startOfMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
-import '../categories/Categories.css'
+import '../catalogos/categories/Categories.css'
 import './Dashboard.css'
 import {
   AreaChart,
@@ -23,7 +23,7 @@ import {
 } from 'recharts'
 import APIs from '../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../constants/category'
-import CategoriesStorePicker from '../categories/CategoriesStorePicker'
+import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -75,7 +75,7 @@ const statusLabel: Record<string, string> = {
   CANCELLED: 'Cancelada',
 }
 
-const STOCK_COLORS = ['#3F7DC0', '#14b8a6', '#F2A541', '#4CAF50', '#ba1a1a', '#9575cd']
+const STOCK_COLORS = ['#072a57', '#14b8a6', '#fc7400', '#4CAF50', '#ba1a1a', '#9575cd']
 
 const MOCK_PROJECTS: { name: string; pct: number; accent: 'orange' | 'blue' }[] = [
   { name: 'Auditoría de inventario', pct: 75, accent: 'orange' },
@@ -402,7 +402,7 @@ const Dashboard: React.FC = () => {
                   onChange={(item: any) => setDateRange([item.selection])}
                   locale={es}
                   maxDate={new Date()}
-                  rangeColors={['#3F7DC0']}
+                  rangeColors={['#072a57']}
                   showMonthAndYearPickers
                   months={isMobile ? 1 : 2}
                   direction={isMobile ? 'vertical' : 'horizontal'}
@@ -457,14 +457,14 @@ const Dashboard: React.FC = () => {
                     <AreaChart data={areaData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                       <defs>
                         <linearGradient id="dashIncome" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="rgb(63,125,192)" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="rgb(63,125,192)" stopOpacity={0} />
+                          <stop offset="5%" stopColor="rgb(7,42,87)" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="rgb(7,42,87)" stopOpacity={0} />
                         </linearGradient>
                       </defs>
                       <Area
                         type="monotone"
                         dataKey="value"
-                        stroke="rgb(63,125,192)"
+                        stroke="rgb(7,42,87)"
                         strokeWidth={2}
                         fillOpacity={1}
                         fill="url(#dashIncome)"

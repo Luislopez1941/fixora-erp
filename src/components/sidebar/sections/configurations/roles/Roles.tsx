@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
 import './Roles.css'
 import APIs from '../../../../../services/APIs'
 import { getRoleLabel } from '../../../../../constants/userRoles'
@@ -52,7 +53,7 @@ const submoduleLabels: Record<string, string> = {
   // Catálogos
   types: 'Tipos y áreas',
   familias: 'Familias',
-  containers: 'Contenedores',
+  containers: 'Categorías',
   units: 'Unidades',
   services: 'Servicios',
   articles: 'Artículos',
@@ -62,6 +63,7 @@ const submoduleLabels: Record<string, string> = {
   branch: 'Sucursales',
   series: 'Series',
   franchise: 'Franquicia',
+  userGroups: 'Grupos de usuarios',
   // Usuarios
   staff: 'Personal',
 }
@@ -87,7 +89,7 @@ function getPermissionLabel(name: string): string {
 const Roles: React.FC = () => {
   const dispatch = useDispatch()
   const [roles, setRoles] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [selectedRole, setSelectedRole] = useState<any | null>(null)
 
   const fetchRoles = async () => {
@@ -117,61 +119,72 @@ const Roles: React.FC = () => {
     dispatch(modal('roles_modal'))
   }
 
+  const MAX_CHIPS = 5
+
   return (
     <div className='roles'>
       <div className='roles__container'>
-        <div className='roles__header-row'>
-          <div className='roles__count-bar'>
-            <span>Total de roles</span>
-            <span className='roles__count-num'>{roles.length}</span>
-          </div>
-          <button className='btn__general-primary' onClick={handleCreate}>+ Crear rol</button>
+        <div className='roles__header'>
+          <button className='btn__general-primary' onClick={handleCreate}>Nuevo rol</button>
         </div>
 
-        <div className='roles__table'>
-          <div className='roles__thead'>
-            <div className='roles__th'>Rol</div>
-            <div className='roles__th'>Nivel</div>
-            <div className='roles__th'>Usuarios</div>
-            <div className='roles__th'>Permisos</div>
+        {/* La tabla siempre se ve; el loading va dentro */}
+        <div className='roles__list'>
+          <div className='roles__row roles__row--head'>
+            <span>Rol</span>
+            <span>Nivel</span>
+            <span>Usuarios</span>
+            <span>Permisos</span>
+            <span className='roles__col-actions'>Acciones</span>
           </div>
 
           {loading ? (
-            <div className='roles__loading'>Cargando roles…</div>
+            <TableSkeleton rowClassName='roles__row' cols={[{ avatar: true }, { pill: true, width: '64px' }, { width: '30%' }, { width: '85%' }, { actions: 1 }]} />
           ) : roles.length > 0 ? (
-            <div className='roles__tbody'>
-              {roles.map((role) => (
+            roles.map((role) => {
+              const permissions = role.permissions ?? []
+              return (
                 <div className='roles__row' key={role.id}>
-                  <div className='roles__td roles__td--name'>
-                    <span className='roles__name'>{role.label ?? getRoleLabel(role.name)}</span>
-                    <span className='roles__sub'>{role.name}</span>
+                  <div className='roles__cell roles__cell--name' data-label='Rol'>
+                    <span className='roles__row-icon material-symbols-rounded'>admin_panel_settings</span>
+                    <div className='roles__name-text'>
+                      <strong>{role.label ?? getRoleLabel(role.name)}</strong>
+                      <span className='roles__sub'>{role.name}</span>
+                    </div>
                   </div>
-                  <div className='roles__td'>{role.level}</div>
-                  <div className='roles__td'>{role.usersCount ?? 0}</div>
-                  <div className='roles__td'>
+                  <div className='roles__cell' data-label='Nivel'>
+                    <span className='roles__badge'>Nivel {role.level}</span>
+                  </div>
+                  <div className='roles__cell' data-label='Usuarios'>{role.usersCount ?? 0}</div>
+                  <div className='roles__cell roles__cell--wrap' data-label='Permisos'>
                     <div className='roles__permissions'>
-                      {(role.permissions ?? []).slice(0, 6).map((permission: any) => (
+                      {permissions.slice(0, MAX_CHIPS).map((permission: any) => (
                         <span className={`roles__chip ${getChipClass(permission.name)}`} key={permission.id}>
                           {getPermissionLabel(permission.name)}
                         </span>
                       ))}
-                      {(role.permissions ?? []).length > 6 ? (
-                        <span className='roles__chip roles__chip-more'>
-                          +{(role.permissions ?? []).length - 6} mas
-                        </span>
+                      {permissions.length > MAX_CHIPS ? (
+                        <span className='roles__chip roles__chip--more'>+{permissions.length - MAX_CHIPS} más</span>
                       ) : null}
+                      {permissions.length === 0 ? <span className='roles__muted'>Sin permisos</span> : null}
                     </div>
                   </div>
-                  <div className='roles__td roles__td--actions'>
-                    <button className='btn__general-primary' onClick={() => handleEdit(role)}>Editar</button>
+                  <div className='roles__cell roles__col-actions'>
+                    <button className='roles__icon-btn' type='button' title='Editar rol' aria-label='Editar rol' onClick={() => handleEdit(role)}>
+                      <span className='material-symbols-rounded'>edit</span>
+                    </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              )
+            })
           ) : (
-            <div className='roles__empty'>No hay roles configurados. Ejecuta el seed del backend.</div>
+            <div className='roles__state'>
+              <p>No hay roles configurados</p>
+              <span>Ejecuta el seed del backend para crear los roles base</span>
+            </div>
           )}
         </div>
+
         <ModalRoles role={selectedRole} onSaved={fetchRoles} />
       </div>
     </div>

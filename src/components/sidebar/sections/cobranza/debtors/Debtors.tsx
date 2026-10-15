@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
-import '../cobranza.css'
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import './Debtors.css'
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import { readCategoryBranchId } from '../../../../../constants/category'
 
 const formatMoney = (value: number) =>
@@ -40,6 +40,12 @@ const MOCK_DEBTORS = [
   },
 ]
 
+// Antigüedad de la deuda por días de atraso
+const bucketOf = (days: number) => (days <= 0 ? 'current' : days <= 30 ? 'd30' : days <= 60 ? 'd60' : 'd60plus')
+
+const formatDate = (value?: string) =>
+  value ? new Date(`${value}T00:00:00`).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'
+
 const Debtors: React.FC = () => {
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
   const [search, setSearch] = useState('')
@@ -56,12 +62,22 @@ const Debtors: React.FC = () => {
   }, [search])
 
   const totalDebt = filtered.reduce((sum, item) => sum + item.balance, 0)
+  const sumBy = (bucket: string) =>
+    filtered.filter((d) => bucketOf(d.daysOverdue) === bucket).reduce((sum, d) => sum + d.balance, 0)
 
   return (
-    <div className='cobranza'>
-      <div className='cobranza__container'>
-        <div className='cobranza__toolbar'>
-          <div className='cobranza__toolbar-left'>
+    <div className='debtors'>
+      <div className='debtors__container'>
+        <div className='debtors__notice' role='note'>
+          <span className='material-symbols-rounded'>info</span>
+          <div>
+            <strong>Vista de ejemplo</strong>
+            <span>Los deudores y montos de esta pantalla son de muestra: el módulo de cobranza aún no está conectado a los datos reales.</span>
+          </div>
+        </div>
+
+        <div className='debtors__header'>
+          <div className='debtors__header-left'>
             <CategoriesStorePicker
               branchId={branchId}
               onBranchIdChange={(id) => {
@@ -69,79 +85,94 @@ const Debtors: React.FC = () => {
                 localStorage.setItem('categories-store-id', String(id))
               }}
             />
-          </div>
-          <div className='cobranza__toolbar-right'>
-            <div className='cobranza__search-field'>
+            <div className='debtors__search'>
+              <span className='debtors__search-icon material-symbols-rounded' aria-hidden>search</span>
               <input
-                className='inputs__general'
+                className='inputs__general debtors__search-input'
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder='Buscar deudor'
+                placeholder='Buscar deudor o teléfono'
                 aria-label='Buscar deudor'
               />
             </div>
           </div>
+          <p className='debtors__hint'>Clientes con saldo pendiente por ventas a crédito</p>
         </div>
 
-        <p className='cobranza__subtitle'>
-          Clientes con saldo pendiente por ventas a crédito. Desde aquí puedes dar seguimiento y registrar abonos.
-        </p>
-
-        <div className='cobranza__stats'>
-          <div className='cobranza__stat-card cobranza__stat-card--danger'>
+        {/* Total por cobrar y antigüedad de la deuda */}
+        <div className='debtors__summary'>
+          <div className='debtors__card debtors__card--total'>
             <span>Total por cobrar</span>
-            <strong>{formatMoney(totalDebt)}</strong>
+            <b>{formatMoney(totalDebt)}</b>
+            <small>{filtered.length} deudor{filtered.length === 1 ? '' : 'es'}</small>
           </div>
-          <div className='cobranza__stat-card'>
-            <span>Deudores</span>
-            <strong>{filtered.length}</strong>
+          <div className='debtors__card debtors__card--current'>
+            <span>Al corriente</span>
+            <b>{formatMoney(sumBy('current'))}</b>
           </div>
-          <div className='cobranza__stat-card'>
-            <span>Con atraso</span>
-            <strong>{filtered.filter((d) => d.daysOverdue > 0).length}</strong>
+          <div className='debtors__card debtors__card--d30'>
+            <span>1 a 30 días</span>
+            <b>{formatMoney(sumBy('d30'))}</b>
+          </div>
+          <div className='debtors__card debtors__card--d60'>
+            <span>31 a 60 días</span>
+            <b>{formatMoney(sumBy('d60'))}</b>
+          </div>
+          <div className='debtors__card debtors__card--d60plus'>
+            <span>Más de 60 días</span>
+            <b>{formatMoney(sumBy('d60plus'))}</b>
           </div>
         </div>
 
-        <div className='cobranza__table-wrap'>
-          <div className='cobranza__table-head cobranza__table--debtors'>
+        <div className='debtors__list'>
+          <div className='debtors__row debtors__row--head'>
             <span>Cliente</span>
-            <span>Teléfono</span>
             <span>Saldo adeudado</span>
+            <span>% del límite</span>
             <span>Último abono</span>
-            <span>Días atraso</span>
-            <span>Acciones</span>
+            <span>Atraso</span>
+            <span className='debtors__col-actions'>Acciones</span>
           </div>
 
           {filtered.length > 0 ? (
-            filtered.map((item) => (
-              <div className='cobranza__table-row cobranza__table--debtors' key={item.id}>
-                <span>{item.customerName}</span>
-                <span>{item.phone || '—'}</span>
-                <span className='cobranza__money cobranza__money--debt'>
-                  {formatMoney(item.balance)}
-                </span>
-                <span>{item.lastPaymentAt || '—'}</span>
-                <span>
-                  {item.daysOverdue > 0 ? (
-                    <span className='cobranza__badge cobranza__badge--charge'>
-                      {item.daysOverdue} días
+            filtered.map((item) => {
+              const usage = item.creditLimit > 0 ? Math.min((item.balance / item.creditLimit) * 100, 100) : 0
+              return (
+                <div className='debtors__row' key={item.id}>
+                  <div className='debtors__cell debtors__cell--client' data-label='Cliente'>
+                    <strong>{item.customerName}</strong>
+                    <span>{item.phone || '—'}</span>
+                  </div>
+                  <div className='debtors__cell debtors__cell--debt' data-label='Saldo adeudado'>
+                    {formatMoney(item.balance)}
+                  </div>
+                  <div className='debtors__cell' data-label='% del límite'>
+                    <div className='debtors__usage'>
+                      <div className='debtors__bar'><span style={{ width: `${usage}%` }} /></div>
+                      <small>{Math.round(usage)}%</small>
+                    </div>
+                  </div>
+                  <div className='debtors__cell debtors__cell--muted' data-label='Último abono'>{formatDate(item.lastPaymentAt)}</div>
+                  <div className='debtors__cell' data-label='Atraso'>
+                    <span className={`debtors__badge debtors__badge--${bucketOf(item.daysOverdue)}`}>
+                      {item.daysOverdue > 0 ? `${item.daysOverdue} días` : 'Al corriente'}
                     </span>
-                  ) : (
-                    'Al corriente'
-                  )}
-                </span>
-                <div className='cobranza__actions'>
-                  <button type='button' className='cobranza__action-btn'>
-                    Ver cuenta
-                  </button>
-                  <button type='button' className='cobranza__action-btn cobranza__action-btn--primary'>
-                    Registrar abono
-                  </button>
+                  </div>
+                  <div className='debtors__cell debtors__col-actions'>
+                    <button type='button' className='debtors__icon-btn' title='Ver cuenta (disponible al conectar el módulo)' aria-label='Ver cuenta' disabled>
+                      <span className='material-symbols-rounded'>visibility</span>
+                    </button>
+                    <button type='button' className='debtors__icon-btn' title='Registrar abono (disponible al conectar el módulo)' aria-label='Registrar abono' disabled>
+                      <span className='material-symbols-rounded'>payments</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           ) : (
-            <div className='cobranza__empty'>No hay deudores registrados.</div>
+            <div className='debtors__state'>
+              <p>No hay deudores registrados</p>
+            </div>
           )}
         </div>
       </div>

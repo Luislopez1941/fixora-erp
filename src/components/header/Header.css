@@ -19,22 +19,28 @@
 }
 
 .header-breadcrumb {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0;
   user-select: none;
+  min-height: 34px;
 }
 
 .header-breadcrumb__home {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
   color: var(--primary-color);
   flex-shrink: 0;
-  margin-right: 8px;
+  margin-right: 6px;
+  height: 34px;
 }
 
 .header-breadcrumb__item {
-  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  font-size: 0.88rem;
   font-weight: 400;
   color: var(--text-muted);
   white-space: nowrap;
@@ -42,17 +48,19 @@
 }
 
 .header-breadcrumb__item--active {
-  font-size: 0.88rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--breadcrumb-text-active);
 }
 
 .header-breadcrumb__sep {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  height: 34px;
   color: var(--text-muted);
   opacity: 0.3;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   padding: 0 6px;
   font-weight: 300;
 }
@@ -66,8 +74,8 @@
 .hero__container .row__one .sale,
 .hero__container .row__one .bell,
 .hero__container .row__one .user {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -79,17 +87,207 @@
 }
 
 .hero__container .row__one .sale:hover,
-.hero__container .row__one .bell:hover,
-.hero__container .row__one .user:hover {
+.hero__container .row__one .bell:hover {
     background-color: var(--primary-color);
     color: #fff;
     transform: scale(1.05);
 }
 
+/* ====== DROPDOWN USUARIO ====== */
+.user {
+    position: relative;
+}
+
+.user__trigger {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--icon-bg);
+    color: var(--icon-color);
+    border: none;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    padding: 0;
+}
+
+.user__trigger:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.user__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 180px;
+    background: var(--card-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 6px 0;
+    z-index: 2000;
+    box-shadow: var(--shadow-md);
+    animation: fadeInDropdown 0.15s ease;
+}
+
+.user__dropdown::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background: var(--card-bg);
+    border-top: 1px solid var(--panel-border);
+    border-left: 1px solid var(--panel-border);
+    transform: rotate(45deg);
+}
+
+.user__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 0.85rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.user__dropdown-item:hover {
+    background: var(--sidebar-link-hover-bg);
+}
+
+.user__dropdown-item--danger {
+    color: #e74c3c;
+}
+
+.user__dropdown-item--danger:hover {
+    background: rgba(231, 76, 60, 0.12);
+    color: #e74c3c;
+}
+
+.user__dropdown-icon {
+    font-size: 18px;
+    line-height: 1;
+    font-variation-settings: 'FILL' 1, 'wght' 400;
+}
+
+.user__dropdown-divider {
+    height: 1px;
+    margin: 4px 12px;
+    background: var(--panel-border);
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ====== DROPDOWN NOTIFICACIONES ====== */
+.bell {
+    position: relative;
+}
+
+.bell__trigger {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background-color: var(--icon-bg);
+    color: var(--icon-color);
+    border: none;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    padding: 0;
+}
+
+.bell__trigger:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.bell__dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    min-width: 260px;
+    background: var(--card-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 0;
+    z-index: 2000;
+    box-shadow: var(--shadow-md);
+    animation: fadeInDropdown 0.15s ease;
+    overflow: hidden;
+}
+
+.bell__dropdown::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    right: 14px;
+    width: 10px;
+    height: 10px;
+    background: var(--card-bg);
+    border-top: 1px solid var(--panel-border);
+    border-left: 1px solid var(--panel-border);
+    transform: rotate(45deg);
+}
+
+.bell__dropdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.bell__dropdown-count {
+    background: var(--primary-color);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
+.bell__dropdown-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 16px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.bell__dropdown-empty .material-symbols-rounded {
+    font-size: 32px;
+    opacity: 0.5;
+}
+
+.bell__dropdown-divider {
+    height: 1px;
+    background: var(--panel-border);
+}
+
 /* ====== BOTÓN TOGGLE TEMA ====== */
 .theme-toggle {
-    width: 38px;
-    height: 38px;
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -109,6 +307,14 @@
 
 .astra_logo {
     display: none;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.fixora-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
 }
 
 .fixora-brand {

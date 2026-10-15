@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import './ModalSheet.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
@@ -268,16 +269,37 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const modalState = useSelector((state: any) => state.modals)
   const userState = useSelector((state: any) => state.user)
   const isOpen = modalState === 'sales-sheet_modal'
+  const isOwner = userState?.roleLevel === 0
 
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [saleLines, setSaleLines] = useState<SaleLine[]>([])
-  const [showCodeResults, setShowCodeResults] = useState(false)
+  // Campo de búsqueda activo ('code' | 'name') y control de peticiones (sin respuestas fuera de orden)
+  const [activeField, setActiveField] = useState<'code' | 'name' | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [searchError, setSearchError] = useState('')
+  const searchSeq = useRef(0)
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const [discount, setDiscount] = useState('0')
+  // Configuración de cobro de la empresa/sucursal y formas de pago activas
+  const [posConfig, setPosConfig] = useState({ allowManualDiscount: true, askPaymentMethod: true })
+  // Llave del intento de cobro: si la petición se repite (red lenta, doble clic) el servidor no duplica la venta
+  const chargeKeyRef = useRef<string | null>(null)
+  const [paymentMethods, setPaymentMethods] = useState<any[]>([])
+  const [paymentMethodId, setPaymentMethodId] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // ¿Puede vender? (turno abierto a su nombre en la sucursal elegida)
+  const [sellStatus, setSellStatus] = useState<{ canSell: boolean; reason: string | null; shift: any; why?: string; expired?: boolean; debug?: any } | null>(null)
+  const codeInputRef = useRef<HTMLInputElement>(null)
   const [productionAreas, setProductionAreas] = useState<any[]>([])
   const [defaultAreaId, setDefaultAreaId] = useState<string>('')
   const [saleDueDate, setSaleDueDate] = useState('')
   const [saleUrgency, setSaleUrgency] = useState('NORMAL')
+
+  // Company and Branch States
+  const [companies, setCompanies] = useState<any[]>([])
+  const [branchOffices, setBranchOffices] = useState<any[]>([])
+  const [selectedCompany, setSelectedCompany] = useState<number>(0)
+  const [selectedBranch, setSelectedBranch] = useState<number>(0)
 
   const [fields, setFields] = useState({
     codigo: '',
@@ -288,8 +310,63 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     dispatch(modal(value))
   }
 
+  // Cierre desde la X, Cerrar ficha o Esc: si ya hay artículos capturados pide
+  // confirmación para no perder la ficha por un clic accidental.
+  const requestClose = async () => {
+    if (isSubmitting) return
+    if (saleLines.length > 0) {
+      const confirmation = await Swal.fire({
+        icon: 'warning',
+        title: '¿Descartar la ficha?',
+        text: 'Hay artículos capturados que se perderán.',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, descartar',
+        cancelButtonText: 'Seguir editando',
+        confirmButtonColor: '#d33',
+      })
+      if (!confirmation.isConfirmed) return
+    }
+    handleModalChange('')
+  }
+
+  // El cursor siempre queda en el código para capturar artículos sin tocar el mouse
+  useEffect(() => {
+    if (isOpen) setTimeout(() => codeInputRef.current?.focus(), 50)
+  }, [isOpen, saleLines.length === 0])
+
   useEffect(() => {
     if (!isOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !Swal.isVisible()) requestClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, saleLines.length, isSubmitting])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const loadInitialData = async () => {
+      try {
+        const userId = userState?.id || 1;
+        const compData = await APIs.getCompaniesByUser(userId);
+        const companiesList = Array.isArray(compData) ? compData : (compData?.data || []);
+        setCompanies(companiesList);
+
+        if (companiesList.length > 0) {
+          const firstCompanyId = companiesList[0].id;
+          setSelectedCompany(firstCompanyId);
+          const branchData = await APIs.getBranchOffices(firstCompanyId, userId);
+          const branches = Array.isArray(branchData) ? branchData : (branchData?.data || []);
+          setBranchOffices(branches);
+          if (branches.length > 0) {
+            setSelectedBranch(branches[0].id);
+          }
+        }
+      } catch (e) {
+        console.error('Error loading company data', e);
+      }
+    }
 
     const loadAreas = async () => {
       const companyId = readCompanyId()
@@ -314,39 +391,76 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       }
     }
 
+    loadInitialData();
     loadAreas()
   }, [isOpen])
 
-  const searchProducts = async (code: string, name: string) => {
-    const companyId = readCompanyId()
-    if (!companyId) {
+  const handleCompanyChange = async (companyId: number) => {
+    setSelectedCompany(companyId);
+    setSelectedBranch(0);
+    try {
+      const userId = userState?.id || 1;
+      const response = await APIs.getBranchOffices(companyId, userId);
+      const branches = Array.isArray(response) ? response : (response?.data || []);
+      setBranchOffices(branches);
+      if (branches.length > 0) {
+        setSelectedBranch(branches[0].id);
+      }
+    } catch (e) {
+      console.error('Error loading branches', e);
+    }
+  };
+
+  // Por código desde 1 carácter (lector de barras); por nombre desde 3 letras. Con espera de 250 ms entre teclas
+  // y solo vale la ÚLTIMA petición: una respuesta lenta de una búsqueda anterior no pisa a la nueva.
+  const SEARCH_MIN = { code: 1, name: 3 } as const
+
+  const runSearch = (field: 'code' | 'name', value: string) => {
+    if (searchTimer.current) clearTimeout(searchTimer.current)
+    const trimmed = value.trim()
+    if (trimmed.length < SEARCH_MIN[field]) {
+      searchSeq.current += 1
       setSearchResults([])
+      setSearching(false)
       return
     }
-
-    try {
-      const response: any = await APIs.getProducts(code, name, undefined, {
-        companyId,
-        branchId: readBranchId(),
-      })
-      setSearchResults(response?.data ?? [])
-    } catch (error) {
-      console.error('Error al obtener los productos:', error)
-      setSearchResults([])
-    }
+    setSearching(true)
+    setSearchError('')
+    searchTimer.current = setTimeout(async () => {
+      const seq = ++searchSeq.current
+      try {
+        const response: any = await APIs.getProducts(
+          field === 'code' ? trimmed : '',
+          field === 'name' ? trimmed : '',
+          undefined,
+          {
+            companyId: selectedCompany || readCompanyId() || undefined,
+            branchId: selectedBranch > 0 ? selectedBranch : readBranchId(),
+          },
+        )
+        if (seq === searchSeq.current) setSearchResults(response?.data ?? [])
+      } catch (error) {
+        console.error('Error al obtener los productos:', error)
+        if (seq === searchSeq.current) {
+          setSearchResults([])
+          setSearchError((error as any)?.response?.data?.message || (error as any)?.message || 'No se pudo buscar')
+        }
+      } finally {
+        if (seq === searchSeq.current) setSearching(false)
+      }
+    }, 250)
   }
 
-  const handleSearchCodeChange = async (code: string) => {
+  const handleSearchCodeChange = (code: string) => {
     setFields((prev) => ({ ...prev, codigo: code }))
-    setShowCodeResults(code.trim().length > 0)
-    await searchProducts(code, '')
+    setActiveField('code')
+    runSearch('code', code)
   }
 
-  const handleSearchNameChange = async (name: string) => {
-    setFields((prev) => {
-      void searchProducts(prev.codigo, name)
-      return { ...prev, name }
-    })
+  const handleSearchNameChange = (name: string) => {
+    setFields((prev) => ({ ...prev, name }))
+    setActiveField('name')
+    runSearch('name', name)
   }
 
   const addProduct = (product: any) => {
@@ -354,7 +468,9 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     const trackInventory = product.trackInventory !== false
     const variations = getProductVariations(product)
     const stores = getProductStores(product)
-    const storeId = stores[0]?.storeId ?? stores[0]?.id ?? 0
+    // El descuento sale del almacén de ESTA sucursal (un producto puede tener almacenes en varias)
+    const branchStore = stores.find((st: any) => Number(st.branchId) === Number(selectedBranch)) ?? stores[0]
+    const storeId = branchStore?.storeId ?? branchStore?.id ?? 0
     const priceRanges = [...(product.priceRanges ?? [])].sort(
       (a: any, b: any) => a.minQuantity - b.minQuantity,
     )
@@ -403,8 +519,10 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
     setSaleLines((prev) => mergeSaleLines([...prev, line]))
     setFields({ codigo: '', name: '' })
+    searchSeq.current += 1
     setSearchResults([])
-    setShowCodeResults(false)
+    setActiveField(null)
+    setTimeout(() => codeInputRef.current?.focus(), 0)
   }
 
   const applyVariationSelection = (line: SaleLine, color: string, size: string): SaleLine => {
@@ -506,6 +624,16 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     )
   }
 
+  const updateItemPrice = (key: string, price: number) => {
+    setSaleLines((prev) =>
+      prev.map((line) =>
+        line.key === key
+          ? applyPriceRangeToLine({ ...line, unitPrice: price })
+          : line,
+      ),
+    )
+  }
+
   const removeLine = (key: string) => {
     setSaleLines((prev) => prev.filter((line) => line.key !== key))
   }
@@ -538,7 +666,50 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   }
 
   const hasProductionLines = saleLines.some((line) => !line.trackInventory)
+
+  // Entrega y urgencia solo aplican a lo que se produce bajo pedido
+  useEffect(() => {
+    if (!hasProductionLines) {
+      setSaleUrgency('NORMAL')
+      setSaleDueDate('')
+    }
+  }, [hasProductionLines])
   const tableLayoutClass = `${getTableLayoutClass()} sales-sheet-table--production`.trim()
+
+  useEffect(() => {
+    if (!isOpen || !selectedCompany) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const cfg: any = await APIs.getPosConfig(selectedCompany, selectedBranch || 0)
+        if (!cancelled && cfg?.data) {
+          setPosConfig({
+            allowManualDiscount: cfg.data.allowManualDiscount ?? true,
+            askPaymentMethod: cfg.data.askPaymentMethod ?? true,
+          })
+          if (cfg.data.allowManualDiscount === false) setDiscount('0')
+        }
+      } catch {
+        /* sin configuración: se usan los valores por omisión */
+      }
+      try {
+        const res: any = await APIs.getPaymentMethods(selectedCompany, selectedBranch || undefined)
+        const list = (Array.isArray(res?.data) ? res.data : []).filter((m: any) => m.active !== false)
+        if (cancelled) return
+        setPaymentMethods(list)
+        setPaymentMethodId((prev) => {
+          if (prev && list.some((m: any) => String(m.id) === prev)) return prev
+          const cash = list.find((m: any) => m.code === 'CASH') ?? list[0]
+          return cash ? String(cash.id) : ''
+        })
+      } catch {
+        if (!cancelled) setPaymentMethods([])
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, selectedCompany, selectedBranch])
 
   const resetSaleForm = () => {
     setSaleLines([])
@@ -547,16 +718,26 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     setSaleDueDate('')
     setSaleUrgency('NORMAL')
     setFields({ codigo: '', name: '' })
+    searchSeq.current += 1
     setSearchResults([])
-    setShowCodeResults(false)
+    setActiveField(null)
   }
 
+  useEffect(() => {
+    if (!isOpen || !selectedBranch) { setSellStatus(null); return }
+    let cancelled = false
+    APIs.getCashSellStatus(selectedBranch)
+      .then((res: any) => { if (!cancelled) setSellStatus(res?.data ?? null) })
+      .catch(() => { if (!cancelled) setSellStatus(null) })
+    return () => { cancelled = true }
+  }, [isOpen, selectedBranch])
+
   const handleCobrar = async () => {
-    const companyId = readCompanyId()
-    const branchId = readBranchId()
+    const companyId = selectedCompany;
+    const branchId = selectedBranch;
     const userId = Number(userState?.id ?? userState?._id)
 
-    if (!companyId) {
+    if (!companyId || companyId === 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Empresa requerida',
@@ -565,7 +746,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       return
     }
 
-    if (!branchId) {
+    if (!branchId || branchId === 0) {
       Swal.fire({
         icon: 'warning',
         title: 'Sucursal requerida',
@@ -648,10 +829,14 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         saleUrgency,
       )
 
+      if (!chargeKeyRef.current) {
+        chargeKeyRef.current = `${userId}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+      }
+
       const payload = {
         companyId,
         branchId,
-        userId,
+        idempotencyKey: chargeKeyRef.current,
         storeId: consolidatedLines[0]?.storeId || undefined,
         discount: submitTotals.discountValue,
         urgency: saleUrgency,
@@ -670,35 +855,93 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         payments: [
           {
             amount: submitTotals.total,
+            // Sin elegir forma de pago, el servidor cobra en efectivo
+            paymentMethodId:
+              posConfig.askPaymentMethod && paymentMethodId ? Number(paymentMethodId) : undefined,
           },
         ],
       }
 
       const response: any = await APIs.createSale(payload)
+      const data = response?.data ?? response;
 
+      // La ficha de cobro se usa todo el día: tras cobrar se limpia y queda abierta para el
+      // siguiente cliente, con un aviso breve que no estorba.
       Swal.fire({
+        toast: true,
+        position: 'top-end',
         icon: 'success',
         title: 'Venta registrada',
-        text: response?.message ?? 'La venta se guardó correctamente.',
-        confirmButtonColor: '#586ae9',
+        text: data?.message ?? 'La venta se guardó correctamente.',
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       })
 
+      chargeKeyRef.current = null
       resetSaleForm()
-      handleModalChange('')
       onSaved?.()
     } catch (error: any) {
       console.error('Error al cobrar:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Ocurrió un error al registrar la venta.';
+
       Swal.fire({
         icon: 'error',
         title: 'No se pudo cobrar',
-        text:
-          error?.response?.data?.message ??
-          'Ocurrió un error al registrar la venta.',
+        text: errorMessage,
         confirmButtonColor: '#d33',
       })
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const renderSearchResults = (field: 'code' | 'name') => {
+    const value = field === 'code' ? fields.codigo : fields.name
+    const trimmed = value.trim()
+    if (trimmed.length === 0) return null
+    // El mouse no le quita el foco al campo al elegir un resultado
+    return (
+      <div className='modal-sale-results' onMouseDown={(e) => e.preventDefault()}>
+        {trimmed.length < SEARCH_MIN[field] ? (
+          <p className='sales-sheet-search-empty'>Escribe al menos {SEARCH_MIN[field]} letras para buscar por nombre</p>
+        ) : searchError ? (
+          <p className='sales-sheet-search-empty'>No se pudo buscar: {searchError}</p>
+        ) : searching && searchResults.length === 0 ? (
+          <p className='sales-sheet-search-empty'>Buscando…</p>
+        ) : searchResults.length > 0 ? (
+          searchResults.map((product: any) => {
+            const stock = Number(product.totalStock ?? 0)
+            const tracks = product.trackInventory !== false
+            return (
+              <button type='button' key={product.id} className='modal-sale-result-item' onClick={() => addProduct(product)}>
+                {getProductImage(product) ? (
+                  <img src={getProductImage(product) ?? ''} alt='' className='modal-sale-result-img' />
+                ) : (
+                  <span className='modal-sale-result-img modal-sale-result-img--empty material-symbols-rounded'>inventory_2</span>
+                )}
+                <span className='modal-sale-result-info'>
+                  <span className='modal-sale-result-name'>{product.name}</span>
+                  <span className='modal-sale-result-code'>{product.code || 'Sin código'}</span>
+                </span>
+                <span className='modal-sale-result-side'>
+                  <span className='modal-sale-result-price'>{formatMoney(getProductUnitPrice(product, 1))}</span>
+                  {tracks ? (
+                    <span className={`modal-sale-result-stock ${stock <= 0 ? 'modal-sale-result-stock--out' : ''}`}>
+                      {stock <= 0 ? 'Sin existencias' : `${stock} disp.`}
+                    </span>
+                  ) : (
+                    <span className='modal-sale-result-stock'>Bajo pedido</span>
+                  )}
+                </span>
+              </button>
+            )
+          })
+        ) : (
+          <p className='sales-sheet-search-empty'>Sin resultados</p>
+        )}
+      </div>
+    )
   }
 
   const renderAreaCell = (line: SaleLine) => {
@@ -759,9 +1002,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           >
             <option value=''>Color</option>
             {colors.map((c) => (
-              <option key={c.color} value={c.color}>
-                {c.color}
-              </option>
+              <option key={c.color} value={c.color}>{c.color}</option>
             ))}
           </select>
         </div>
@@ -818,140 +1059,299 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     )
   }
 
-  return (
+  // Portal al <body>: encima del sidebar y el header.
+  return createPortal(
     <div className={`overlay__sales-sheet_modal ${isOpen ? 'active' : ''}`}>
-      <div className={`popup__sales-sheet_modal ${isOpen ? 'active' : ''}`}>
-        <div className='sales-sheet-modal'>
+      <div className="modal-sale-sheet">
+        <div className="modal-sale-sheet-header">
+          <h2 className="modal-sale-sheet-title">Ficha de cobro</h2>
           <button
             type='button'
-            className='sales-sheet-modal__close'
-            onClick={() => handleModalChange('')}
+            className='modal-sale-sheet-close'
+            onClick={requestClose}
             aria-label='Cerrar'
           >
-            ×
+            <span className="material-symbols-rounded">close</span>
           </button>
+        </div>
 
-          <div className='sales-sheet-modal__body'>
-            <section className='sales-sheet-toolbar'>
-              <div className='sales-sheet-toolbar__search-group'>
-                <label className='sales-sheet-label'>Buscar artículo</label>
-                <div className='sales-sheet-search-row'>
-                  <div className='sales-sheet-search-field'>
-                    <div className='inputs__general_icons sales-sheet-search-input'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        width='20'
-                        height='20'
-                        viewBox='0 0 24 24'
-                        fill='none'
-                        stroke='currentColor'
-                        strokeWidth='2'
-                        aria-hidden
-                      >
-                        <path d='M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' />
-                        <path d='M21 21l-6 -6' />
-                      </svg>
-                      <input
-                        className='inputs__generic'
-                        placeholder='Código'
-                        value={fields.codigo}
-                        type='text'
-                        onChange={(e) => handleSearchCodeChange(e.target.value)}
-                      />
-                    </div>
+        <div className="modal-sale-sheet-body modal-sale-pos">
+          <div className="modal-sale-pos__main">
+          {(companies.length > 1 || branchOffices.length > 1) && (
+          <section className="modal-sale-section">
+            <div className="modal-sale-section-title">Ubicación de la Venta</div>
+            <div className="modal-sale-meta-grid">
+              {companies.length > 1 && (
+              <div className="modal-sale-meta-field">
+                <label>Empresa</label>
+                <select
+                  className='modal-sale-select'
+                  value={selectedCompany}
+                  onChange={(e) => handleCompanyChange(Number(e.target.value))}
+                >
+                  <option value={0}>Seleccione Empresa</option>
+                  {companies.map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              )}
+              {branchOffices.length > 1 && (
+              <div className="modal-sale-meta-field">
+                <label>Sucursal</label>
+                <select
+                  className='modal-sale-select'
+                  value={selectedBranch}
+                  onChange={(e) => setSelectedBranch(Number(e.target.value))}
+                  disabled={!selectedCompany}
+                >
+                  <option value={0}>Seleccione Sucursal</option>
+                  {branchOffices.map((b: any) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+              )}
+            </div>
+          </section>
+          )}
 
-                    {showCodeResults ? (
-                      <div className='sales-sheet-search-results'>
-                        {searchResults.length > 0 ? (
-                          searchResults.map((product: any) => (
-                            <button
-                              type='button'
-                              key={product.id}
-                              className='sales-sheet-search-result'
-                              onClick={() => addProduct(product)}
+          <section className="modal-sale-section">
+            <div className="modal-sale-section-title">Búsqueda de Artículos</div>
+            <div className="modal-sale-search-grid">
+              <div className="modal-sale-search-field">
+                <label>Código</label>
+                <div className="modal-sale-input-wrap">
+                  <span className="material-symbols-rounded search-icon">search</span>
+                  <input
+                    className='modal-sale-input'
+                    ref={codeInputRef}
+                    placeholder='Escribe o escanea el código...'
+                    value={fields.codigo}
+                    type='text'
+                    onChange={(e) => handleSearchCodeChange(e.target.value)}
+                    onKeyDown={async (e) => {
+                      // Enter agrega el artículo (lector de código de barras: manda Enter antes de que termine la espera)
+                      if (e.key !== 'Enter' || !fields.codigo.trim()) return
+                      e.preventDefault()
+                      if (searchTimer.current) clearTimeout(searchTimer.current)
+                      try {
+                        const response: any = await APIs.getProducts(fields.codigo.trim(), '', undefined, {
+                          companyId: selectedCompany || readCompanyId() || undefined,
+                          branchId: selectedBranch > 0 ? selectedBranch : readBranchId(),
+                        })
+                        const list: any[] = response?.data ?? []
+                        // Prioriza la coincidencia exacta de código o código de barras
+                        const exact = list.find((p) => p.code === fields.codigo.trim() || p.barcode === fields.codigo.trim())
+                        const pick = exact ?? list[0]
+                        if (pick) addProduct(pick)
+                      } catch {
+                        /* sin resultado: se queda el texto para corregirlo */
+                      }
+                    }}
+                    onFocus={() => setActiveField('code')}
+                    onBlur={() => setTimeout(() => setActiveField((f) => (f === 'code' ? null : f)), 150)}
+                  />
+                </div>
+                {activeField === 'code' && renderSearchResults('code')}
+              </div>
+
+              <div className="modal-sale-search-field">
+                <label>Nombre</label>
+                <div className="modal-sale-input-wrap">
+                  <span className="material-symbols-rounded search-icon">search</span>
+                  <input
+                    className='modal-sale-input'
+                    placeholder='Escribe el nombre (mínimo 3 letras)...'
+                    type='text'
+                    value={fields.name}
+                    onChange={(e) => handleSearchNameChange(e.target.value)}
+                    onFocus={() => setActiveField('name')}
+                    onBlur={() => setTimeout(() => setActiveField((f) => (f === 'name' ? null : f)), 150)}
+                  />
+                </div>
+                {activeField === 'name' && renderSearchResults('name')}
+              </div>
+            </div>
+          </section>
+
+          <section className="modal-sale-section">
+            <div className="modal-sale-section-title">
+              Artículos en la Ficha ({saleLines.length})
+              {productionAreas.length > 0 && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginLeft: '20px', verticalAlign: 'middle' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'normal', textTransform: 'none' }}>Área Predeterminada:</span>
+                  <select
+                    className='modal-sale-select'
+                    style={{ height: '30px', fontSize: '0.8rem', padding: '0 8px' }}
+                    value={defaultAreaId}
+                    onChange={(e) => applyDefaultAreaToAll(e.target.value)}
+                  >
+                    <option value=''>—</option>
+                    {productionAreas.map((area) => (
+                      <option key={area.id} value={String(area.id)}>
+                        {area.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-sale-table-wrap">
+              <div className={`modal-sale-thead ${tableLayoutClass}`}>
+                <div>Código</div>
+                <div>Artículo</div>
+                {hasSizedLines && (
+                  <>
+                    <div>Color</div>
+                    <div>Talla</div>
+                  </>
+                )}
+                {hasRangeLines && <div>Rango</div>}
+                <div>Área Prod.</div>
+                <div style={{ textAlign: 'center' }}>Cant.</div>
+                <div style={{ textAlign: 'right' }}>Precio</div>
+                <div style={{ textAlign: 'right' }}>Subtotal</div>
+                <div style={{ width: '50px' }}></div>
+              </div>
+
+              <div className="modal-sale-tbody">
+                {saleLines.length > 0 ? (
+                  saleLines.map((line) => (
+                    <div
+                      className={`modal-sale-row ${tableLayoutClass}`}
+                      key={line.key}
+                    >
+                      <div className='modal-sale-cell'>
+                        {line.image && <img src={line.image} alt='' className='modal-sale-item-thumb' />}
+                        <span className='modal-sale-price-tag'>{line.code || '—'}</span>
+                      </div>
+                      <div className='modal-sale-cell'>
+                        <strong>{line.name}</strong>
+                      </div>
+                      {hasSizedLines && (
+                        <>
+                          <div className='modal-sale-cell'>
+                            <select
+                              className='modal-sale-row-select'
+                              value={line.selectedColor ?? ''}
+                              onChange={(e) => handleColorChange(line.key, e.target.value)}
                             >
-                              <div className='sales-sheet-search-result__info'>
-                                <strong>{product.name}</strong>
-                                <span>{product.code}</span>
-                                {product.usesSizes ? (
-                                  <span className='sales-sheet-search-result__tag'>
-                                    Usa tallas
-                                  </span>
-                                ) : null}
-                              </div>
-                              {getProductImage(product) ? (
-                                <img
-                                  src={getProductImage(product) ?? ''}
-                                  alt=''
-                                  className='sales-sheet-search-result__img'
-                                />
-                              ) : (
-                                <div className='sales-sheet-search-result__img sales-sheet-search-result__img--empty'>
-                                  —
-                                </div>
-                              )}
-                            </button>
-                          ))
+                              <option value=''>Color</option>
+                              {getVariationColors(line.variations).map((c) => (
+                                <option key={c.color} value={c.color}>{c.color}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className='modal-sale-cell'>
+                            <select
+                              className='modal-sale-row-select'
+                              value={line.selectedSize ?? ''}
+                              onChange={(e) => handleSizeChange(line.key, e.target.value)}
+                              disabled={!line.selectedColor}
+                            >
+                              <option value=''>Talla</option>
+                              {line.selectedColor
+                                ? getSizesForColor(line.variations, line.selectedColor).map((v: any) => {
+                                    const stock = getVariationStockForLine(line, line.selectedColor, v.size)
+                                    return (
+                                      <option key={v.id} value={v.size}>
+                                        {stock != null ? `${v.size} (${stock})` : v.size}
+                                      </option>
+                                    )
+                                })
+                                : []}
+                            </select>
+                          </div>
+                        </>
+                      )}
+                      {hasRangeLines && (
+                        <div className='modal-sale-cell'>
+                          <select
+                            className='modal-sale-row-select'
+                            value={line.priceRangeId ?? ''}
+                            onChange={(e) => handleRangeChange(line.key, Number(e.target.value))}
+                          >
+                            <option value=''>Rango</option>
+                            {line.priceRanges.map((range: any) => (
+                              <option key={range.id} value={range.id}>
+                                {formatRangeLabel(range)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+                      <div className='modal-sale-cell'>
+                        {renderAreaCell(line)}
+                      </div>
+                      <div className='modal-sale-cell'>
+                        <input
+                          className='modal-sale-row-input'
+                          type='number'
+                          min={0}
+                          value={line.quantity === 0 ? '' : line.quantity}
+                          onChange={(e) => updateQuantity(line.key, e.target.value)}
+                        />
+                      </div>
+                      <div className='modal-sale-cell' style={{ justifyContent: 'flex-end' }}>
+                        {isOwner ? (
+                          <input
+                            className='modal-sale-row-input'
+                            type='number'
+                            min={0}
+                            value={line.unitPrice}
+                            onChange={(e) => updateItemPrice(line.key, Number(e.target.value))}
+                            style={{ textAlign: 'right', width: '80px' }}
+                          />
                         ) : (
-                          <p className='sales-sheet-search-empty'>Sin resultados</p>
+                          <span className="modal-sale-price-tag">{formatMoney(line.unitPrice)}</span>
                         )}
                       </div>
-                    ) : null}
-                  </div>
-
-                  <div className='sales-sheet-search-field'>
-                    <div className='inputs__general_icons sales-sheet-search-input'>
-                      <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        width='20'
-                        height='20'
-                        viewBox='0 0 24 24'
-                        fill='none'
-                        stroke='currentColor'
-                        strokeWidth='2'
-                        aria-hidden
-                      >
-                        <path d='M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' />
-                        <path d='M21 21l-6 -6' />
-                      </svg>
-                      <input
-                        className='inputs__generic'
-                        placeholder='Nombre'
-                        type='text'
-                        value={fields.name}
-                        onChange={(e) => handleSearchNameChange(e.target.value)}
-                      />
+                      <div className='modal-sale-cell' style={{ justifyContent: 'flex-end' }}>
+                        <strong>{formatMoney(line.unitPrice * line.quantity)}</strong>
+                      </div>
+                      <div className='modal-sale-cell' style={{ justifyContent: 'center' }}>
+                        <button
+                          type='button'
+                          className='modal-sale-remove-btn'
+                          onClick={() => removeLine(line.key)}
+                        >
+                          <span className="material-symbols-rounded">delete</span>
+                        </button>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className='sales-sheet-table__empty' style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    Busca y agrega artículos para iniciar la venta.
                   </div>
-                </div>
+                )}
               </div>
+            </div>
+          </section>
 
-              <div className='sales-sheet-toolbar__actions'>
-                <button type='button' className='sales-sheet-btn sales-sheet-btn--warning'>
-                  Recargas
-                </button>
-                <button type='button' className='sales-sheet-btn sales-sheet-btn--purple'>
-                  Servicios
-                </button>
-              </div>
-            </section>
-
-            <div className='sales-sheet-sale-meta'>
-              <div className='sales-sheet-sale-meta__field'>
+          </div>
+          <aside className="modal-sale-pos__side">
+          {hasProductionLines && (
+          <section className="modal-sale-section">
+            <div className="modal-sale-section-title">Datos de la venta</div>
+            <div className="modal-sale-meta-grid">
+              <div className="modal-sale-meta-field">
                 <label htmlFor='sales-sheet-due-date'>Fecha de entrega</label>
                 <input
                   id='sales-sheet-due-date'
-                  className='inputs__general'
+                  className='modal-sale-select'
                   type='date'
                   value={saleDueDate}
                   onChange={(e) => setSaleDueDate(e.target.value)}
                 />
               </div>
-              <div className='sales-sheet-sale-meta__field'>
+              <div className="modal-sale-meta-field">
                 <label htmlFor='sales-sheet-urgency'>Urgencia</label>
                 <select
                   id='sales-sheet-urgency'
-                  className='inputs__general'
+                  className='modal-sale-select'
                   value={saleUrgency}
                   onChange={(e) => setSaleUrgency(e.target.value)}
                 >
@@ -964,7 +1364,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                     </option>
                   ))}
                 </select>
-                <small className='sales-sheet-urgency-hint'>
+                <small className='sales-sheet-urgency-hint' style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '4px', display: 'block' }}>
                   Cargo extra: {getUrgencySurchargeLabel(saleUrgency)}
                   {totals.urgencySurcharge > 0
                     ? ` · ${formatMoney(totals.urgencySurcharge)}`
@@ -972,206 +1372,142 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                 </small>
               </div>
             </div>
+          </section>
+          )}
 
-            <section className='sales-sheet-table-section'>
-              <div className='sales-sheet-table-meta'>
-                <div className='sales-sheet-table-meta-left'>
-                  <p>Productos en la ficha</p>
-                  <span className='sales-sheet-table-count'>{saleLines.length}</span>
-                </div>
-                {productionAreas.length > 0 ? (
-                  <div className='sales-sheet-default-area'>
-                    <label htmlFor='sales-sheet-default-area'>Área predeterminada</label>
-                    <select
-                      id='sales-sheet-default-area'
-                      className='traditional__selector sales-sheet-area-select'
-                      value={defaultAreaId}
-                      onChange={(e) => applyDefaultAreaToAll(e.target.value)}
-                    >
-                      <option value=''>—</option>
-                      {productionAreas.map((area) => (
-                        <option key={area.id} value={String(area.id)}>
-                          {area.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                ) : null}
-              </div>
-              {hasProductionLines && productionAreas.length === 0 ? (
-                <p className='sales-sheet-production-warning'>
-                  Hay artículos bajo pedido pero no hay áreas de producción. Créalas en
-                  Producción → Áreas.
-                </p>
-              ) : null}
-
-              <div className='sales-sheet-table-wrap'>
-                <div className={`sales-sheet-table__head ${tableLayoutClass}`}>
-                  <span>Código</span>
-                  <span>Artículo</span>
-                  {hasSizedLines ? (
-                    <>
-                      <span>Color</span>
-                      <span>Talla</span>
-                    </>
-                  ) : null}
-                  {hasRangeLines ? <span>Rango</span> : null}
-                  <span>Área producción</span>
-                  <span className='sales-sheet-table__head-col sales-sheet-table__head-col--center'>
-                    Cantidad
-                  </span>
-                  <span className='sales-sheet-table__head-col sales-sheet-table__head-col--end'>
-                    Precio
-                  </span>
-                  <span className='sales-sheet-table__head-col sales-sheet-table__head-col--end'>
-                    Subtotal
-                  </span>
-                  <span aria-hidden />
-                </div>
-
-                {saleLines.length > 0 ? (
-                  <div className='sales-sheet-table__body'>
-                    {saleLines.map((line) => (
-                      <div
-                        className={`sales-sheet-table__row ${tableLayoutClass}`}
-                        key={line.key}
-                      >
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--code'>
-                          {line.image ? (
-                            <img
-                              src={line.image}
-                              alt=''
-                              className='sales-sheet-line-thumb'
-                            />
-                          ) : null}
-                          <span className='sales-sheet-line-code'>{line.code || '—'}</span>
-                        </div>
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--article'>
-                          <strong>{line.name}</strong>
-                        </div>
-                        {hasSizedLines ? renderVariationCells(line) : null}
-                        {hasRangeLines ? renderRangeCell(line) : null}
-                        {renderAreaCell(line)}
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--qty'>
-                          <input
-                            className='inputs__general sales-sheet-qty-input'
-                            type='number'
-                            min={0}
-                            max={
-                              line.usesSizes &&
-                              line.selectedColor &&
-                              line.selectedSize
-                                ? getVariationStockForLine(
-                                    line,
-                                    line.selectedColor,
-                                    line.selectedSize,
-                                  ) ?? undefined
-                                : undefined
-                            }
-                            value={line.quantity === 0 ? '' : line.quantity}
-                            onChange={(e) => updateQuantity(line.key, e.target.value)}
-                          />
-                        </div>
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--price'>
-                          {line.discountPercent > 0 ? (
-                            <span className='sales-sheet-price-with-discount'>
-                              <small>{formatMoney(line.listUnitPrice)}</small>
-                              <strong>{formatMoney(line.unitPrice)}</strong>
-                              <span>-{line.discountPercent}%</span>
-                            </span>
-                          ) : (
-                            formatMoney(line.unitPrice)
-                          )}
-                        </div>
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--subtotal'>
-                          {formatMoney(line.unitPrice * line.quantity)}
-                        </div>
-                        <div className='sales-sheet-table__cell sales-sheet-table__cell--actions'>
-                          <button
-                            type='button'
-                            className='sales-sheet-delete-btn'
-                            onClick={() => removeLine(line.key)}
-                            title='Quitar'
-                          >
-                            <svg
-                              xmlns='http://www.w3.org/2000/svg'
-                              width='18'
-                              height='18'
-                              viewBox='0 0 24 24'
-                              fill='currentColor'
-                              aria-hidden
-                            >
-                              <path d='M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z' />
-                              <path d='M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z' />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className='sales-sheet-table__empty'>
-                    Busca y agrega artículos para iniciar la venta.
-                  </div>
-                )}
+          {posConfig.askPaymentMethod && paymentMethods.length > 0 && (
+            <section className="modal-sale-section">
+              <div className="modal-sale-section-title">Forma de pago</div>
+              <div className="modal-sale-pay-options" role="radiogroup" aria-label="Forma de pago">
+                {paymentMethods.map((m: any) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={String(m.id) === paymentMethodId}
+                    className={`modal-sale-pay-option ${String(m.id) === paymentMethodId ? 'modal-sale-pay-option--active' : ''}`}
+                    onClick={() => setPaymentMethodId(String(m.id))}
+                  >
+                    {m.name}
+                  </button>
+                ))}
               </div>
             </section>
-          </div>
+          )}
 
-          <footer className='sales-sheet-modal__footer'>
-            <div className='sales-sheet-totals'>
-              <div className='sales-sheet-total-card'>
-                <span>Subtotal</span>
-                <strong>{formatMoney(totals.subtotal)}</strong>
+          <footer className="modal-sale-footer">
+            <div className="modal-sale-totals">
+              <div className="modal-sale-total-row">
+                <span className="modal-sale-total-label">Subtotal</span>
+                <span className="modal-sale-total-value">{formatMoney(totals.subtotal)}</span>
               </div>
-              <div className='sales-sheet-total-card sales-sheet-total-card--discount'>
-                <span>Descuento</span>
-                <input
-                  className='sales-sheet-discount-input'
-                  value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
-                  type='number'
-                  min={0}
-                />
-              </div>
-              {totals.urgencySurcharge > 0 ? (
-                <div className='sales-sheet-total-card sales-sheet-total-card--urgency'>
-                  <span>
-                    Urgencia ({Math.round(totals.urgencyPercent * 100)}%)
-                  </span>
-                  <strong>{formatMoney(totals.urgencySurcharge)}</strong>
+              {posConfig.allowManualDiscount && (
+              <div className="modal-sale-total-row">
+                <span className="modal-sale-total-label">Descuento</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    className='modal-sale-row-input'
+                    style={{ width: '60px', textAlign: 'center' }}
+                    value={discount}
+                    onChange={(e) => setDiscount(e.target.value)}
+                    type='number'
+                    min={0}
+                  />
+                  <span className="modal-sale-total-value">%</span>
                 </div>
-              ) : null}
-              <div className='sales-sheet-total-card sales-sheet-total-card--iva'>
-                <span>IVA</span>
-                <strong>{formatMoney(totals.iva)}</strong>
               </div>
-              <div className='sales-sheet-total-card sales-sheet-total-card--total'>
-                <span>Total</span>
-                <strong>{formatMoney(totals.total)}</strong>
+              )}
+              {totals.urgencySurcharge > 0 && (
+                <div className="modal-sale-total-row">
+                  <span className="modal-sale-total-label">Urgencia ({Math.round(totals.urgencyPercent * 100)}%)</span>
+                  <span className="modal-sale-total-value">{formatMoney(totals.urgencySurcharge)}</span>
+                </div>
+              )}
+              <div className="modal-sale-total-row">
+                <span className="modal-sale-total-label">IVA</span>
+                <span className="modal-sale-total-value">{formatMoney(totals.iva)}</span>
+              </div>
+              <div className="modal-sale-total-main">
+                <span className="label">Total</span>
+                <span className="value">{formatMoney(totals.total)}</span>
               </div>
             </div>
 
-            <div className='sales-sheet-footer-actions'>
-              <button type='button' className='btn__general-primary' disabled={isSubmitting}>
-                Cobrar y facturar
-              </button>
-              <button type='button' className='sales-sheet-btn sales-sheet-btn--ghost' disabled={isSubmitting}>
-                Agregar a deudores
+            {sellStatus?.canSell && sellStatus.expired && (
+              <div role='status' className='modal-sale-noshift modal-sale-noshift--soft'>
+                <span className='material-symbols-rounded'>info</span>
+                <span>
+                  {sellStatus.why === 'EXEMPT_ROLE'
+                    ? 'Tu turno ya terminó, pero tu rol (dueño o administrador) puede seguir vendiendo. Actívalo en Configuración de Caja con "Aplicar también a dueños y administradores".'
+                    : 'Tu turno ya terminó, pero el bloqueo de ventas al terminar el turno está desactivado en Configuración de Caja.'}
+                </span>
+              </div>
+            )}
+            {sellStatus && !sellStatus.canSell && (
+              <div role='alert' className='modal-sale-noshift'>
+                <span className='material-symbols-rounded'>lock_clock</span>
+                <span>{sellStatus.reason}</span>
+              </div>
+            )}
+            <div className="modal-sale-footer-actions">
+              <button
+                type='button'
+                className='btn-cancel'
+                onClick={requestClose}
+              >
+                Cerrar ficha
               </button>
               <button
                 type='button'
-                className='btn__general-primary'
+                className='btn-save'
                 onClick={handleCobrar}
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!!sellStatus && !sellStatus.canSell)}
+                title={sellStatus && !sellStatus.canSell ? (sellStatus.reason ?? undefined) : undefined}
               >
-                {isSubmitting ? 'Cobrando...' : 'Cobrar'}
+                {isSubmitting ? 'Cobrando...' : `Cobrar ${formatMoney(totals.total)}`}
               </button>
             </div>
           </footer>
+          </aside>
         </div>
+
+        {sellStatus && (
+          <div className={`modal-sale-statusbar ${sellStatus.canSell ? '' : 'is-blocked'}`} title={sellStatus.debug ? `Usuario ${sellStatus.debug.userId} · nivel de rol ${sellStatus.debug.roleLevel} · sucursal ${sellStatus.debug.branchId} · tolerancia ${sellStatus.debug.graceMin} min` : undefined}>
+            <span className='modal-sale-statusbar__item'>
+              <span className='material-symbols-rounded'>receipt_long</span>
+              <span className='k'>Turno</span>
+              <strong>{sellStatus.shift ? `#${sellStatus.shift.id}` : 'Sin turno'}</strong>
+            </span>
+            <span className='modal-sale-statusbar__item'>
+              <span className='material-symbols-rounded'>point_of_sale</span>
+              <span className='k'>Caja</span>
+              <strong>{sellStatus.shift?.register ?? 'Sin caja'}</strong>
+            </span>
+            <span className='modal-sale-statusbar__item'>
+              <span className='material-symbols-rounded'>schedule</span>
+              <span className='k'>Horario programado</span>
+              <strong>
+                {sellStatus.shift?.schedule
+                  ? `${sellStatus.shift.schedule}${sellStatus.shift.inferred ? ' (por la hora de apertura)' : ''}`
+                  : sellStatus.shift?.outsideSchedule
+                    ? 'Fuera de horario'
+                    : 'Sin horario programado'}
+              </strong>
+            </span>
+            {sellStatus.shift && (
+              <span className={`modal-sale-statusbar__chip ${sellStatus.expired || !sellStatus.canSell ? 'late' : 'ok'}`}>
+                {!sellStatus.canSell
+                  ? sellStatus.why === 'OUTSIDE_SCHEDULE' ? 'No puede vender' : sellStatus.why === 'SHIFT_EXPIRED' ? 'Turno vencido' : 'Sin turno'
+                  : sellStatus.expired ? 'Turno vencido' : 'En horario'}
+              </span>
+            )}
+            {sellStatus.why === 'EXEMPT_ROLE' && <span className='modal-sale-statusbar__chip info'>Rol sin restricción de turno</span>}
+            {sellStatus.why === 'NOT_REQUIRED' && <span className='modal-sale-statusbar__chip info'>Turno no obligatorio</span>}
+          </div>
+        )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

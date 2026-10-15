@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import './SalesSheet.css'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import ModalSheet from './modal-sale-sheet/ModalSheet'
 import WebOrderFulfillmentModal from './WebOrderFulfillmentModal'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
-import CategoriesStorePicker from '../../categories/CategoriesStorePicker'
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -23,24 +24,6 @@ const formatMoney = (value: number | string, symbol = '$') => {
     currency: 'MXN',
     minimumFractionDigits: 2,
   }).format(parsed)
-}
-
-const formatDateTime = (value?: string) => {
-  if (!value) return { date: '—', time: '' }
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return { date: value, time: '' }
-
-  return {
-    date: parsed.toLocaleDateString('es-MX', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }),
-    time: parsed.toLocaleTimeString('es-MX', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
-  }
 }
 
 const statusLabel: Record<string, string> = {
@@ -64,7 +47,9 @@ const SalesSheet: React.FC = () => {
   const [sales, setSales] = useState<any[]>([])
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
   const [search, setSearch] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [companyId, setCompanyId] = useState<number | null>(() => readCompanyId())
+  const userState = useSelector((state: any) => state.user)
   const [sourceFilter, setSourceFilter] = useState<'ALL' | 'WEB' | 'POS'>('ALL')
   const [selectedWebSale, setSelectedWebSale] = useState<any | null>(null)
 
@@ -78,16 +63,19 @@ const SalesSheet: React.FC = () => {
   }, [])
 
   const fetchSales = useCallback(async () => {
-    const companyId = readCompanyId()
-    if (!companyId) {
+    // Empresa del selector o, si no hay ninguna vinculada, la activa de la sesión
+    const effectiveCompanyId =
+      companyId ?? userState?.activeCompanyId ?? userState?.companyId ?? userState?.companyIds?.[0] ?? null
+    if (!effectiveCompanyId) {
       setSales([])
+      setLoading(false)
       return
     }
 
     setLoading(true)
     try {
       const response: any = await APIs.getSales({
-        companyId,
+        companyId: effectiveCompanyId,
         branchId: branchId > 0 ? branchId : undefined,
         source: sourceFilter === 'ALL' ? undefined : sourceFilter,
       })
@@ -99,7 +87,7 @@ const SalesSheet: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [branchId, sourceFilter])
+  }, [branchId, companyId, sourceFilter, userState?.activeCompanyId])
 
   useEffect(() => {
     fetchSales()
@@ -129,14 +117,6 @@ const SalesSheet: React.FC = () => {
     return `${serie}-${folio}`
   }
 
-  const getDeliveryLabel = (sale: any) => {
-    if (sale.source !== 'WEB') return '—'
-    if (sale.deliveryType === 'DELIVERY') {
-      return `Domicilio · ${sale.deliveryColony ?? 'Cancún'}`
-    }
-    return 'Recoger en local'
-  }
-
   const getPaymentLabel = (sale: any) => {
     const payments = sale.payments ?? []
     if (!payments.length) return '—'
@@ -152,194 +132,117 @@ const SalesSheet: React.FC = () => {
     return `${user.firstName ?? ''} ${user.firstLastName ?? ''}`.trim() || '—'
   }
 
+  const statusClass = (sale: any) =>
+    sale.source === 'WEB' && sale.customerOrderStatus
+      ? `is-web-${String(sale.customerOrderStatus).toLowerCase()}`
+      : `is-${String(sale.status ?? 'DRAFT').toLowerCase()}`
+
   return (
-    <div className='sale__sheet'>
-      <div className='sale__sheet_container'>
-        <div className='sale__sheet-toolbar'>
-          <div className='sale__sheet-toolbar-left'>
+    <div className='sales-sheet-list'>
+      <div className='sales-sheet-list__container'>
+        <div className='sales-sheet-list__header'>
+          <div className='sales-sheet-list__header-left'>
             <CategoriesStorePicker
               branchId={branchId}
               onBranchIdChange={persistBranchId}
-              onCompanyIdChange={() => fetchSales()}
+              onCompanyIdChange={(id) => setCompanyId(id)}
             />
-          </div>
-          <div className='sale__sheet-toolbar-right'>
-            <select
-              className='inputs__generic sale__sheet-filter'
-              value={sourceFilter}
-              onChange={(e) =>
-                setSourceFilter(e.target.value as 'ALL' | 'WEB' | 'POS')
-              }
-            >
-              <option value='ALL'>Todas</option>
-              <option value='WEB'>Pedidos web</option>
-              <option value='POS'>Punto de venta</option>
-            </select>
-            <div className='sale__sheet-search'>
-              <div className='inputs__general_icons'>
-                <svg
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='20'
-                  height='20'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  strokeWidth='2'
-                  aria-hidden
-                >
-                  <path d='M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0' />
-                  <path d='M21 21l-6 -6' />
-                </svg>
-                <input
-                  className='inputs__generic'
-                  placeholder='Buscar folio o artículo'
-                  type='text'
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
+            <div className='sales-sheet-list__search'>
+              <span className='sales-sheet-list__search-icon material-symbols-rounded' aria-hidden>search</span>
+              <input
+                className='inputs__general sales-sheet-list__search-input'
+                placeholder='Buscar folio o artículo'
+                aria-label='Buscar ventas'
+                type='text'
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
-            <button
-              type='button'
-              className='btn__general-primary'
-              onClick={() => handleModalChange('sales-sheet_modal')}
-            >
-              Nueva ficha
-            </button>
+            <div className='sales-sheet-list__tabs' role='tablist'>
+              {([['ALL', 'Todas'], ['POS', 'Punto de venta'], ['WEB', 'Pedidos web']] as ['ALL' | 'WEB' | 'POS', string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type='button'
+                  role='tab'
+                  aria-selected={sourceFilter === key}
+                  className={`sales-sheet-list__tab ${sourceFilter === key ? 'sales-sheet-list__tab--active' : ''}`}
+                  onClick={() => setSourceFilter(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
+          <button type='button' className='btn__general-primary' onClick={() => handleModalChange('sales-sheet_modal')}>
+            Ficha de cobro
+          </button>
         </div>
 
-        <div className='table__sales-sheet'>
-          <div>
-            {loading ? (
-              <p className='text sale__sheet-loading'>Cargando ventas...</p>
-            ) : (
-              <div className='table__numbers'>
-                <p className='text'>Total de ventas</p>
-                <div className='quantities_tables'>{filteredSales.length}</div>
-              </div>
-            )}
+        {/* La tabla siempre se ve; el skeleton va dentro */}
+        <div className='sales-sheet-list__list'>
+          <div className='sales-sheet-list__row sales-sheet-list__row--head'>
+            <span>Folio</span>
+            <span>Fecha</span>
+            <span>Artículos</span>
+            <span>Pago</span>
+            <span className='sales-sheet-list__col-amount'>Subtotal</span>
+            <span className='sales-sheet-list__col-amount'>Total</span>
+            <span>Estado</span>
+            <span className='sales-sheet-list__col-actions'>Acción</span>
           </div>
 
-          <div className='table__head'>
-            <div className='thead sales-sheet-list__row'>
-              <div className='th'>
-                <p>Folio</p>
-              </div>
-              <div className='th movil'>
-                <p>Fecha</p>
-              </div>
-              <div className='th movil sales-sheet-list__col--articles'>
-                <p>Artículos</p>
-              </div>
-              <div className='th movil sales-sheet-list__col--money'>
-                <p>Subtotal</p>
-              </div>
-              <div className='th sales-sheet-list__col--money'>
-                <p>Total</p>
-              </div>
-              <div className='th movil'>
-                <p>Pago</p>
-              </div>
-              <div className='th movil'>
-                <p>Cajero</p>
-              </div>
-              <div className='th movil'>
-                <p>Entrega</p>
-              </div>
-              <div className='th sales-sheet-list__col--status'>
-                <p>Estado</p>
-              </div>
-              <div className='th movil'>
-                <p>Acción</p>
-              </div>
+          {loading ? (
+            <TableSkeleton rowClassName='sales-sheet-list__row' cols={[{ pill: true, width: '84px' }, { width: '70%' }, { width: '50%' }, { width: '60%' }, { width: '60%' }, { width: '60%' }, { pill: true, width: '80px' }, { actions: 1 }]} />
+          ) : filteredSales.length === 0 ? (
+            <div className='sales-sheet-list__state'>
+              <p>{search.trim() ? 'No se encontraron ventas con ese criterio' : 'No hay ventas registradas'}</p>
+              <span>Abre la "Ficha de cobro" para registrar una venta.</span>
             </div>
-          </div>
+          ) : (
+            filteredSales.map((sale) => {
+              const when = new Date(sale.createdAt)
+              const dateStr = Number.isNaN(when.getTime())
+                ? sale.createdAt
+                : when.toLocaleString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-          {!loading && filteredSales.length > 0 ? (
-            <div className='table__body'>
-              {filteredSales.map((sale) => {
-                const when = formatDateTime(sale.createdAt)
-                const lines = sale.lines ?? []
-
-                return (
-                  <div className='tbody__container sales-sheet-list__item' key={sale.id}>
-                    <div className='tbody sales-sheet-list__row'>
-                      <div className='td sales-sheet-list__folio'>
-                        <span className='sale__folio-badge'>{getFolioLabel(sale)}</span>
-                      </div>
-                      <div className='td movil sales-sheet-list__date'>
-                        <span className='sale__date-main'>{when.date}</span>
-                        {when.time ? (
-                          <span className='sale__date-sub'>{when.time}</span>
-                        ) : null}
-                      </div>
-                      <div className='td movil sales-sheet-list__articles'>
-                        <span className='sale__items-count'>
-                          {lines.length}{' '}
-                          {lines.length === 1 ? 'artículo' : 'artículos'}
-                        </span>
-                        {lines.length > 0 ? (
-                          <div className='sale__lines-preview'>
-                            {lines.map((line: any) => (
-                              <span className='sale__line-chip' key={line.id}>
-                                {line.quantity}× {line.name}
-                                {line.code ? ` · ${line.code}` : ''}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
-                      </div>
-                      <div className='td movil sale__money sales-sheet-list__col--money'>
-                        {formatMoney(sale.subtotal)}
-                      </div>
-                      <div className='td sale__money sale__money--total sales-sheet-list__col--money'>
-                        {formatMoney(sale.total)}
-                      </div>
-                      <div className='td movil sales-sheet-list__payment'>
-                        {getPaymentLabel(sale)}
-                      </div>
-                      <div className='td movil sales-sheet-list__cashier'>
-                        {getCashierLabel(sale)}
-                      </div>
-                      <div className='td movil sales-sheet-list__delivery'>
-                        {getDeliveryLabel(sale)}
-                      </div>
-                      <div className='td sales-sheet-list__col--status'>
-                        <span
-                          className={`sale__status sale__status--${(sale.status ?? 'DRAFT').toLowerCase()}`}
-                        >
-                          {sale.source === 'WEB' && sale.customerOrderStatus
-                            ? customerOrderStatusLabel[sale.customerOrderStatus] ??
-                              sale.customerOrderStatus
-                            : statusLabel[sale.status] ?? sale.status}
-                        </span>
-                      </div>
-                      <div className='td movil sales-sheet-list__action'>
-                        {sale.source === 'WEB' ? (
-                          <button
-                            type='button'
-                            className='btn__general-purple'
-                            onClick={() => setSelectedWebSale(sale)}
-                          >
-                            Entrega
-                          </button>
-                        ) : (
-                          '—'
-                        )}
-                      </div>
-                    </div>
+              return (
+                <div className='sales-sheet-list__row' key={sale.id}>
+                  <div className='sales-sheet-list__cell' data-label='Folio'>
+                    <span className='sales-sheet-list__tag'>{getFolioLabel(sale)}</span>
                   </div>
-                )
-              })}
-            </div>
-          ) : !loading ? (
-            <p className='text sale__sheet-empty'>
-              {readCompanyId()
-                ? 'No hay ventas registradas. Usa "Nueva ficha" para cobrar.'
-                : 'Selecciona una empresa para ver las ventas.'}
-            </p>
-          ) : null}
+                  <div className='sales-sheet-list__cell sales-sheet-list__cell--muted' data-label='Fecha'>{dateStr}</div>
+                  <div className='sales-sheet-list__cell' data-label='Artículos'>{(sale.lines ?? []).length} art.</div>
+                  <div className='sales-sheet-list__cell sales-sheet-list__cell--muted' data-label='Pago' title={`Cajero: ${getCashierLabel(sale)}`}>
+                    {getPaymentLabel(sale)}
+                  </div>
+                  <div className='sales-sheet-list__cell sales-sheet-list__col-amount' data-label='Subtotal'>{formatMoney(sale.subtotal)}</div>
+                  <div className='sales-sheet-list__cell sales-sheet-list__col-amount sales-sheet-list__cell--strong' data-label='Total'>{formatMoney(sale.total)}</div>
+                  <div className='sales-sheet-list__cell' data-label='Estado'>
+                    <span className={`sales-sheet-list__status ${statusClass(sale)}`}>
+                      {sale.source === 'WEB' && sale.customerOrderStatus
+                        ? customerOrderStatusLabel[sale.customerOrderStatus] ?? sale.customerOrderStatus
+                        : statusLabel[sale.status] ?? sale.status}
+                    </span>
+                  </div>
+                  <div className='sales-sheet-list__cell sales-sheet-list__col-actions'>
+                    {sale.source === 'WEB' ? (
+                      <button
+                        type='button'
+                        className='sales-sheet-list__icon-btn'
+                        onClick={() => setSelectedWebSale(sale)}
+                        title='Gestionar entrega'
+                        aria-label='Gestionar entrega'
+                      >
+                        <span className='material-symbols-rounded'>local_shipping</span>
+                      </button>
+                    ) : (
+                      <span className='sales-sheet-list__none'>—</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
 
         <ModalSheet onSaved={fetchSales} />

@@ -1,82 +1,263 @@
+/* Categorías — todas las clases cuelgan de .categories (notación padre__hijo).
+   Colores con variables del tema: sirve igual en modo claro y oscuro. */
+
 .categories {
-    padding: 20px;
+  width: 100%;
+  min-width: 0;
 }
 
 .categories__container {
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
 }
 
-
-
-.table__categories {
-    margin-top: 20px;
-    border-radius: 10px;
-	text-align: justify;
-    width: 100%;
+.categories__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
 }
 
-
-.table__categories .table__head {
-    display: flex;
-    width: 100%;
-    background-color: #1f2124;
-    color: #f5f6f7;
-    border-radius: 5px 5px 0 0;
+.categories__header-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.table__categories .table__head .thead {
-    display: grid;
-	width: 100%;
-    grid-template-columns: repeat(4, 1fr) 100px 100px;
-	
-    padding: 10px;
-    font-weight: 600;
+.categories__search {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.table__categories .table__body {
-	height: 500px;
-    overflow: hidden;
-    overflow: auto;
-    transition-delay: 0.0s;
-    &::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: #1F319D; 
-        border-radius: 5px;
-        height: 100px;
-    }
-
-    &::-webkit-scrollbar-track {
-    /* Para modificar el background */
-    }
+.categories__search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
+.categories__search .inputs__general.categories__search-input {
+  margin-top: 0;
+  width: 240px;
+  padding-left: 38px;
+}
 
-.table__categories .tbody__container:nth-child(even) {
-    background-color: #13171f;
-    color: #f5f6f7;
+select.categories__filter {
+  width: auto;
+  margin-top: 0;
+  min-width: 130px;
+}
+
+/* ── Tabla en filas ── */
+.categories__list {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.categories__row {
+  display: grid;
+  grid-template-columns: minmax(220px, 2.2fr) minmax(110px, 1fr) 120px 100px 90px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
+}
+
+.categories__row:last-child {
+  border-bottom: none;
+}
+
+.categories__row:not(.categories__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
+}
+
+.categories__row--head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.categories__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.categories__cell--name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.categories__thumb {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--panel-border);
+}
+
+.categories__thumb--empty {
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  color: #fff;
+  background: var(--primary-color);
+  border-color: transparent;
+  font-variation-settings: 'FILL' 1;
+}
+
+.categories__name-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.categories__name-text strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categories__name-text span {
+  font-size: 0.78rem;
+  color: color-mix(in srgb, var(--text-color) 68%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.categories__tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.categories__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.categories__badge--active {
+  color: #047857;
+  background: rgba(5, 150, 105, 0.12);
+}
+
+.categories__badge--inactive {
+  color: #b91c1c;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+[data-theme="dark"] .categories__badge--active {
+  color: #34d399;
+}
+
+[data-theme="dark"] .categories__badge--inactive {
+  color: #f87171;
+}
+
+.categories__col-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.categories__icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.categories__icon-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.categories__icon-btn:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.categories__icon-btn--danger:hover {
+  color: var(--danger-color, #dc2626);
+  border-color: var(--danger-color, #dc2626);
+}
+
+.categories__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.categories__state p {
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 900px) {
+  .categories__row--head {
+    display: none;
   }
-  
-  .table__categories .tbody__container:nth-child(odd) {
-    background-color: var(--two-table-color);
-    color: #f5f6f7;
-   
+
+  .categories__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
   }
 
-  .table__categories .table__body .tbody {
-    display: flex;
-} 
+  .categories__cell[data-label]:not(.categories__cell--name) {
+    grid-column: 1 / -1;
+  }
 
-.table__categories .table__body .tbody {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr) 100px 100px;
-    padding: 10px;
+  .categories__cell[data-label]:not(.categories__cell--name)::before {
+    content: attr(data-label) ': ';
+    color: var(--text-muted);
+  }
 }
 
-.table__categories .table__body .tbody:hover {
-    background-color: var(--secundary-color);
-    color: #fff;
-}
+@media screen and (max-width: 600px) {
+  .categories__container {
+    padding: 16px;
+  }
 
+  .categories__search .inputs__general.categories__search-input {
+    width: 100%;
+  }
+}

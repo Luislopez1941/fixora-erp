@@ -1,0 +1,97 @@
+/* Compuesto con .main a propósito — RootPage.css define ".main { display: block }"
+   con la misma especificidad; sin esto, según el orden de import, ese "block"
+   puede ganarle al "flex" de aquí y desalinear la tarjeta (ya no queda centrada
+   ni vertical ni horizontalmente). */
+.main.setting-up__main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 24px;
+}
+
+.setting-up__card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 40px 36px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.setting-up__icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: rgba(7, 42, 87, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setting-up__icon svg {
+  width: 34px;
+  height: 34px;
+  color: var(--primary-color);
+  animation: setting-up-spin 1.6s linear infinite;
+}
+
+@keyframes setting-up-spin {
+  to { transform: rotate(360deg); }
+}
+
+.setting-up__card h2 {
+  margin: 0 0 10px;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.setting-up__card p {
+  margin: 0 0 28px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.activate-license__input {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.activate-license__input input {
+  text-align: center;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.setting-up__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.setting-up__actions .btn__general-purple {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setting-up__actions .btn__create {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.setting-up__actions .btn__create:hover {
+  color: var(--text-color);
+  text-decoration: underline;
+}

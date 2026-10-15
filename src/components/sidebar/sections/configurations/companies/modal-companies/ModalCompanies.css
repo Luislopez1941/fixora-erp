@@ -1,130 +1,145 @@
-
-
-
 /*=================================================
- 
-  Modal de precios del modal del articulo 
-  
+  Modal "Nueva empresa"
+  Todas las clases cuelgan de .companies_modal (notación padre__hijo)
+  para no chocar con los otros modales, que cargan su CSS de forma global.
 =================================================*/
 
-
-.overlay__companies_modal {
-	background: rgba(0,0,0,.3);
+.companies_modal__overlay {
 	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
+	inset: 0;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	display: flex;
+	background: rgba(7, 20, 40, 0.55);
 	visibility: hidden;
-	z-index: 1;
+	/* Por encima del sidebar (hasta 10000) y del header (2000) */
+	z-index: 10001;
 }
 
-.overlay__companies_modal.active {
+.companies_modal__overlay.active {
 	visibility: visible;
 }
 
-.header__modal {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-
-
-}
-
-
-.popup__companies_modal {
-	background-color: #17191b;  
-	border-radius: 5px;
-	width: 40vw;
-    height: auto;
-	transition: .3s ease all;
+.companies_modal__popup {
+	width: min(860px, 92vw);
+	background-color: var(--modal-bg, var(--card-bg));
+	color: var(--text-color);
+	border: 1px solid var(--panel-border);
+	border-top: 3px solid var(--secondary-color);
+	border-radius: 14px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+	overflow: hidden;
 	transform: scale(0.7);
 	opacity: 0;
-    overflow: hidden;
-}
-
-.administrator-modal {
-    padding: 10px 20px 20px 20px;
-}
-
-
-.popup__companies_modal .btn-cerrar-popup__companies_modal {
-	font-size: 16px;
-	display: block;
 	transition: .3s ease all;
-	color: #BBBBBB;
-    position: absolute;
-    right: 15px;
-    top: 13px;
 }
 
-/* ------------------------- */
-/* ANIMACIONES */
-/* ------------------------- */
-.popup__companies_modal.active {	transform: scale(1); opacity: 1; }
-
-.companies_modal_container {
-	display: grid;
-	gap: 20px;
-	padding: 20px;
+.companies_modal__popup.active {
+	transform: scale(1);
+	opacity: 1;
 }
 
-.companies_modal_container > .row__one {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 20px;
-
+.companies_modal__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	border-bottom: 1px solid var(--panel-border);
+	background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
 }
 
-.companies_modal_container > .row__two {
-    
-}
-
-.companies_modal_container > .row__three {
-    display: flex;
-    justify-content: center;
-}
-
-
-.companies_modal_container > .row__one .search .inputs__general_icons {
+.companies_modal__title {
 	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--primary-color);
 }
 
-.companies_modal_container > .row__two .dropzone {
-	border: 2px dashed #888;
+[data-theme="dark"] .companies_modal__title {
+	color: var(--text-color);
+}
+
+.companies_modal__close {
+	position: absolute;
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	display: block;
+	color: var(--text-muted);
+	transition: .3s ease all;
+}
+
+.companies_modal__close:hover {
+	color: var(--secondary-color);
+}
+
+.companies_modal__close .material-symbols-rounded {
+	font-size: 20px;
+}
+
+.companies_modal__body {
+	display: grid;
+	gap: 22px;
+	padding: 24px;
+}
+
+.companies_modal__fields {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 20px;
+}
+
+.companies_modal__actions {
+	display: flex;
+	justify-content: center;
+}
+
+.companies_modal__actions .btn__general-primary {
+	min-width: 220px;
+}
+
+@media (max-width: 700px) {
+	.companies_modal__fields {
+		grid-template-columns: 1fr;
+	}
+}
+
+.companies_modal__dropzone {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
 	padding: 20px;
 	text-align: center;
-	border-radius: 10px;
+	border: 2px dashed var(--panel-border);
+	border-radius: 12px;
+	background: rgba(7, 42, 87, 0.04);
+	color: var(--text-muted);
 	cursor: pointer;
-	background-color: #1e1f21;
-	color: #bbb;
-  }
-  
-.companies_modal_container > .row__two  .dropzone:hover {
-	border-color: var(--primary-color);
-	border-color: var(--primary-color);
-  }
-  
-.companies_modal_container > .row__two  .dropzone__text {
-	font-size: 14px;
-  }
-  
-.companies_modal_container > .row__two .preview-image {
+	transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.companies_modal__dropzone:hover,
+.companies_modal__dropzone.is-active {
+	border-color: var(--secondary-color);
+	background: rgba(252, 116, 0, 0.06);
+}
+
+.companies_modal__dropzone .material-symbols-rounded {
+	font-size: 32px;
+	color: var(--secondary-color);
+}
+
+.companies_modal__dropzone p {
+	margin: 0;
+	font-size: 0.86rem;
+}
+
+.companies_modal__preview {
 	max-width: 100%;
-	height: auto;
+	max-height: 140px;
 	border-radius: 8px;
-	margin-top: 10px;
-  }
-  
-
-
-
-
-
-
-
+	object-fit: contain;
+}

@@ -1,0 +1,193 @@
+/*=================================================
+  Modal "Grupo de usuarios"
+  Todas las clases cuelgan de .user_groups_modal (notación padre__hijo) para no
+  chocar con los demás modales, que cargan su CSS de forma global.
+=================================================*/
+
+.user_groups_modal__overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(7, 20, 40, 0.55);
+  visibility: hidden;
+  /* Por encima del sidebar (hasta 10000) y del header (2000) */
+  z-index: 10001;
+}
+
+.user_groups_modal__overlay.active {
+  visibility: visible;
+}
+
+.user_groups_modal__popup {
+  position: relative;
+  width: min(560px, 92vw);
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: var(--modal-bg, var(--card-bg));
+  color: var(--text-color);
+  border: 1px solid var(--panel-border);
+  border-top: 3px solid var(--secondary-color);
+  border-radius: 14px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  transform: scale(0.7);
+  opacity: 0;
+  transition: .3s ease all;
+}
+
+.user_groups_modal__popup.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.user_groups_modal__header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  border-bottom: 1px solid var(--panel-border);
+  background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
+}
+
+.user_groups_modal__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+[data-theme="dark"] .user_groups_modal__title {
+  color: var(--text-color);
+}
+
+.user_groups_modal__close {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: .2s ease all;
+}
+
+.user_groups_modal__close .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.user_groups_modal__close:hover {
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.12);
+}
+
+.user_groups_modal__body {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.user_groups_modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: rgba(7, 42, 87, 0.04);
+}
+
+.user_groups_modal__picker {
+  display: flex;
+  gap: 8px;
+}
+
+.user_groups_modal__picker .inputs__general {
+  flex: 1;
+  margin-top: 0;
+}
+
+.user_groups_modal__picker .btn__general-primary {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.user_groups_modal__picker .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.user_groups_modal__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: color-mix(in srgb, var(--text-color) 65%, transparent);
+}
+
+.user_groups_modal__chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.user_groups_modal__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-color);
+}
+
+.user_groups_modal__chip--manager {
+  color: var(--secondary-color);
+  background: rgba(252, 116, 0, 0.1);
+  border-color: rgba(252, 116, 0, 0.3);
+}
+
+.user_groups_modal__chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 50%;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.user_groups_modal__chip button .material-symbols-rounded {
+  font-size: 14px;
+}
+
+.user_groups_modal__chip button:hover {
+  opacity: 1;
+  background: rgba(7, 42, 87, 0.12);
+}
+
+.user_groups_modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}

@@ -1,177 +1,237 @@
-
-
-
 /*=================================================
- 
-  Modal de precios del modal del articulo 
-  
+  Modal de Áreas (crear/editar + miembros)
+  Todas las clases cuelgan de .areas_modal (notación padre__hijo) para no
+  chocar con los demás modales, que cargan su CSS de forma global.
 =================================================*/
 
-
-.overlay__areas_modal {
-	background: rgba(0,0,0,.3);
+.areas_modal__overlay {
 	position: fixed;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
+	inset: 0;
+	display: flex;
 	align-items: center;
 	justify-content: center;
-	display: flex;
+	background: rgba(7, 20, 40, 0.55);
 	visibility: hidden;
-	z-index: 1;
+	/* Por encima del sidebar (hasta 10000) y del header (2000) */
+	z-index: 10001;
 }
 
-.overlay__areas_modal.active {
+.areas_modal__overlay.active {
 	visibility: visible;
 }
 
-.header__modal {
-    display: flex;
-    width: 100%;
-    height: 40px;
-    justify-content: center;
-    align-items: center;
-
-
-}
-
-
-.popup__areas_modal {
-	background-color: #17191b;  
-	border-radius: 5px;
-	max-width: 1000px;
-    height: auto;
-	transition: .3s ease all;
+.areas_modal__popup {
+	position: relative;
+	width: min(640px, 92vw);
+	max-height: 90vh;
+	overflow-y: auto;
+	background-color: var(--modal-bg, var(--card-bg));
+	color: var(--text-color);
+	border: 1px solid var(--panel-border);
+	border-top: 3px solid var(--secondary-color);
+	border-radius: 14px;
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
 	transform: scale(0.7);
 	opacity: 0;
-    overflow: hidden;
-}
-
-.administrator-modal {
-    padding: 10px 20px 20px 20px;
-}
-
-
-.popup__areas_modal .btn-cerrar-popup__areas_modal {
-	font-size: 16px;
-	display: block;
 	transition: .3s ease all;
-	color: #BBBBBB;
-    position: absolute;
-    right: 15px;
-    top: 13px;
 }
 
-/* ------------------------- */
-/* ANIMACIONES */
-/* ------------------------- */
-.popup__areas_modal.active {	transform: scale(1); opacity: 1; }
-
-.areas_modal_container {
-	display: grid;
-	gap: 20px;
-	padding: 20px;
+.areas_modal__popup.active {
+	transform: scale(1);
+	opacity: 1;
 }
 
-.areas_modal_container > .row__one {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr) auto;
-	gap: 20px;
+.areas_modal__header {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	border-bottom: 1px solid var(--panel-border);
+	background: linear-gradient(180deg, rgba(7, 42, 87, 0.08), transparent);
 }
 
-.areas_modal_container > .row__two {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr) auto;
-	gap: 20px;
-}
-
-.areas_modal_container > .row__two {
-    
-}
-
-.areas_modal_container > .row__three {
-    display: flex;
-    justify-content: center;
-}
-
-
-.areas_modal_container > .row__one .search .inputs__general_icons {
+.areas_modal__title {
 	margin: 0;
+	font-size: 1.05rem;
+	font-weight: 600;
+	color: var(--primary-color);
 }
 
-.areas_modal_container > .row__two .dropzone {
-	border: 2px dashed #888;
-	padding: 20px;
-	text-align: center;
-	border-radius: 10px;
+[data-theme="dark"] .areas_modal__title {
+	color: var(--text-color);
+}
+
+.areas_modal__close {
+	position: absolute;
+	right: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 22px;
+	line-height: 1;
+	color: var(--text-muted);
+	transition: .3s ease all;
+}
+
+.areas_modal__close:hover {
+	color: var(--secondary-color);
+}
+
+/* ── Tabs (Información / Miembros) — mismo estilo que ModalUsers/ModalRoles ── */
+.areas_modal__tabs {
+	display: flex;
+	border-bottom: 1px solid var(--modal-overlay-border);
+	padding: 0 20px;
+	background: var(--modal-bg);
+}
+
+.areas_modal__tab {
+	padding: 12px 20px;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--modal-text-faint);
+	background: transparent;
+	border: none;
+	border-bottom: 2px solid transparent;
 	cursor: pointer;
-	background-color: #1e1f21;
-	color: #bbb;
-  }
-  
-.areas_modal_container > .row__two  .dropzone:hover {
-	border-color: var(--primary-color);
-	border-color: var(--primary-color);
-  }
-  
-.areas_modal_container > .row__two  .dropzone__text {
-	font-size: 14px;
-  }
-  
-.areas_modal_container > .row__two .preview-image {
-	max-width: 100%;
-	height: auto;
+	transition: all 0.15s ease;
+}
+
+.areas_modal__tab:hover {
+	color: var(--modal-hover-text);
+}
+
+.areas_modal__tab.active {
+	color: var(--modal-text);
+	border-bottom-color: var(--secondary-color);
+}
+
+
+.areas_modal__body {
+	display: grid;
+	gap: 20px;
+	padding: 20px 24px 24px;
+}
+
+.areas_modal__fields {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 20px;
+}
+
+.areas_modal__actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 4px;
+}
+
+/* ── Miembros del área ── */
+.areas_modal__members {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.areas_modal__member-add {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.areas_modal__member-add .inputs__general {
+	margin-top: 0;
+}
+
+/* Botón "+" cuadrado del mismo alto que el select, en vez de un botón normal
+   con solo un signo de más adentro (se veía chueco/desproporcionado). */
+.areas_modal__member-add .btn__general-primary {
+	flex-shrink: 0;
+	width: 40px;
+	height: 40px;
+	padding: 0;
+	font-size: 1.3rem;
+	font-weight: 400;
+	line-height: 1;
+}
+
+.areas_modal__hint {
+	margin: 0;
+	font-size: 0.85rem;
+	color: var(--modal-text-faint);
+}
+
+.areas_modal__member-list {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	max-height: 180px;
+	overflow-y: auto;
+}
+
+.areas_modal__member-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 8px 8px 12px;
+	background: var(--modal-overlay-bg);
+	border: 1px solid var(--modal-overlay-border);
 	border-radius: 8px;
-	margin-top: 10px;
-  }
-  
+	color: var(--modal-text);
+	font-size: 0.85rem;
+}
 
+/* El botón "Quitar" por defecto es más grande de lo que necesita esta fila
+   compacta — lo achico para que se vea proporcionado, igual que ya se hizo
+   con Editar/Eliminar en la tabla de Áreas. */
+.areas_modal__member-item .btn__general-danger {
+	padding: 5px 10px;
+	font-size: 0.75rem;
+}
 
-  @media screen and (max-width: 768px) {
-
-	.popup__areas_modal {
-		background-color: #17191b;  
-		border-radius: 5px;
-		width: 95vw;
-		height: auto;
-		max-width: 95vh;
-		transition: .3s ease all;
-		transform: scale(0.7);
-		opacity: 0;
-		overflow: hidden;
+@media screen and (max-width: 500px) {
+	.areas_modal__fields {
+		grid-template-columns: 1fr;
 	}
-	
+}
 
-  }
+/* Encabezado y pestañas compactos (mismo diseño que familias) */
+.areas_modal__header {
+	height: 44px;
+}
 
-  
-  @media screen and (max-width: 500px) {
+.areas_modal__title {
+	font-size: 1rem;
+}
 
-	.areas_modal_container > .row__one {
-		display: grid;
-		grid-template-columns: repeat(1, 1fr);
-		gap: 20px;
-	}
-	
-	.areas_modal_container > .row__two {
-		display: grid;
-		grid-template-columns: repeat(1, 1fr);
-		gap: 20px;
-	}
+.areas_modal__tabs {
+	gap: 24px;
+	padding: 0 20px;
+}
 
-  }
+.areas_modal__tab {
+	margin-bottom: -1px;
+	padding: 10px 2px 9px;
+	font-size: 0.86rem;
+	color: var(--text-muted);
+}
 
+.areas_modal__tab.active {
+	color: var(--primary-color);
+	border-bottom-color: var(--primary-color);
+}
 
+.areas_modal__company {
+	display: grid;
+	gap: 16px;
+}
 
-  @media screen and (max-width: 400px) {
-
-
-
-  }
-
-
-
-
-
-
+.areas_modal__static {
+	margin: 0;
+	padding: 10px 12px;
+	border: 1px solid var(--panel-border);
+	border-radius: 8px;
+	background: rgba(7, 42, 87, 0.04);
+	font-size: 0.9rem;
+	color: var(--text-color);
+}
