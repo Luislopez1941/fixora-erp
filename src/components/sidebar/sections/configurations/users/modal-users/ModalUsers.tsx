@@ -191,7 +191,7 @@ const ModalUsers: React.FC<Props> = ({
 
   const [modules, setModules] = useState<ModuleGroup[]>([])
   const [expandedSubmodules, setExpandedSubmodules] = useState<Set<string>>(new Set())
-  const [activeModuleIds, setActiveModuleIds] = useState<string[] | null>(null)
+  const [, setActiveModuleIds] = useState<string[] | null>(null)
 
   const toggleModule = (key: string) => {
     setExpandedModules((prev) => {

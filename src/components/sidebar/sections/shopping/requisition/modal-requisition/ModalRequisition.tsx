@@ -347,7 +347,7 @@ const ModalRequisition: React.FC = () => {
                     <select
                       className='modal-req-select'
                       value={searchState.type}
-                      onChange={(e) => setSearchState(prev => ({ ...prev, type: Number(e.target.value) }))}
+                      onChange={(e) => setSearchState(prev => ({ ...prev, type: Number(e.target.value) as 1 | 2 }))}
                     >
                       <option value={1}>Código</option>
                       <option value={2}>Nombre</option>

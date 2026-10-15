@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import Swal from 'sweetalert2';
 import './PurchaseOrder.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { modal } from '../../../../../redux/state/modals';
@@ -6,7 +7,7 @@ import ModalPurchaseOrder from './modal-purchaseorder/ModalPurchaseOrder';
 import ModalPurchaseOrderDetail from './modal-purchaseorder-detail/ModalPurchaseOrderDetail';
 import APIs from '../../../../../services/APIs';
 import { format } from 'date-fns';
-import { DateRange, DateRangePicker } from 'react-date-range';
+import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
@@ -35,8 +36,8 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
   // Filter States
   const [statusFilter, setStatusFilter] = useState(mode === 'approval' ? 'PENDING' : 0);
   const [folio, setFolio] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page] = useState(1);
+  const [, setTotalPages] = useState(1);
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [branchOffices, setBranchOffices] = useState<any[]>([]);
@@ -278,16 +279,11 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
                     <DateRange
                       ranges={[dateRange]}
                       onChange={item => {
-                        setStartDate(new Date(item.selection.startDate));
-                        setEndDate(new Date(item.selection.endDate));
+                        setStartDate(new Date(item.selection.startDate!));
+                        setEndDate(new Date(item.selection.endDate!));
                       }}
-                      showSelectionPreview={false}
-                      moveRangeOnSelection={false}
-                    >
-                      <DateRangePicker
-                        direction="horizontal"
-                      />
-                    </DateRange>
+                      moveRangeOnFirstSelection={false}
+                    />
                   </div>
                 )}
               </div>

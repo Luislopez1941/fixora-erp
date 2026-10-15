@@ -4,14 +4,12 @@ import ModalTickets from './modal-orders/ModalOrders'
 import { useDispatch } from 'react-redux';
 import { modal } from '../../../../../redux/state/modals'
 import APIs from '../../../../../services/APIs';
-import { useSelector } from 'react-redux';
 import Flatpickr from "react-flatpickr";
 import 'flatpickr/dist/flatpickr.min.css';
 import { Spanish } from 'flatpickr/dist/l10n/es.js';
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 
 const Orders: React.FC = () => {
-  const userState = useSelector((store: any) => store.user);
   const dispatch = useDispatch();
 
   const handleModalChange = (value: string) => {

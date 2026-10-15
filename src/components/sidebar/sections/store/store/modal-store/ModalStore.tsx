@@ -18,7 +18,6 @@ const LS_COMPANY = 'categories-picker-company-id';
 const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) => {
   const dispatch = useDispatch();
   const modalState = useSelector((state: any) => state.modals);
-  const userState = useSelector((store: any) => store.user);
 
   const isOpen = modalState === 'store_modal' || modalState === 'store_modal_update';
   const isUpdate = modalState === 'store_modal_update';
@@ -51,33 +50,6 @@ const ModalStore: React.FC<ModalStoreProps> = ({ selectedWarehouse, onSaved }) =
     return !Number.isNaN(id) && id > 0 ? id : null;
   };
 
-  const resolveNames = async (companyId: number, selectedBranchId: number) => {
-    if (!userState?.id) {
-      throw new Error('Usuario no autenticado');
-    }
-
-    try {
-      const companiesRes: any = await APIs.getCompanies(userState.id);
-      const companies = companiesRes?.data ?? [];
-      const company = companies.find((c: any) => c.id === companyId);
-      let branchName = 'Sin sucursal';
-
-      if (selectedBranchId > 0) {
-        const branchRes: any = await APIs.getBranch({ userId: userState.id, companyId });
-        const branches = branchRes?.data ?? [];
-        const branch = branches.find((b: any) => b.id === selectedBranchId);
-        branchName = branch?.name ?? branchName;
-      }
-
-      return {
-        companyName: company?.name ?? '',
-        branchName,
-      };
-    } catch (error) {
-      console.error('Error resolving names:', error);
-      throw error;
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

@@ -6,7 +6,7 @@ import ModalRequisition from './modal-requisition/ModalRequisition';
 import ModalRequisitionDetail from './modal-detail/ModalRequisitionDetail';
 import APIs from '../../../../../services/APIs';
 import { format } from 'date-fns';
-import { DateRange, DateRangePicker } from 'react-date-range';
+import { DateRange } from 'react-date-range';
 import 'react-date-range/dist/styles.css';
 import 'react-date-range/dist/theme/default.css';
 
@@ -38,8 +38,8 @@ const Requisition: React.FC<RequisitionProps> = ({ mode = 'standard' }) => {
   // Filter States
   const [statusFilter, setStatusFilter] = useState(mode === 'approval' ? 'PENDING' : 0);
   const [folio, setFolio] = useState('');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page] = useState(1);
+  const [, setTotalPages] = useState(1);
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [branchOffices, setBranchOffices] = useState<any[]>([]);
@@ -273,16 +273,11 @@ const Requisition: React.FC<RequisitionProps> = ({ mode = 'standard' }) => {
                     <DateRange
                       ranges={[dateRange]}
                       onChange={item => {
-                        setStartDate(new Date(item.selection.startDate));
-                        setEndDate(new Date(item.selection.endDate));
+                        setStartDate(new Date(item.selection.startDate!));
+                        setEndDate(new Date(item.selection.endDate!));
                       }}
-                      showSelectionPreview={false}
-                      moveRangeOnSelection={false}
-                    >
-                      <DateRangePicker
-                        direction="horizontal"
-                      />
-                    </DateRange>
+                      moveRangeOnFirstSelection={false}
+                    />
                   </div>
                 )}
               </div>

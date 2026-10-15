@@ -62,27 +62,27 @@ class ApiService {
     return response.data;
   }
 
-  public get<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
+  public get<T = any>(path: string, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('GET', url, undefined, config);
   }
 
-  public post<T>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+  public post<T = any>(path: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('POST', url, data, config);
   }
   
-  public put<T>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+  public put<T = any>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('PUT', url, data, config);
   }
 
-  public patch<T>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
+  public patch<T = any>(path: string, data: any, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('PATCH', url, data, config);
   }
 
-  public delete<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
+  public delete<T = any>(path: string, config?: AxiosRequestConfig): Promise<T> {
     const url = `/${path}`;
     return this.request<T>('DELETE', url, undefined, config);
   }

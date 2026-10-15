@@ -25,7 +25,7 @@ const APIs = {
 
   ///////////////////////////////////LICENCIA////////////////////////////////////////////////////
 
-  activateLicense: async (licenseKey: string, token: string) => {
+  activateLicense: async (licenseKey: string, _token: string) => {
     return ConfigurationAPIs.post('licensing/activate-license', { licenseKey });
   },
 
@@ -274,7 +274,7 @@ const APIs = {
     return ConfigurationAPIs.post(path, data);
   },
 
-  getUnits: async (data: { companyId?: number; branchId?: number }, customPath?: string) => {
+  getUnits: async (data: { companyId?: number; branchId?: number } = {}, customPath?: string) => {
     const params = new URLSearchParams();
     if (data.companyId != null) params.set('companyId', String(data.companyId));
     if (data.branchId != null && data.branchId > 0) params.set('branchId', String(data.branchId));
@@ -509,6 +509,11 @@ const APIs = {
     const query = params.toString();
     const path = customPath || `requisitions${query ? `?${query}` : ''}`;
     return ConfigurationAPIs.get(path, config);
+  },
+
+  getTicketById: async (id: string | number, customPath?: string) => {
+    const path = customPath || `tickets/${id}`;
+    return ConfigurationAPIs.get(path);
   },
 
   deleteTicket: async (id: string | number, customPath?: string) => {
@@ -989,7 +994,7 @@ const APIs = {
   },
   // -------------------
 
-  createCategory: async (body: Record<string, unknown>, token: string, customPath?: string) => {
+  createCategory: async (body: Record<string, unknown>, _token: string, customPath?: string) => {
     const path = customPath || 'category/create';
     return ConfigurationAPIs.post(path, body);
   },
@@ -1031,7 +1036,7 @@ const APIs = {
     });
   },
 
-  getCategoryOptions: async (branchId: number | undefined, token: string, customPath?: string, branchIds?: number[]) => {
+  getCategoryOptions: async (branchId: number | undefined, _token: string, customPath?: string, branchIds?: number[]) => {
     const base = customPath || 'category/options-categories';
     const params = new URLSearchParams();
     if (branchId != null && !Number.isNaN(branchId)) params.set('branchId', String(branchId));
@@ -1050,14 +1055,14 @@ const APIs = {
       allowedItemType?: string;
       search?: string;
     },
-    token: string,
+    _token: string,
     customPath?: string
   ) => {
     const path = customPath || 'category/get-categories-familias-filter-level-1';
     return ConfigurationAPIs.post(path, filters);
   },
 
-  getCategoryById: async (id: string | number, token: string, customPath?: string) => {
+  getCategoryById: async (id: string | number, _token: string, customPath?: string) => {
     const path = customPath || `category/${id}`;
     return ConfigurationAPIs.get(path);
   },

@@ -47,24 +47,6 @@ function getBranchIdFromToken(): number | null {
 }
 
 /**
- * Fallback: lee el primer companyId del JWT para sesiones antiguas
- * que no tengan activeCompanyId en Redux/localStorage.
- */
-function getCompanyIdFromToken(): number | null {
-  try {
-    const token = localStorage.getItem('token-fixora')
-    if (!token) return null
-    const parts = token.split('.')
-    if (parts.length < 2) return null
-    const payload = JSON.parse(atob(parts[1]))
-    const ids: number[] = payload.companyIds ?? []
-    return ids.length > 0 ? ids[0] : null
-  } catch {
-    return null
-  }
-}
-
-/**
  * Verifica si el usuario tiene un permiso.
  * `.manage` y `.create` de un módulo cubren `.view` del mismo módulo.
  */

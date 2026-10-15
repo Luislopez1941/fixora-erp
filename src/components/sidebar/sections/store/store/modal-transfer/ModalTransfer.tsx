@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import './ModalTransfer.css'
 import { useDispatch } from 'react-redux'
-import { modal } from '../../../../../redux/state/modals'
+import { modal } from '../../../../../../redux/state/modals'
 
 interface ModalTransferProps {
   onSaved?: () => void
