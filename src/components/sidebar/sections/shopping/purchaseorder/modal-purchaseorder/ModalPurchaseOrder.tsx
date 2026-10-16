@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { modal } from '../../../../../../redux/state/modals';
 import APIs from '../../../../../../services/APIs';
@@ -16,7 +16,42 @@ interface PurchaseOrderItem {
   comments: string;
   code?: string;
   name?: string;
+  // Unidades propias del artículo (cuando viene de la búsqueda); si no, se usa la lista general de la empresa
+  units?: any[];
 }
+
+// Campo numérico que deja borrar todo el contenido mientras se escribe (un <input type="number"> ligado directo a Number()
+// regresa siempre a "0" al vaciarlo). El texto se guarda aparte y al estado sale el número; vacío cuenta como 0.
+const NumericInput: React.FC<{
+  value: number;
+  onValueChange: (value: number) => void;
+  className?: string;
+  min?: number;
+}> = ({ value, onValueChange, className, min = 0 }) => {
+  const [text, setText] = useState(value === 0 ? '' : String(value));
+
+  // Si el valor cambia desde fuera (carga de una orden, requisición…), se refleja en el texto
+  useEffect(() => {
+    if (Number(text || 0) !== Number(value)) setText(value === 0 ? '' : String(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <input
+      type='number'
+      inputMode='decimal'
+      min={min}
+      className={className}
+      placeholder='0'
+      value={text}
+      onFocus={(e) => e.target.select()}
+      onChange={(e) => {
+        setText(e.target.value);
+        onValueChange(e.target.value === '' ? 0 : Number(e.target.value));
+      }}
+    />
+  );
+};
 
 const ModalPurchaseOrder: React.FC = () => {
   const dispatch = useDispatch();
@@ -54,41 +89,88 @@ const ModalPurchaseOrder: React.FC = () => {
 
   // Items Table
   const [items, setItems] = useState<PurchaseOrderItem[]>([]);
-  const [currentItem, setCurrentItem] = useState({
-    productId: undefined,
-    quantity: 0,
-    unitId: 0,
-    storeId: 0,
-    price: 0,
-    discount: 0,
-    ivaOn: false,
-    comments: '',
-    code: '',
-    name: ''
-  });
+  // Búsqueda de artículos (igual que en Requisiciones): se busca con la lupa y los resultados salen en un dropdown
+  const [searchState, setSearchState] = useState({ type: 1 as 1 | 2, field: '' }); // 1: código, 2: nombre
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const searchWrapRef = useRef<HTMLDivElement>(null);
 
-  const loadInitialData = async () => {
+  // Catálogos del modal (empresas, proveedores de flete, unidades). Al crear una orden con una sola empresa, se elige sola.
+  const loadInitialData = async (autoSelectCompany: boolean) => {
     try {
       const userId = userState?.id || 1;
       const compData = await APIs.getCompaniesByUser(userId);
       const companiesList = Array.isArray(compData) ? compData : (compData?.data || []);
       setCompanies(companiesList);
-      // Alta con una sola empresa (o la activa de la sesión si no hay lista): se elige sola.
-      if (!window.location.pathname.match(/\d+$/) && !isEditMode) {
+      if (autoSelectCompany) {
         const onlyCompanyId = companiesList.length === 1
           ? companiesList[0].id
           : companiesList.length === 0 ? (userState?.activeCompanyId ?? userState?.companyId ?? 0) : 0;
         if (onlyCompanyId) await handleCompanyChange(onlyCompanyId);
       }
 
-      const supplData = await APIs.getSuppliers({ id_usuario: userId, is_flete: true });
+      const supplData: any = await APIs.getSuppliers({ id_usuario: userId, is_flete: true });
       setSuppliers(Array.isArray(supplData) ? supplData : (supplData?.data || []));
-
-      const unitsData = await APIs.getUnits();
-      setUnits(Array.isArray(unitsData) ? unitsData : (unitsData?.data || []));
     } catch (e) {
       console.error('Error loading initial data', e);
     }
+  };
+
+  // Unidades de la empresa/sucursal elegidas (sin empresa el backend no devuelve ninguna, por eso antes el select quedaba vacío)
+  useEffect(() => {
+    if (!modalActive || !selectedCompany) {
+      setUnits([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const response: any = await APIs.getUnits({ companyId: selectedCompany, branchId: selectedBranch || undefined });
+        if (!cancelled) setUnits(Array.isArray(response) ? response : (response?.data || []));
+      } catch (e) {
+        console.error('Error loading units', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [modalActive, selectedCompany, selectedBranch]);
+
+  // Sucursales de una empresa (para el select); devuelve la lista
+  const loadBranches = async (companyId: number): Promise<any[]> => {
+    try {
+      const userId = userState?.id || 1;
+      const response = await APIs.getBranchOffices(companyId, userId);
+      const branchesList = Array.isArray(response) ? response : (response?.data || []);
+      setBranchOffices(branchesList);
+      return branchesList;
+    } catch (e) {
+      console.error('Error loading branches', e);
+      setBranchOffices([]);
+      return [];
+    }
+  };
+
+  // Deja el formulario en blanco (cada vez que se abre el modal)
+  const resetForm = () => {
+    setSelectedCompany(0);
+    setSelectedBranch(0);
+    setBranchOffices([]);
+    setArrivalDate('');
+    setQuote('');
+    setBill('');
+    setPurchaseType(0);
+    setFreightProvider(0);
+    setFreightCost(0);
+    setSumFreight(false);
+    setFreightComments('');
+    setGeneralComments('');
+    setItems([]);
+    setRequisitions([]);
+    setReqStartDate('');
+    setReqEndDate('');
+    setSearchState({ type: 1, field: '' });
+    setSearchResults([]);
+    setSearched(false);
   };
 
   const loadPurchaseOrder = async (id: number) => {
@@ -99,6 +181,7 @@ const ModalPurchaseOrder: React.FC = () => {
       if (!po) throw new Error('Order not found');
 
       setSelectedCompany(po.companyId);
+      await loadBranches(po.companyId);
       setSelectedBranch(po.branchId);
       setArrivalDate(po.arrivalDate ? new Date(po.arrivalDate).toISOString().split('T')[0] : '');
       setQuote(po.quote || '');
@@ -132,29 +215,32 @@ const ModalPurchaseOrder: React.FC = () => {
     }
   };
 
+  // Cada vez que se abre el modal: formulario limpio y datos frescos (antes solo se cargaba una vez, al montar la página,
+  // cuando el usuario de la sesión todavía podía no estar listo y los selects quedaban vacíos)
   useEffect(() => {
-    loadInitialData();
+    if (!modalActive) return;
+    resetForm();
     const id = localStorage.getItem('selected_po_id');
     if (id) {
       setIsEditMode(true);
       setPoId(Number(id));
-      loadPurchaseOrder(Number(id));
+      loadInitialData(false).then(() => loadPurchaseOrder(Number(id)));
+    } else {
+      setIsEditMode(false);
+      setPoId(null);
+      loadInitialData(true);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [modalActive, userState?.id]);
 
   const handleCompanyChange = async (companyId: number) => {
     setSelectedCompany(companyId);
     setSelectedBranch(0);
-    try {
-      const userId = userState?.id || 1;
-      const response = await APIs.getBranchOffices(companyId, userId);
-      const branchesList = Array.isArray(response) ? response : (response?.data || []);
-      setBranchOffices(branchesList);
-      // Con una sola sucursal se elige sola.
-      if (branchesList.length === 1) setSelectedBranch(branchesList[0].id);
-    } catch (e) {
-      console.error('Error loading branches', e);
-    }
+    setBranchOffices([]);
+    if (!companyId) return;
+    const branchesList = await loadBranches(companyId);
+    // Con una sola sucursal se elige sola.
+    if (branchesList.length === 1) setSelectedBranch(branchesList[0].id);
   };
 
   const filterRequisitions = async () => {
@@ -229,20 +315,76 @@ const ModalPurchaseOrder: React.FC = () => {
     }
   };
 
-  const addItem = () => {
-    setItems([...items, { ...currentItem }]);
-    setCurrentItem({
-      productId: undefined,
-      quantity: 0,
-      unitId: 0,
-      storeId: 0,
-      price: 0,
-      discount: 0,
-      ivaOn: false,
-      comments: '',
-      code: '',
-      name: ''
-    });
+  const runSearch = async () => {
+    const term = searchState.field.trim();
+    if (!term) {
+      setSearchResults([]);
+      setSearched(false);
+      return;
+    }
+    if (!selectedBranch) {
+      setSearchResults([]);
+      setSearched(true);
+      return;
+    }
+    const isCodeSearch = searchState.type === 1;
+    setSearching(true);
+    try {
+      // El artículo se busca con la empresa y la sucursal elegidas arriba
+      const response: any = await APIs.getProducts(isCodeSearch ? term : '', !isCodeSearch ? term : '', undefined, {
+        companyId: selectedCompany || undefined,
+        branchId: selectedBranch || undefined,
+      });
+      setSearchResults(response?.data ?? []);
+    } catch (error) {
+      console.error('Error searching products:', error);
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+      setSearched(true);
+    }
+  };
+
+  const closeResults = () => {
+    setSearchResults([]);
+    setSearched(false);
+  };
+
+  // Cierra el dropdown al hacer clic fuera del buscador
+  useEffect(() => {
+    if (!searchResults.length && !searched) return;
+    const onDown = (event: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(event.target as Node)) closeResults();
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [searchResults.length, searched]);
+
+  // Al cambiar de empresa o sucursal los resultados anteriores ya no aplican
+  useEffect(() => {
+    closeResults();
+  }, [selectedCompany, selectedBranch]);
+
+  // Elegir un artículo del dropdown lo agrega a la orden con cantidad 1; el precio y el resto se ajustan en la tabla
+  const addProduct = (product: any) => {
+    setItems((prev) => [
+      ...prev,
+      {
+        productId: product.id,
+        code: product.code ?? '',
+        name: product.name ?? '',
+        quantity: 1,
+        unitId: product.productUnits?.[0]?.unit?.id ?? product.productUnits?.[0]?.unitId ?? 0,
+        units: product.productUnits ?? [],
+        storeId: product.stores?.[0]?.id ?? product.productStores?.[0]?.storeId ?? 0,
+        price: Number(product.cost ?? 0),
+        discount: 0,
+        ivaOn: false,
+        comments: '',
+      },
+    ]);
+    setSearchState((prev) => ({ ...prev, field: '' }));
+    closeResults();
   };
 
   const removeItem = (index: number) => {
@@ -277,6 +419,11 @@ const ModalPurchaseOrder: React.FC = () => {
     const newItems = [...items];
     newItems[index].comments = comments;
     setItems(newItems);
+  };
+
+  const closeModal = () => {
+    localStorage.removeItem('selected_po_id');
+    dispatch(modal(''));
   };
 
   const calculateTotals = () => {
@@ -315,7 +462,8 @@ const ModalPurchaseOrder: React.FC = () => {
         freightComments: freightComments,
         comments: generalComments,
         userId: userState?.id || 1,
-        items: items
+        // Las unidades propias del artículo solo sirven para el select de la tabla; no se mandan al backend
+        items: items.map(({ units: _units, ...item }) => item),
       };
 
       let response;
@@ -353,7 +501,7 @@ const ModalPurchaseOrder: React.FC = () => {
               </label>
             </div>
           </div>
-          <button className='close-btn' onClick={() => dispatch(modal(''))}>
+          <button className='close-btn' onClick={closeModal}>
             <span className="material-symbols-rounded">close</span>
           </button>
         </div>
@@ -404,11 +552,11 @@ const ModalPurchaseOrder: React.FC = () => {
               </div>
               <div className='input-group'>
                 <label>Costo Flete</label>
-                <input type="number" value={freightCost} onChange={(e) => setFreightCost(Number(e.target.value))} />
+                <NumericInput value={freightCost} onValueChange={setFreightCost} />
               </div>
               <div className='input-group checkbox-group'>
-                <label>Sumar al Total</label>
-                <input type="checkbox" checked={sumFreight} onChange={(e) => setSumFreight(e.target.checked)} />
+                <label htmlFor='po-sum-freight'>Sumar el flete al total</label>
+                <input id='po-sum-freight' type="checkbox" checked={sumFreight} onChange={(e) => setSumFreight(e.target.checked)} />
               </div>
               <div className='input-group full-width'>
                 <label>Comentarios Flete</label>
@@ -426,31 +574,71 @@ const ModalPurchaseOrder: React.FC = () => {
             <h4>Artículos</h4>
             {purchaseType === 0 ? (
               <>
-                <div className='item-entry-grid'>
+                <div className='po-search-controls'>
                   <div className='input-group'>
-                    <label>Artículo</label>
-                    <input type="text" value={currentItem.name} onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})} placeholder="Buscar artículo..." />
-                  </div>
-                  <div className='input-group'>
-                    <label>Cantidad</label>
-                    <input type="number" value={currentItem.quantity} onChange={(e) => setCurrentItem({...currentItem, quantity: Number(e.target.value)})} />
-                  </div>
-                  <div className='input-group'>
-                    <label>Unidad</label>
-                    <select value={currentItem.unitId} onChange={(e) => setCurrentItem({...currentItem, unitId: Number(e.target.value)})}>
-                      <option value={0}>Seleccione</option>
-                      {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                    <label>Buscar por</label>
+                    <select
+                      value={searchState.type}
+                      onChange={(e) => setSearchState((prev) => ({ ...prev, type: Number(e.target.value) as 1 | 2 }))}
+                    >
+                      <option value={1}>Código</option>
+                      <option value={2}>Nombre</option>
                     </select>
                   </div>
-                  <div className='input-group'>
-                    <label>Precio Unit.</label>
-                    <input type="number" value={currentItem.price} onChange={(e) => setCurrentItem({...currentItem, price: Number(e.target.value)})} />
+                  <div className='input-group po-search-wrap' ref={searchWrapRef}>
+                    <label>Término de búsqueda</label>
+                    <div className='po-search-row'>
+                      <input
+                        type='text'
+                        placeholder='Escribe y presiona la lupa para buscar...'
+                        value={searchState.field}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSearchState((prev) => ({ ...prev, field: val }));
+                          if (!val.trim()) closeResults();
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            runSearch();
+                          } else if (e.key === 'Escape') {
+                            closeResults();
+                          }
+                        }}
+                      />
+                      <button
+                        type='button'
+                        className='po-search-btn'
+                        onClick={runSearch}
+                        disabled={searching}
+                        title='Buscar producto'
+                        aria-label='Buscar producto'
+                      >
+                        <span className='material-symbols-rounded'>{searching ? 'progress_activity' : 'search'}</span>
+                      </button>
+                    </div>
+                    {(searchResults.length > 0 || (searched && !searching)) && (
+                      <div className='po-results'>
+                        {searchResults.length > 0 && (
+                          <div className='po-results-head'>{searchResults.length} {searchResults.length === 1 ? 'resultado' : 'resultados'}</div>
+                        )}
+                        {searchResults.length === 0 ? (
+                          <div className='po-result-empty'>{selectedBranch ? 'No se encontraron productos en esta sucursal' : 'Selecciona primero la empresa y la sucursal'}</div>
+                        ) : searchResults.map((product: any) => (
+                          <button type='button' key={product.id} className='po-result-item' onClick={() => addProduct(product)}>
+                            {product.images?.[0] && (
+                              <img src={product.images[0]} alt='' className='po-result-img' onError={(e: any) => { e.target.style.display = 'none'; }} />
+                            )}
+                            <div className='po-result-info'>
+                              <span className='po-result-name'>{product.name}</span>
+                              <span className='po-result-code'>{product.code}</span>
+                            </div>
+                            <span className='po-result-add material-symbols-rounded' aria-hidden>add_circle</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  <div className='input-group'>
-                    <label>IVA</label>
-                    <input type="checkbox" checked={currentItem.ivaOn} onChange={(e) => setCurrentItem({...currentItem, ivaOn: e.target.checked})} />
-                  </div>
-                  <button className='add-item-btn' onClick={addItem}>Agregar</button>
                 </div>
               </>
             ) : (
@@ -522,53 +710,54 @@ const ModalPurchaseOrder: React.FC = () => {
                 <tbody>
                   {items.map((item, index) => (
                     <tr key={index}>
-                      <td>{item.name || item.code || 'N/A'}</td>
-                      <td>
-                        <input
-                          type="number"
+                      <td className="cell-name" data-label="Artículo">{item.name || item.code || 'N/A'}</td>
+                      <td data-label="Cantidad">
+                        <NumericInput
                           value={item.quantity}
-                          onChange={(e) => updateItemQuantity(index, Number(e.target.value))}
+                          onValueChange={(v) => updateItemQuantity(index, v)}
                           className="item-input"
                         />
                       </td>
-                      <td>
+                      <td data-label="Unidad">
                         <select
                           value={item.unitId}
                           onChange={(e) => updateItemUnit(index, Number(e.target.value))}
                           className="item-input"
                         >
                           <option value={0}>Seleccione</option>
-                          {units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                          {item.units && item.units.length > 0
+                            ? item.units.map((u: any) => (
+                                <option key={u.unit?.id ?? u.id} value={u.unit?.id ?? u.id}>{u.unit?.name || u.name}</option>
+                              ))
+                            : units.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                         </select>
                       </td>
-                      <td>
-                        <input
-                          type="number"
+                      <td data-label="Precio">
+                        <NumericInput
                           value={item.price}
-                          onChange={(e) => updateItemPrice(index, Number(e.target.value))}
+                          onValueChange={(v) => updateItemPrice(index, v)}
                           className="item-input"
                         />
                       </td>
-                      <td>
-                        <input
-                          type="number"
+                      <td data-label="Descuento">
+                        <NumericInput
                           value={item.discount}
-                          onChange={(e) => {
+                          onValueChange={(v) => {
                             const newItems = [...items];
-                            newItems[index].discount = Number(e.target.value);
+                            newItems[index].discount = v;
                             setItems(newItems);
                           }}
                           className="item-input"
                         />
                       </td>
-                      <td className="text-center">
+                      <td className="text-center" data-label="IVA">
                         <input
                           type="checkbox"
                           checked={item.ivaOn}
                           onChange={(e) => updateItemIva(index, e.target.checked)}
                         />
                       </td>
-                      <td>
+                      <td data-label="Comentarios">
                         <input
                           type="text"
                           value={item.comments}
@@ -576,8 +765,8 @@ const ModalPurchaseOrder: React.FC = () => {
                           className="item-input"
                         />
                       </td>
-                      <td>${(item.quantity * item.price - item.discount).toFixed(2)}</td>
-                      <td>
+                      <td data-label="Total">${(item.quantity * item.price - item.discount).toFixed(2)}</td>
+                      <td className="cell-actions">
                         <button className='remove-btn' onClick={() => removeItem(index)}>
                           <span className="material-symbols-rounded">delete</span>
                         </button>
@@ -614,10 +803,7 @@ const ModalPurchaseOrder: React.FC = () => {
         </div>
 
         <div className='modal-footer'>
-          <button className='cancel-btn' onClick={() => {
-            dispatch(modal(''));
-            localStorage.removeItem('selected_po_id');
-          }}>Cancelar</button>
+          <button className='cancel-btn' onClick={closeModal}>Cancelar</button>
           <button className='save-btn' disabled={loading} onClick={handleSave}>
             {loading ? 'Guardando...' : isEditMode ? 'Actualizar Orden de Compra' : 'Crear Orden de Compra'}
           </button>

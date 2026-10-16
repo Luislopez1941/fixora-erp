@@ -4,6 +4,7 @@ import Swal from 'sweetalert2'
 import APIs from '../../../../../services/APIs'
 import IOSSwitch from '../../catalogos/shared/IOSSwitch'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
+import ReturnRulesPanel from './ReturnRulesPanel'
 import './PosConfig.css'
 
 interface PosConfigForm {
@@ -253,6 +254,8 @@ const PosConfig = () => {
             </>
           )}
         </section>
+
+        {companyId > 0 ? <ReturnRulesPanel companyId={companyId} /> : null}
 
         <p className='pos-config__hint pos-config__hint--standalone'>
           Las formas de pago disponibles se administran en Catálogos &gt; Métodos de pago. Color, talla, rango,

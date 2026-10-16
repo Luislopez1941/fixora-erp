@@ -330,6 +330,27 @@ const APIs = {
     const path = customPath || 'products/create';
     return ConfigurationAPIs.post(path, data);
   },
+  // Búsqueda rápida de la ficha de venta: una sola consulta en el servidor, solo lo que pinta la lista
+  searchProducts: async (
+    mode: 'code' | 'name',
+    q: string,
+    filters: { companyId?: number; branchId?: number; storeId?: number },
+    signal?: AbortSignal,
+  ) => {
+    const params = new URLSearchParams({ mode, q })
+    if (filters.companyId != null && filters.companyId > 0) params.set('companyId', String(filters.companyId))
+    if (filters.branchId != null && filters.branchId > 0) params.set('branchId', String(filters.branchId))
+    if (filters.storeId != null && filters.storeId > 0) params.set('storeId', String(filters.storeId))
+    return ConfigurationAPIs.get(`products/search?${params.toString()}`, { signal })
+  },
+  // Artículo completo (variaciones, rangos, existencias por almacén) del resultado elegido
+  getProductForSale: async (id: number, filters: { branchId?: number; storeId?: number }) => {
+    const params = new URLSearchParams()
+    if (filters.branchId != null && filters.branchId > 0) params.set('branchId', String(filters.branchId))
+    if (filters.storeId != null && filters.storeId > 0) params.set('storeId', String(filters.storeId))
+    const query = params.toString()
+    return ConfigurationAPIs.get(`products/sale/${id}${query ? `?${query}` : ''}`)
+  },
   getProducts: async (
     code: string,
     name: string,
@@ -350,6 +371,140 @@ const APIs = {
     return ConfigurationAPIs.get(path)
   },
 
+
+  ///////////////////////////////////COTIZACIONES////////////////////////////////////////////////////
+
+  getCustomers: async (companyId: number, customPath?: string) => {
+    const path = customPath || `customers?companyId=${companyId}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  createCustomer: async (data: any, customPath?: string) => {
+    const path = customPath || 'customers/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  updateCustomer: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `customers/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
+  deleteCustomer: async (id: number, customPath?: string) => {
+    const path = customPath || `customers/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  createQuotation: async (data: any, customPath?: string) => {
+    const path = customPath || 'quotations/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  updateQuotation: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `quotations/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
+  deleteQuotation: async (id: number, customPath?: string) => {
+    const path = customPath || `quotations/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  getQuotationById: async (id: number, customPath?: string) => {
+    const path = customPath || `quotations/${id}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  updateQuotationStatus: async (id: number, status: string, customPath?: string) => {
+    const path = customPath || `quotations/${id}/status`;
+    return ConfigurationAPIs.patch(path, { status });
+  },
+
+  getQuotations: async (
+    data: {
+      companyId?: number;
+      branchId?: number;
+      status?: string;
+      page?: number;
+      folio?: string;
+      desde?: string;
+      hasta?: string;
+    },
+    customPath?: string,
+  ) => {
+    const params = new URLSearchParams();
+    if (data.companyId != null && data.companyId > 0) params.set('companyId', String(data.companyId));
+    if (data.branchId != null && data.branchId > 0) params.set('branchId', String(data.branchId));
+    if (data.status != null) params.set('status', String(data.status));
+    if (data.page != null) params.set('page', String(data.page));
+    if (data.folio) params.set('folio', data.folio);
+    if (data.desde) params.set('desde', data.desde);
+    if (data.hasta) params.set('hasta', data.hasta);
+    const query = params.toString();
+    const path = customPath || `quotations/get${query ? `?${query}` : ''}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  ///////////////////////////////////ORDENES DE VENTA////////////////////////////////////////////////////
+
+  createSalesOrder: async (data: any, customPath?: string) => {
+    const path = customPath || 'sales-orders/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+
+  createSalesOrderFromQuotation: async (quotationId: number, customPath?: string) => {
+    const path = customPath || `sales-orders/from-quotation/${quotationId}`;
+    return ConfigurationAPIs.post(path, {});
+  },
+
+  updateSalesOrder: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `sales-orders/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+
+  deleteSalesOrder: async (id: number, customPath?: string) => {
+    const path = customPath || `sales-orders/${id}`;
+    return ConfigurationAPIs.delete(path);
+  },
+
+  getSalesOrderById: async (id: number, customPath?: string) => {
+    const path = customPath || `sales-orders/${id}`;
+    return ConfigurationAPIs.get(path);
+  },
+
+  updateSalesOrderStatus: async (id: number, status: string, customPath?: string) => {
+    const path = customPath || `sales-orders/${id}/status`;
+    return ConfigurationAPIs.patch(path, { status });
+  },
+
+  updateSalesOrderItemDelivery: async (itemId: number, deliveredQuantity: number, customPath?: string) => {
+    const path = customPath || `sales-orders/items/${itemId}/delivery`;
+    return ConfigurationAPIs.patch(path, { deliveredQuantity });
+  },
+
+  getSalesOrders: async (
+    data: {
+      companyId?: number;
+      branchId?: number;
+      status?: string;
+      page?: number;
+      folio?: string;
+      desde?: string;
+      hasta?: string;
+    },
+    customPath?: string,
+  ) => {
+    const params = new URLSearchParams();
+    if (data.companyId != null && data.companyId > 0) params.set('companyId', String(data.companyId));
+    if (data.branchId != null && data.branchId > 0) params.set('branchId', String(data.branchId));
+    if (data.status != null) params.set('status', String(data.status));
+    if (data.page != null) params.set('page', String(data.page));
+    if (data.folio) params.set('folio', data.folio);
+    if (data.desde) params.set('desde', data.desde);
+    if (data.hasta) params.set('hasta', data.hasta);
+    const query = params.toString();
+    const path = customPath || `sales-orders/get${query ? `?${query}` : ''}`;
+    return ConfigurationAPIs.get(path);
+  },
 
   ///////////////////////////////////ORDENES DE COMPRA////////////////////////////////////////////////////
 
@@ -468,6 +623,7 @@ const APIs = {
       hasta?: string;
       id_serie?: number;
       id_area?: number;
+      id_area_type?: number;
     },
     config?: any,
     customPath?: string,
@@ -505,6 +661,9 @@ const APIs = {
     }
     if (data.id_area != null && data.id_area > 0) {
       params.set('areaId', String(data.id_area));
+    }
+    if (data.id_area_type != null && data.id_area_type > 0) {
+      params.set('areaTypeId', String(data.id_area_type));
     }
     const query = params.toString();
     const path = customPath || `requisitions${query ? `?${query}` : ''}`;
@@ -581,6 +740,23 @@ const APIs = {
     const query = params.toString();
     const path = customPath || `sales/get${query ? `?${query}` : ''}`;
     return ConfigurationAPIs.get(path);
+  },
+
+  // Cancelaciones y devoluciones de ventas
+  getSaleReturnsOverview: async (saleId: number) => {
+    return ConfigurationAPIs.get(`sales/${saleId}/returns`);
+  },
+  createSaleReturn: async (saleId: number, data: any) => {
+    return ConfigurationAPIs.post(`sales/${saleId}/returns`, data);
+  },
+  cancelSale: async (saleId: number, data: { reason: string; notes?: string; idempotencyKey?: string }) => {
+    return ConfigurationAPIs.patch(`sales/${saleId}/cancel`, data);
+  },
+  getSaleReturnConfig: async (companyId: number) => {
+    return ConfigurationAPIs.get(`sales/returns/config?companyId=${companyId}`);
+  },
+  updateSaleReturnConfig: async (companyId: number, data: { returnWindowDays?: number; returnSupervisorAmount?: number | null }) => {
+    return ConfigurationAPIs.put(`sales/returns/config?companyId=${companyId}`, data);
   },
 
   updateSaleFulfillment: async (

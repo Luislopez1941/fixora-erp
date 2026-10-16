@@ -1,0 +1,30 @@
+/* Órdenes de venta: lo demás sale de Requisition.css (.reqs__*) y Quotation.css (.quote-name, .quote-pager) */
+.so-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.so-progress__bar {
+  flex: 1;
+  min-width: 40px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+.so-progress__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--primary-color);
+  transition: width 0.3s ease;
+}
+
+.so-progress small {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}

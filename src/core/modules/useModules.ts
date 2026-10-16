@@ -185,6 +185,10 @@ export function useModules() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeBranchId, isOwner, companyIds.join(','), allBranchIds.join(',')])
 
+  // Un módulo está activo si la licencia trae su clave o la de algún módulo que lo incluye (ver includedIn)
+  const isModuleActive = (m: ModuleManifest, ids: string[]) =>
+    ids.includes(m.key) || (m.includedIn ?? []).some((key) => ids.includes(key))
+
   const modules = useMemo<ModuleManifest[]>(() => {
     return MODULES
       .filter((m) => m.enabled !== false)
@@ -204,13 +208,13 @@ export function useModules() {
           if (isOwner) {
             // Owners: si el módulo padre está activo, mostrar todos los children
             if (!activeModuleIds) return true
-            return activeModuleIds.includes(m.key)
+            return isModuleActive(m, activeModuleIds)
           }
           // Staff: filtrar por permisos; si el padre está activo, mostrar child
           const hasPerm = hasPermission(userPermissions, child.requiredPermission)
           if (!hasPerm) return false
           if (!activeModuleIds) return true
-          return activeModuleIds.includes(m.key)
+          return isModuleActive(m, activeModuleIds)
         })
 
         return {
@@ -233,7 +237,7 @@ export function useModules() {
         // Owners: ver módulos activos de la empresa (sin restricción de permisos)
         if (isOwner) {
           if (!activeModuleIds) return true
-          return activeModuleIds.includes(m.key)
+          return isModuleActive(m, activeModuleIds)
         }
 
         // Staff: filtrar por permisos del rol
@@ -242,7 +246,7 @@ export function useModules() {
 
         // Filtrar por módulos activos de la empresa
         if (!activeModuleIds) return true
-        return activeModuleIds.includes(m.key)
+        return isModuleActive(m, activeModuleIds)
       })
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
   }, [activeModuleIds, isOwner, userPermissions, companyIds, totalBranches])

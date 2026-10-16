@@ -61,7 +61,7 @@ const ModalUsers: React.FC<Props> = ({
     users: 'Usuarios',
     roles: 'Roles y permisos',
     sales: 'Ventas',
-    cobranza: 'Cobranza',
+    cobranza: 'Cuentas por cobrar',
     shopping: 'Compras',
     cash: 'Caja',
     production: 'Producción',
@@ -118,6 +118,11 @@ const ModalUsers: React.FC<Props> = ({
     view: 'Ver',
     create: 'Crear',
     manage: 'Gestionar',
+    approve: 'Aprobar',
+    override: 'Autorizar fuera de plazo o monto alto',
+    cancel: 'Cancelar',
+    return: 'Devolver',
+    reject: 'Rechazar',
   }
 
   type PermissionItem = {

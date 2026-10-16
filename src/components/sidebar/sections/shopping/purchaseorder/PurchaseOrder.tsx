@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import Swal from 'sweetalert2';
-import './PurchaseOrder.css';
+// Mismo diseño que Requisiciones (filtros compactos, tabla en filas, tarjetas en celular)
+import '../requisition/Requisition.css';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
 import { useDispatch, useSelector } from 'react-redux';
 import { modal } from '../../../../../redux/state/modals';
 import ModalPurchaseOrder from './modal-purchaseorder/ModalPurchaseOrder';
@@ -34,7 +36,7 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
   const [loading, setLoading] = useState(false);
 
   // Filter States
-  const [statusFilter, setStatusFilter] = useState(mode === 'approval' ? 'PENDING' : 0);
+  const [statusFilter, setStatusFilter] = useState<string>(mode === 'approval' ? 'PENDING' : 'ALL');
   const [folio, setFolio] = useState('');
   const [page] = useState(1);
   const [, setTotalPages] = useState(1);
@@ -55,6 +57,9 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
   const [endDate, setEndDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+  // En el celular los selects se esconden detrás del botón "Filtros"
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const activeFilters = [selectedCompany, selectedBranch, selectedType, selectedSerie].filter(Boolean).length;
 
   const dateRange = useMemo(() => ({
     startDate,
@@ -151,13 +156,8 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
     }
   };
 
-  const handleBranchChange = async (branchId: number) => {
+  const handleBranchChange = (branchId: number) => {
     setSelectedBranch(branchId);
-    try {
-      // Purchase orders don't typically filter by area in the main list, but we keep it consistent if needed
-    } catch (e) {
-      console.error('Error loading areas', e);
-    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -218,214 +218,206 @@ const PurchaseOrder: React.FC<PurchaseOrderProps> = ({ mode = 'standard' }) => {
     }
   };
 
-  return (
-    <div className='req-page'>
-      <div className='req-content'>
-        <div className='req-filters-container'>
-          <div className='req-filter-row'>
-            <div className="req-select-container">
-              <label>Empresa</label>
-              <select
-                value={selectedCompany}
-                onChange={(e) => handleCompanyChange(Number(e.target.value))}
-              >
-                <option value={0}>Todas las Empresas</option>
-                {companies.map((c: any) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="req-select-container">
-              <label>Sucursal</label>
-              <select
-                value={selectedBranch}
-                onChange={(e) => handleBranchChange(Number(e.target.value))}
-                disabled={!selectedCompany}
-              >
-                <option value={0}>Todas las Sucursales</option>
-                {branchOffices.map((b: any) => (
-                  <option key={b.id} value={b.id}>{b.name}</option>
-                ))}
-              </select>
-            </div>
-            <div className="req-select-container">
-              <label>Tipo</label>
-              <select
-                value={selectedType}
-                onChange={(e) => setSelectedType(Number(e.target.value))}
-              >
-                <option value={0}>Todos los Tipos</option>
-                {types.map((t: any) => (
-                  <option key={t.id} value={t.id}>{t.nombre}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+  const statusOptions = [
+    { id: 'ALL', label: 'Todas' },
+    { id: 'ACTIVE', label: 'Activas' },
+    { id: 'DRAFT', label: 'Borradores' },
+    { id: 'PENDING', label: 'Pendientes' },
+    { id: 'APPROVED', label: 'Aprobadas' },
+    { id: 'REJECTED', label: 'Rechazadas' },
+    { id: 'PARTIAL', label: 'Parciales' },
+    { id: 'COMPLETED', label: 'Completadas' },
+  ];
 
-          <div className='req-filter-row'>
-            <div className="req-date-container">
-              <label className="req-date-label">Rango de Fechas</label>
-              <div className="date-picker-wrapper" ref={calendarRef}>
-                <div
-                  className="req-date-input"
-                  onClick={() => setShowCalendar(!showCalendar)}
-                  style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>calendar_month</span>
-                </div>
-                {showCalendar && (
-                  <div className="calendar-popover" onClick={(e) => e.stopPropagation()}>
-                    <DateRange
-                      ranges={[dateRange]}
-                      onChange={item => {
-                        setStartDate(new Date(item.selection.startDate!));
-                        setEndDate(new Date(item.selection.endDate!));
-                      }}
-                      moveRangeOnFirstSelection={false}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="req-select-container">
-              <label>Serie</label>
-              <select
-                value={selectedSerie}
-                onChange={(e) => setSelectedSerie(Number(e.target.value))}
-              >
-                <option value={0}>Todas las Series</option>
-                {series.map((s: any) => (
-                  <option key={s.id} value={s.id}>{s.nombre}</option>
-                ))}
-              </select>
-            </div>
-            <div className="req-folio-container">
-              <label className="req-date-label">Folio</label>
+  return (
+    <div className={`reqs ${filtersOpen ? 'reqs--filters-open' : ''}`}>
+      <div className='reqs__container'>
+        <div className='reqs__header'>
+          <div className='reqs__header-left'>
+            <select
+              className='inputs__general reqs__filter'
+              aria-label='Empresa'
+              value={selectedCompany}
+              onChange={(e) => handleCompanyChange(Number(e.target.value))}
+            >
+              <option value={0}>Todas las empresas</option>
+              {companies.map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            <select
+              className='inputs__general reqs__filter'
+              aria-label='Sucursal'
+              value={selectedBranch}
+              onChange={(e) => handleBranchChange(Number(e.target.value))}
+              disabled={!selectedCompany}
+            >
+              <option value={0}>Todas las sucursales</option>
+              {branchOffices.map((b: any) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+            <select
+              className='inputs__general reqs__filter'
+              aria-label='Tipo'
+              value={selectedType}
+              onChange={(e) => setSelectedType(Number(e.target.value))}
+            >
+              <option value={0}>Todos los tipos</option>
+              {types.map((t: any) => (
+                <option key={t.id} value={t.id}>{t.nombre}</option>
+              ))}
+            </select>
+            <select
+              className='inputs__general reqs__filter'
+              aria-label='Serie'
+              value={selectedSerie}
+              onChange={(e) => setSelectedSerie(Number(e.target.value))}
+            >
+              <option value={0}>Todas las series</option>
+              {series.map((s: any) => (
+                <option key={s.id} value={s.id}>{s.nombre}</option>
+              ))}
+            </select>
+          </div>
+          {mode === 'standard' && (
+            <button
+              type='button'
+              className='btn__general-primary'
+              onClick={() => { localStorage.removeItem('selected_po_id'); dispatch(modal('purchase_order_modal')); }}
+            >
+              Nueva orden de compra
+            </button>
+          )}
+        </div>
+
+        <div className='reqs__toolbar'>
+          <div className='reqs__toolbar-left'>
+            <div className='reqs__search'>
+              <span className='reqs__search-icon material-symbols-rounded' aria-hidden>search</span>
               <input
-                className="req-date-input"
-                type="text"
-                placeholder="Ingresa el folio"
+                className='inputs__general reqs__search-input'
+                type='text'
+                placeholder='Buscar por folio'
+                aria-label='Buscar por folio'
                 value={folio}
                 onChange={(e) => setFolio(e.target.value)}
               />
             </div>
-            <div className="req-status-container">
-              {mode === 'standard' && (
-                <div className="req-status-chips">
-                  {[
-                    { id: 'ALL', label: 'Todas' },
-                    { id: 'ACTIVE', label: 'Activas' },
-                    { id: 'DRAFT', label: 'Borradores' },
-                    { id: 'PENDING', label: 'Pendientes' },
-                    { id: 'APPROVED', label: 'Aprobadas' },
-                    { id: 'REJECTED', label: 'Rechazadas' },
-                    { id: 'PARTIAL', label: 'Parciales' },
-                    { id: 'COMPLETED', label: 'Completadas' },
-                  ].map(status => (
-                    <button
-                      key={status.id}
-                      className={`req-status-chip ${statusFilter === status.id ? 'active' : ''}`}
-                      onClick={() => setStatusFilter(status.id)}
-                    >
-                      {status.label}
-                    </button>
-                  ))}
+
+            <div className='reqs__date' ref={calendarRef}>
+              <button type='button' className='reqs__pill-btn' onClick={() => setShowCalendar(!showCalendar)}>
+                <span className='material-symbols-rounded' aria-hidden>calendar_month</span>
+                {format(startDate, 'dd/MM/yyyy')} - {format(endDate, 'dd/MM/yyyy')}
+              </button>
+              {showCalendar && (
+                <div className='reqs__calendar' onClick={(e) => e.stopPropagation()}>
+                  <DateRange
+                    ranges={[dateRange]}
+                    onChange={item => {
+                      setStartDate(new Date(item.selection.startDate!));
+                      setEndDate(new Date(item.selection.endDate!));
+                    }}
+                    moveRangeOnFirstSelection={false}
+                  />
                 </div>
               )}
             </div>
-            <button className="btn-search" onClick={fetchPurchaseOrders}>
-              <span className="material-symbols-rounded">search</span>
+
+            <button
+              type='button'
+              className={`reqs__pill-btn reqs__filters-toggle ${activeFilters ? 'reqs__pill-btn--active' : ''}`}
+              onClick={() => setFiltersOpen(!filtersOpen)}
+              aria-expanded={filtersOpen}
+            >
+              <span className='material-symbols-rounded' aria-hidden>tune</span>
+              Filtros
+              {activeFilters > 0 && <span className='reqs__count'>{activeFilters}</span>}
             </button>
-            {mode === 'standard' && (
-              <button
-                type='button'
-                className='btn-new-req'
-                onClick={() => dispatch(modal('purchase_order_modal'))}
-              >
-                Nueva OC
-              </button>
-            )}
           </div>
+          {mode === 'standard' && (
+            <div className='reqs__chips'>
+              {statusOptions.map(status => (
+                <button
+                  key={status.id}
+                  type='button'
+                  className={`reqs__chip ${statusFilter === status.id ? 'reqs__chip--active' : ''}`}
+                  onClick={() => setStatusFilter(status.id)}
+                >
+                  {status.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className='req-table-wrap'>
-          <div className='req-table'>
-            <div className='req-thead'>
-              <div className='th'>Folio</div>
-              <div className='th'>Tipo</div>
-              <div className='th'>Stat</div>
-              <div className='th'>Fecha</div>
-              <div className='th'>Por</div>
-              <div className='th'>Emp</div>
-              <div className='th'>Suc</div>
-              <div className='th'>Prov</div>
-              <div className='th req-actions'>Acciones</div>
-            </div>
-            <div className='req-tbody'>
-              {loading ? (
-                <div className="req-loading">
-                  <div className="spinner" />
-                  <p>Cargando órdenes de compra...</p>
-                </div>
-              ) : purchaseOrders.length === 0 ? (
-                <div className="req-empty">
-                  <p>No hay órdenes de compra disponibles.</p>
-                </div>
-              ) : (
-                purchaseOrders.map((item, index) => {
-                  const status = getStatusLabel(item.status);
-                  return (
-                    <div className='req-row-wrap' key={item.id || index}>
-                      <div className='req-row'>
-                        <div className='td'>
-                          <span className='req-folio'>{item.serie?.name || 'N/A'}-{item.folio}</span>
-                        </div>
-                        <div className='td'>
-                          <p>{getTypeLabel(item.tipo)}</p>
-                        </div>
-                        <div className='td'>
-                          <span className="req-status-badge" style={{ backgroundColor: status.color + '20', color: status.color }}>
-                            {status.label}
-                          </span>
-                        </div>
-                        <div className='td'>
-                          <p>{item.createdAt ? format(new Date(item.createdAt), 'dd/MM/yyyy') : '—'}</p>
-                        </div>
-                        <div className='td'>
-                          <p>{item.user?.firstName ? `${item.user.firstName} ${item.user.firstLastName}` : '—'}</p>
-                        </div>
-                        <div className='td'>
-                          <p>{item.company?.name || '—'}</p>
-                        </div>
-                        <div className='td'>
-                          <p>{item.branch?.name || '—'}</p>
-                        </div>
-                        <div className='td'>
-                          <p>{item.supplierName || '—'}</p>
-                        </div>
-                        <div className='td req-actions'>
-                          <button className="action-btn view" title="Ver" onClick={() => openView(item.id)}>
-                            <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>visibility</span>
-                          </button>
-                          <button className="action-btn edit" title="Editar" onClick={() => openEdit(item.id)}>
-                            <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>edit</span>
-                          </button>
-                          <button className="action-btn delete" title="Eliminar" onClick={() => handleDelete(item.id)}>
-                            <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>delete</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
+        {/* La tabla siempre se ve; el skeleton va dentro */}
+        <div className='reqs__list'>
+          <div className='reqs__row reqs__row--head'>
+            <span>Folio</span>
+            <span>Tipo</span>
+            <span>Estado</span>
+            <span>Fecha</span>
+            <span>Creó</span>
+            <span>Empresa</span>
+            <span>Sucursal</span>
+            <span>Proveedor</span>
+            <span className='reqs__col-actions'>Acciones</span>
           </div>
+
+          {loading ? (
+            <TableSkeleton
+              rowClassName='reqs__row'
+              cols={[{ avatar: true }, { width: '60%' }, { pill: true }, { width: '70%' }, { width: '70%' }, { width: '65%' }, { width: '65%' }, { width: '60%' }, { actions: 2 }]}
+            />
+          ) : purchaseOrders.length > 0 ? (
+            purchaseOrders.map((item, index) => {
+              const status = getStatusLabel(item.status);
+              return (
+                <div className='reqs__row' key={item.id || index}>
+                  <div className='reqs__cell reqs__cell--name' data-label='Folio'>
+                    <span className='reqs__row-icon material-symbols-rounded' aria-hidden>receipt_long</span>
+                    <strong>{item.serie?.name || 'N/A'}-{item.folio}</strong>
+                  </div>
+                  <div className='reqs__cell' data-label='Tipo'>{getTypeLabel(item.tipo)}</div>
+                  <div className='reqs__cell' data-label='Estado'>
+                    <span className='reqs__badge' style={{ backgroundColor: status.color + '20', color: status.color }}>
+                      {status.label}
+                    </span>
+                  </div>
+                  <div className='reqs__cell reqs__cell--muted' data-label='Fecha'>
+                    {item.createdAt ? format(new Date(item.createdAt), 'dd/MM/yyyy') : '—'}
+                  </div>
+                  <div className='reqs__cell reqs__cell--muted' data-label='Creó'>
+                    {item.user?.firstName ? `${item.user.firstName} ${item.user.firstLastName}` : '—'}
+                  </div>
+                  <div className='reqs__cell' data-label='Empresa'>{item.company?.name || '—'}</div>
+                  <div className='reqs__cell reqs__cell--muted' data-label='Sucursal'>{item.branch?.name || '—'}</div>
+                  <div className='reqs__cell reqs__cell--muted' data-label='Proveedor'>{item.supplierName || '—'}</div>
+                  <div className='reqs__cell reqs__col-actions'>
+                    <button type='button' className='reqs__icon-btn' title='Ver' aria-label='Ver orden de compra' onClick={() => openView(item.id)}>
+                      <span className='material-symbols-rounded'>visibility</span>
+                    </button>
+                    <button type='button' className='reqs__icon-btn' title='Editar' aria-label='Editar orden de compra' onClick={() => openEdit(item.id)}>
+                      <span className='material-symbols-rounded'>edit</span>
+                    </button>
+                    <button type='button' className='reqs__icon-btn reqs__icon-btn--danger' title='Eliminar' aria-label='Eliminar orden de compra' onClick={() => handleDelete(item.id)}>
+                      <span className='material-symbols-rounded'>delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className='reqs__state'>
+              <p>No hay órdenes de compra disponibles</p>
+              <span>Prueba con otros filtros o crea una con "Nueva orden de compra"</span>
+            </div>
+          )}
         </div>
-        <ModalPurchaseOrder />
-        <ModalPurchaseOrderDetail />
       </div>
+      <ModalPurchaseOrder />
+      <ModalPurchaseOrderDetail />
     </div>
   );
 };

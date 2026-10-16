@@ -1,0 +1,149 @@
+/* Clientes: lo demás sale de Requisition.css (.reqs__*) y Quotation.css (.quote-name); aquí lo propio de esta pantalla */
+
+.cust__header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cust__link-btn {
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 1px solid var(--secondary-color);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cust__link-btn:hover {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.cust__link-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* ── Resumen ── */
+.cust__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cust__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+.cust__stat span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cust__stat strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.cust__stat small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.cust__stat--main {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.cust__stat--main span,
+.cust__stat--main small {
+  color: #c9d6ea;
+}
+
+.cust__stat--main strong {
+  color: var(--secondary-color);
+}
+
+/* ── Tabla: 7 columnas en vez de las 9 de Requisiciones ── */
+.reqs__row.cust__row {
+  grid-template-columns:
+    minmax(180px, 1.8fr) minmax(120px, 1.3fr) minmax(90px, 0.8fr) minmax(100px, 0.9fr)
+    minmax(110px, 1fr) minmax(100px, 0.9fr) 176px;
+}
+
+.cust__contact {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cust__contact small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+.cust__balance {
+  display: flex;
+  flex-direction: column;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.cust__balance--owes {
+  color: var(--secondary-color);
+}
+
+.cust__balance--over {
+  color: #dc2626;
+}
+
+.cust__balance small {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+@media screen and (max-width: 700px) {
+  .cust__stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .cust__stat--main {
+    grid-column: 1 / -1;
+  }
+
+  .cust__header-actions {
+    width: 100%;
+  }
+
+  .cust__link-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  /* en tarjeta, el nombre ocupa todo el ancho (Requisition.css ya reserva espacio para los botones) */
+  .cust__contact {
+    flex-direction: column;
+  }
+}

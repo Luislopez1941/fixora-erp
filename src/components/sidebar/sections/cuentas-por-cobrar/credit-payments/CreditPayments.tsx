@@ -93,7 +93,7 @@ const CreditPayments: React.FC = () => {
           <span className='material-symbols-rounded'>info</span>
           <div>
             <strong>Vista de ejemplo</strong>
-            <span>Los clientes, saldos y movimientos son de muestra: el módulo de cobranza aún no está conectado a los datos reales, por eso los abonos todavía no se pueden guardar.</span>
+            <span>Los clientes, saldos y movimientos son de muestra: el módulo de cuentas por cobrar aún no está conectado a los datos reales, por eso los abonos todavía no se pueden guardar.</span>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ const CreditPayments: React.FC = () => {
             </div>
           </div>
           <div className='credit-payments__actions'>
-            <button type='button' className='btn__general-primary' disabled title='Disponible cuando se conecte el módulo de cobranza'>
+            <button type='button' className='btn__general-primary' disabled title='Disponible cuando se conecte el módulo de cuentas por cobrar'>
               Guardar abono
             </button>
           </div>

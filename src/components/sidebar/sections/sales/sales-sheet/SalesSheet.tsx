@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import ModalSheet from './modal-sale-sheet/ModalSheet'
 import WebOrderFulfillmentModal from './WebOrderFulfillmentModal'
+import ModalSaleReturn from './ModalSaleReturn'
+import { useCan } from '../../../../../core/permissions/useCan'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
@@ -52,6 +54,9 @@ const SalesSheet: React.FC = () => {
   const userState = useSelector((state: any) => state.user)
   const [sourceFilter, setSourceFilter] = useState<'ALL' | 'WEB' | 'POS'>('ALL')
   const [selectedWebSale, setSelectedWebSale] = useState<any | null>(null)
+  const [returnSale, setReturnSale] = useState<any | null>(null)
+  const can = useCan()
+  const canReturnOrCancel = can('sales.return') || can('sales.cancel')
 
   const handleModalChange = (value: string) => {
     dispatch(modal(value))
@@ -132,7 +137,20 @@ const SalesSheet: React.FC = () => {
     return `${user.firstName ?? ''} ${user.firstLastName ?? ''}`.trim() || '—'
   }
 
+  // Lo ya devuelto de una venta cobrada: parcial o total
+  const returnedState = (sale: any): 'none' | 'partial' | 'full' => {
+    if (sale.status !== 'COMPLETED') return 'none'
+    const returned = (sale.returns ?? []).reduce((acc: number, r: any) => acc + Number(r.total ?? 0), 0)
+    if (returned <= 0) return 'none'
+    return returned + 0.005 >= Number(sale.total) ? 'full' : 'partial'
+  }
+
   const statusClass = (sale: any) =>
+    returnedState(sale) !== 'none'
+      ? `is-returned-${returnedState(sale)}`
+      : baseStatusClass(sale)
+
+  const baseStatusClass = (sale: any) =>
     sale.source === 'WEB' && sale.customerOrderStatus
       ? `is-web-${String(sale.customerOrderStatus).toLowerCase()}`
       : `is-${String(sale.status ?? 'DRAFT').toLowerCase()}`
@@ -219,9 +237,13 @@ const SalesSheet: React.FC = () => {
                   <div className='sales-sheet-list__cell sales-sheet-list__col-amount sales-sheet-list__cell--strong' data-label='Total'>{formatMoney(sale.total)}</div>
                   <div className='sales-sheet-list__cell' data-label='Estado'>
                     <span className={`sales-sheet-list__status ${statusClass(sale)}`}>
-                      {sale.source === 'WEB' && sale.customerOrderStatus
-                        ? customerOrderStatusLabel[sale.customerOrderStatus] ?? sale.customerOrderStatus
-                        : statusLabel[sale.status] ?? sale.status}
+                      {returnedState(sale) === 'full'
+                        ? 'Devuelta'
+                        : returnedState(sale) === 'partial'
+                          ? 'Devolución parcial'
+                          : sale.source === 'WEB' && sale.customerOrderStatus
+                            ? customerOrderStatusLabel[sale.customerOrderStatus] ?? sale.customerOrderStatus
+                            : statusLabel[sale.status] ?? sale.status}
                     </span>
                   </div>
                   <div className='sales-sheet-list__cell sales-sheet-list__col-actions'>
@@ -235,9 +257,20 @@ const SalesSheet: React.FC = () => {
                       >
                         <span className='material-symbols-rounded'>local_shipping</span>
                       </button>
-                    ) : (
+                    ) : null}
+                    {canReturnOrCancel && sale.status === 'COMPLETED' && returnedState(sale) !== 'full' ? (
+                      <button
+                        type='button'
+                        className='sales-sheet-list__icon-btn sales-sheet-list__icon-btn--danger'
+                        onClick={() => setReturnSale(sale)}
+                        title='Cancelar o devolver'
+                        aria-label='Cancelar o devolver'
+                      >
+                        <span className='material-symbols-rounded'>assignment_return</span>
+                      </button>
+                    ) : sale.source !== 'WEB' ? (
                       <span className='sales-sheet-list__none'>—</span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               )
@@ -246,6 +279,12 @@ const SalesSheet: React.FC = () => {
         </div>
 
         <ModalSheet onSaved={fetchSales} />
+        <ModalSaleReturn
+          sale={returnSale}
+          open={Boolean(returnSale)}
+          onClose={() => setReturnSale(null)}
+          onSaved={fetchSales}
+        />
         <WebOrderFulfillmentModal
           sale={selectedWebSale}
           open={Boolean(selectedWebSale)}

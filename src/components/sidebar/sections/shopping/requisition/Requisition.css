@@ -1,359 +1,607 @@
-.req-page {
-  font-family: "Poppins", sans-serif;
-  animation: fadeIn 0.3s ease-in;
-  padding: 20px;
+/* Requisiciones — mismo lenguaje visual que Almacenes (Store): cabecera con filtros + tabla en filas.
+   Todas las clases cuelgan de .reqs (notación padre__hijo). Colores con variables del tema: claro y oscuro. */
 
-  .req-content {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
+.reqs {
+  width: 100%;
+  min-width: 0;
+}
+
+.reqs__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.reqs__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+/* Selects en rejilla pareja: mismo ancho, se reparten el espacio y bajan a otra línea ordenadamente */
+.reqs__header-left {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Controles compactos: misma altura en select, buscador y fecha (el .reqs delante gana a los estilos globales de .inputs__general) */
+.reqs select.reqs__filter,
+.reqs .reqs__search .inputs__general.reqs__search-input {
+  height: 34px;
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.8rem;
+  margin-top: 0;
+}
+
+.reqs select.reqs__filter {
+  width: 100%;
+  min-width: 0;
+  padding-right: 28px;
+}
+
+.reqs__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.reqs__search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.reqs__search .inputs__general.reqs__search-input {
+  margin-top: 0;
+  width: 220px;
+  padding-left: 36px;
+}
+
+/* ── Rango de fechas ── */
+.reqs__date {
+  position: relative;
+}
+
+.reqs__pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s ease;
+}
+
+.reqs__pill-btn:hover {
+  border-color: var(--secondary-color);
+}
+
+.reqs__pill-btn .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.reqs__calendar {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Botón "Filtros" y contador: solo se usan en el celular (en pantalla grande los selects ya están a la vista) */
+.reqs__filters-toggle {
+  display: none;
+}
+
+.reqs__pill-btn--active {
+  border-color: var(--primary-color);
+}
+
+.reqs__count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--primary-color);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Segunda fila: buscador, fechas y estados */
+/* Segunda fila: buscador y fechas a la izquierda, estados a la derecha */
+.reqs__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.reqs__toolbar-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ── Chips de estado ── */
+
+.reqs__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.reqs__chip {
+  padding: 4px 11px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reqs__chip:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.reqs__chip--active,
+.reqs__chip--active:hover {
+  color: #fff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* ── Tabla en filas ── */
+.reqs__list {
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.reqs__row {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.4fr) minmax(90px, 0.8fr) minmax(100px, 0.9fr) 100px
+    minmax(110px, 1.1fr) minmax(110px, 1.1fr) minmax(110px, 1.1fr) minmax(90px, 1fr) 176px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
+}
+
+.reqs__row:last-child {
+  border-bottom: none;
+}
+
+.reqs__row:not(.reqs__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
+}
+
+.reqs__row--head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: rgba(7, 42, 87, 0.05);
+}
+
+.reqs__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reqs__cell--muted {
+  color: color-mix(in srgb, var(--text-color) 70%, transparent);
+}
+
+.reqs__cell--name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.reqs__cell--name strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reqs__row-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  font-size: 20px;
+  color: #fff;
+  background: var(--primary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.reqs__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.reqs__col-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  overflow: visible;
+}
+
+.reqs__icon-btn {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.reqs__icon-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.reqs__icon-btn:hover {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.reqs__icon-btn--approve {
+  color: var(--primary-color);
+  border-color: color-mix(in srgb, var(--primary-color) 45%, transparent);
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+}
+
+.reqs__icon-btn--approve:hover {
+  color: #fff;
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.reqs__icon-btn--reject {
+  color: var(--secondary-color);
+  border-color: color-mix(in srgb, var(--secondary-color) 45%, transparent);
+  background: color-mix(in srgb, var(--secondary-color) 8%, transparent);
+}
+
+.reqs__icon-btn--reject:hover {
+  color: #fff;
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.reqs__icon-btn--danger:hover {
+  color: var(--danger-color, #dc2626);
+  border-color: var(--danger-color, #dc2626);
+}
+
+.reqs__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 56px 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.reqs__state p {
+  margin: 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+@media screen and (max-width: 1100px) {
+  .reqs__row--head {
+    display: none;
+  }
+
+  .reqs__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+
+  .reqs__cell {
+    white-space: normal;
+  }
+
+  .reqs__cell[data-label]:not(.reqs__cell--name) {
+    grid-column: 1 / -1;
+  }
+
+  .reqs__cell[data-label]:not(.reqs__cell--name)::before {
+    content: attr(data-label) ': ';
+    color: var(--text-muted);
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .reqs__container {
+    padding: 16px;
+  }
+
+  .reqs__chips {
+    justify-content: flex-start;
+  }
+
+  .reqs__search,
+  .reqs__search .inputs__general.reqs__search-input,
+  select.reqs__filter,
+  .reqs__date,
+  .reqs__pill-btn {
     width: 100%;
-    margin: 0 auto;
   }
 
-  .req-filters-container {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    padding: 20px;
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--panel-border);
-    box-shadow: var(--shadow-sm);
-
-    .req-filter-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 15px;
-      align-items: flex-end;
-      justify-content: space-between;
-    }
-
-    .req-select-container {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-      min-width: 150px;
-
-      label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-muted);
-      }
-
-      select {
-        height: 36px !important;
-        font-size: 0.82rem !important;
-        border-radius: 8px !important;
-        background-color: var(--modal-input-bg) !important;
-        color: var(--modal-text) !important;
-        border: 1px solid var(--modal-input-border) !important;
-        padding: 0 12px !important;
-        font-family: "Poppins", sans-serif !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        cursor: pointer;
-        outline: none;
-
-        &:focus {
-          border-color: var(--primary-color) !important;
-          box-shadow: 0 0 0 2px rgba(88, 106, 233, 0.2);
-        }
-      }
-    }
-
-    .req-date-container, .req-folio-container {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      flex: 1;
-      min-width: 150px;
-
-      .req-date-label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: var(--text-muted);
-      }
-    }
-
-    .date-picker-wrapper {
-      position: relative;
-      display: inline-block;
-      width: 100%;
-
-      .req-date-input {
-        height: 36px !important;
-        font-size: 0.82rem !important;
-        border-radius: 8px !important;
-        background-color: var(--modal-input-bg) !important;
-        color: var(--modal-text) !important;
-        border: 1px solid var(--modal-input-border) !important;
-        padding: 0 12px !important;
-        font-family: "Poppins", sans-serif !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .calendar-popover {
-        position: absolute;
-        top: 40px;
-        left: 0;
-        z-index: 9999;
-        background: white;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        border-radius: 8px;
-        border: 1px solid var(--panel-border);
-        min-width: 300px;
-      }
-    }
-
-    .req-date-input {
-      height: 36px !important;
-      font-size: 0.82rem !important;
-      border-radius: 8px !important;
-      background-color: var(--modal-input-bg) !important;
-      color: var(--modal-text) !important;
-      border: 1px solid var(--modal-input-border) !important;
-      padding: 0 12px !important;
-      font-family: "Poppins", sans-serif !important;
-      width: 100% !important;
-      box-sizing: border-box !important;
-    }
-
-    .req-status-container {
-      display: flex;
-      align-items: center;
-
-      .req-status-chips {
-        display: flex;
-        gap: 8px;
-
-        .req-status-chip {
-          padding: 6px 12px;
-          border-radius: 20px;
-          font-size: 0.8rem;
-          font-weight: 500;
-          cursor: pointer;
-          border: 1px solid var(--panel-border);
-          background: var(--background);
-          color: var(--text-muted);
-          transition: all 0.2s ease;
-
-          &.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-          }
-        }
-      }
-    }
-
-    .btn-search {
-      height: 36px;
-      padding: 0 20px;
-      background: var(--primary-color);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s ease;
-
-      &:hover {
-        filter: brightness(1.1);
-        box-shadow: 0 4px 12px rgba(88, 106, 233, 0.3);
-      }
-    }
+  select.reqs__filter {
+    max-width: none;
   }
 
-  .btn-new-req {
-    height: 36px !important;
-    padding: 0 20px !important;
-    font-size: 0.85rem !important;
-    font-weight: 600 !important;
-    border-radius: 8px !important;
-    background-color: var(--primary-color) !important;
-    color: white !important;
-    border: none !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    &:hover {
-      filter: brightness(1.1);
-      box-shadow: 0 4px 12px rgba(88, 106, 233, 0.3) !important;
-    }
-  }
-
-  .req-table-wrap {
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--panel-border);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-
-    .req-table {
-      width: 100%;
-      border-collapse: collapse;
-
-      .req-thead {
-        display: grid;
-        grid-template-columns: 100px 100px 100px 110px 1fr 1fr 1fr 1fr 100px;
-        background: var(--table-head-color, rgba(0, 0, 0, 0.15));
-        color: var(--white);
-        font-weight: 700;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.7px;
-
-        .th {
-          padding: 12px 8px;
-          border-bottom: 1px solid var(--panel-border);
-          text-align: left;
-        }
-        .th:nth-child(1), .th:nth-child(3), .th:nth-child(9) {
-          text-align: center;
-        }
-      }
-
-      .req-tbody {
-        display: flex;
-        flex-direction: column;
-
-        .req-row-wrap {
-          border-bottom: 1px solid var(--panel-border);
-
-          .req-row {
-            display: grid;
-            grid-template-columns: 100px 100px 100px 110px 1fr 1fr 1fr 1fr 100px;
-            align-items: center;
-            padding: 8px 8px;
-            transition: background-color 0.12s ease;
-
-            &:hover {
-              background-color: var(--hover-body-table-color) !important;
-            }
-
-            .td {
-              display: flex;
-              align-items: center;
-              justify-content: flex-start;
-              min-width: 0;
-              padding-left: 8px;
-              font-size: 13px;
-              color: var(--modal-text);
-
-              &:nth-child(1), &:nth-child(3), &:nth-child(9) {
-                justify-content: center;
-                padding-left: 0;
-              }
-            }
-
-
-            .req-folio {
-              font-weight: 600;
-              color: var(--primary-color) !important;
-            }
-
-            .req-status-badge {
-              padding: 4px 8px;
-              border-radius: 6px;
-              font-size: 0.75rem;
-              font-weight: 600;
-            }
-
-            .req-actions {
-              display: flex;
-              justify-content: center;
-              gap: 8px;
-
-              .action-btn {
-                width: 32px;
-                height: 32px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                border: 1px solid var(--panel-border);
-                background: var(--surface);
-                color: var(--modal-text);
-
-                &.edit:hover {
-                  background: rgba(88, 106, 233, 0.1);
-                  color: var(--primary-color);
-                  border-color: var(--primary-color);
-                }
-
-                &.delete:hover {
-                  background: rgba(231, 76, 60, 0.1);
-                  color: #e74c3c;
-                  border-color: #e74c3c;
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  .req-loading, .req-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  .reqs__pill-btn {
     justify-content: center;
-    padding: 48px 24px;
-    color: var(--modal-text-muted);
-    text-align: center;
+  }
+}
 
-    .spinner {
-      width: 30px;
-      height: 30px;
-      border: 3px solid var(--modal-input-border);
-      border-top: 3px solid var(--primary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 16px;
-    }
+/* Botón principal a la misma altura que los filtros */
+.reqs .reqs__header .btn__general-primary {
+  height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+/* ───────────────────────── Celular (Android) ─────────────────────────
+   Búsqueda y estados arriba, filtros plegables, requisiciones como tarjetas y botón flotante para crear. */
+@media screen and (max-width: 700px) {
+  .reqs__container {
+    padding: 12px 12px 150px; /* espacio abajo para que ni el menú inferior ni el botón flotante tapen la última tarjeta */
+    gap: 12px;
   }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
+  /* orden: buscador/fechas/estados -> filtros -> lista */
+  .reqs__toolbar {
+    order: 1;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+  .reqs__header {
+    order: 2;
+    padding-bottom: 0;
+    border-bottom: none;
   }
 
-  @media (max-width: 768px) {
-    .req-filters-container .req-filter-row {
-      flex-direction: column;
-      align-items: stretch;
-    }
-    .req-table-wrap .req-table {
-      .req-thead, .req-row {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      .req-thead .th, .req-row .td {
-        padding: 8px;
-        border-bottom: 1px solid var(--panel-border);
-      }
-    }
+  .reqs__list {
+    order: 3;
+  }
+
+  .reqs__toolbar-left {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .reqs__toolbar-left > * {
+    min-width: 0;
+  }
+
+  .reqs__search {
+    grid-column: 1 / -1;
+  }
+
+  .reqs .reqs__search .inputs__general.reqs__search-input,
+  .reqs select.reqs__filter,
+  .reqs__pill-btn {
+    height: 42px;
+    font-size: 0.9rem;
+  }
+
+  .reqs .reqs__search .inputs__general.reqs__search-input {
+    width: 100%;
+  }
+
+  .reqs__date,
+  .reqs__date .reqs__pill-btn {
+    width: 100%;
+  }
+
+  .reqs__date .reqs__pill-btn {
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .reqs__calendar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    top: 120px;
+    max-height: calc(100dvh - 140px);
+    overflow: auto;
+  }
+
+  .reqs__filters-toggle {
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  /* selects plegados: se abren con el botón Filtros */
+  .reqs__header-left {
+    display: none;
+  }
+
+  .reqs--filters-open .reqs__header-left {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+  }
+
+  /* estados: una sola línea con scroll horizontal, sin barra */
+  .reqs__chips {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    width: calc(100% + 24px);
+    min-width: 0;
+    margin: 0 -12px;
+    padding: 2px 12px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .reqs__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reqs__chip {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    font-size: 0.82rem;
+  }
+
+  /* botón de crear: flotante abajo a la derecha */
+  .reqs .reqs__header .btn__general-primary {
+    position: fixed;
+    right: 16px;
+    /* por encima del menú inferior del celular (mide ~58px y puede llevar el área segura del teléfono) */
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    z-index: 90;
+    height: 48px;
+    padding: 0 20px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 22px rgba(7, 42, 87, 0.35);
+  }
+
+  /* lista: cada requisición es una tarjeta */
+  .reqs__list {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+    gap: 10px;
+  }
+
+  .reqs__row:not(.reqs__row--head) {
+    position: relative;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+    padding: 14px;
+    background: var(--card-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+  }
+
+  .reqs__row:not(.reqs__row--head):last-child {
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  /* folio arriba, con espacio para los botones de la esquina */
+  .reqs__row .reqs__cell--name {
+    grid-column: 1 / -1;
+    padding-right: 84px;
+  }
+
+  .reqs__row .reqs__col-actions {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    grid-column: auto;
+  }
+
+  .reqs__icon-btn {
+    width: 36px;
+    height: 36px;
+  }
+
+  /* cada dato: etiqueta chica arriba y valor abajo (en vez de "Etiqueta: valor" en línea) */
+  .reqs__cell[data-label]:not(.reqs__cell--name) {
+    grid-column: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .reqs__cell[data-label]:not(.reqs__cell--name)::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* empresa y sucursal ocupan toda la tarjeta (nombres largos) */
+  .reqs__cell[data-label='Empresa'],
+  .reqs__cell[data-label='Sucursal'] {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Entre 701 y 768 px ya aparece el menú inferior pero la lista todavía es la de escritorio: que no tape las últimas filas */
+@media screen and (min-width: 701px) and (max-width: 768px) {
+  .reqs__container {
+    padding-bottom: 84px;
   }
 }

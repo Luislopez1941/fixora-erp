@@ -411,44 +411,127 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     }
   };
 
-  // Por código desde 1 carácter (lector de barras); por nombre desde 3 letras. Con espera de 250 ms entre teclas
-  // y solo vale la ÚLTIMA petición: una respuesta lenta de una búsqueda anterior no pisa a la nueva.
-  const SEARCH_MIN = { code: 1, name: 3 } as const
+  // Búsqueda estilo "marketplace": casi instantánea.
+  //  · Por código desde 1 carácter (lector de barras); por nombre desde 2 letras, con 120 ms entre teclas.
+  //  · Una sola petición ligera por búsqueda; la anterior se CANCELA al teclear (nunca llegan respuestas fuera de orden).
+  //  · Caché de 20 s: repetir o borrar una letra responde al instante sin red. Si la lista anterior estaba completa
+  //    (no truncada), al escribir más letras se filtra localmente al momento y no se pide nada.
+  //  · El artículo completo (variaciones, rangos, existencias) se pide solo al elegirlo, y se precarga al pasar el mouse.
+  const SEARCH_MIN = { code: 1, name: 2 } as const
+  const SEARCH_TTL = 20_000
+  const searchCache = useRef(new Map<string, { at: number; data: any[]; truncated: boolean }>())
+  const detailCache = useRef(new Map<string, Promise<any>>())
+  const searchAbort = useRef<AbortController | null>(null)
+  const [pickingId, setPickingId] = useState<number | null>(null)
+
+  const searchFilters = () => ({
+    companyId: selectedCompany || readCompanyId() || undefined,
+    branchId: selectedBranch > 0 ? selectedBranch : readBranchId(),
+  })
+  const searchKey = (field: 'code' | 'name', term: string) =>
+    `${searchFilters().companyId ?? 0}|${searchFilters().branchId ?? 0}|${field}|${term.toLowerCase()}`
+  const normalizeText = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+
+  const prefetchProduct = (id: number) => {
+    const { branchId } = searchFilters()
+    const key = `${branchId ?? 0}|${id}`
+    let promise = detailCache.current.get(key)
+    if (!promise) {
+      promise = APIs.getProductForSale(id, { branchId }).catch((error) => {
+        detailCache.current.delete(key)
+        throw error
+      })
+      detailCache.current.set(key, promise)
+      // Los saldos cambian: la precarga solo vale unos segundos
+      setTimeout(() => detailCache.current.delete(key), SEARCH_TTL)
+    }
+    return promise
+  }
+
+  const selectResult = async (product: any) => {
+    if (pickingId != null) return
+    setPickingId(product.id)
+    try {
+      const response: any = await prefetchProduct(product.id)
+      addProduct(response?.data ?? product)
+    } catch (error) {
+      console.error('Error al cargar el artículo:', error)
+      setSearchError((error as any)?.response?.data?.message || 'No se pudo cargar el artículo')
+    } finally {
+      setPickingId(null)
+    }
+  }
+
+  const clearSearch = () => {
+    searchAbort.current?.abort()
+    searchSeq.current += 1
+    setSearchResults([])
+    setSearching(false)
+  }
 
   const runSearch = (field: 'code' | 'name', value: string) => {
     if (searchTimer.current) clearTimeout(searchTimer.current)
     const trimmed = value.trim()
     if (trimmed.length < SEARCH_MIN[field]) {
+      clearSearch()
+      return
+    }
+    setSearchError('')
+
+    const key = searchKey(field, trimmed)
+    const cached = searchCache.current.get(key)
+    if (cached && Date.now() - cached.at < SEARCH_TTL) {
+      searchAbort.current?.abort()
       searchSeq.current += 1
-      setSearchResults([])
+      setSearchResults(cached.data)
       setSearching(false)
       return
     }
+
+    // Refinamiento local por nombre: si "cam" devolvió todo (no truncado), "camis" sale de esa misma lista
+    if (field === 'name') {
+      const words = normalizeText(trimmed).split(/\s+/).filter(Boolean)
+      const prefix = key.slice(0, key.lastIndexOf('|') + 1)
+      let best: { at: number; data: any[]; truncated: boolean } | null = null
+      searchCache.current.forEach((entry, k) => {
+        if (!k.startsWith(prefix) || entry.truncated || Date.now() - entry.at >= SEARCH_TTL) return
+        const base = normalizeText(k.slice(prefix.length))
+        if (base && normalizeText(trimmed).includes(base) && (!best || entry.data.length < best.data.length)) best = entry
+      })
+      if (best) {
+        const filtered = (best as { data: any[] }).data.filter((p) => words.every((w) => normalizeText(p.name ?? '').includes(w)))
+        searchAbort.current?.abort()
+        searchSeq.current += 1
+        searchCache.current.set(key, { at: Date.now(), data: filtered, truncated: false })
+        setSearchResults(filtered)
+        setSearching(false)
+        return
+      }
+    }
+
     setSearching(true)
-    setSearchError('')
     searchTimer.current = setTimeout(async () => {
+      searchAbort.current?.abort()
+      const controller = new AbortController()
+      searchAbort.current = controller
       const seq = ++searchSeq.current
       try {
-        const response: any = await APIs.getProducts(
-          field === 'code' ? trimmed : '',
-          field === 'name' ? trimmed : '',
-          undefined,
-          {
-            companyId: selectedCompany || readCompanyId() || undefined,
-            branchId: selectedBranch > 0 ? selectedBranch : readBranchId(),
-          },
-        )
-        if (seq === searchSeq.current) setSearchResults(response?.data ?? [])
+        const response: any = await APIs.searchProducts(field, trimmed, searchFilters(), controller.signal)
+        if (seq !== searchSeq.current) return
+        const data: any[] = response?.data ?? []
+        searchCache.current.set(key, { at: Date.now(), data, truncated: response?.truncated === true })
+        setSearchResults(data)
+        // Se precargan los primeros resultados: al hacer clic ya están listos
+        data.slice(0, field === 'code' ? 1 : 3).forEach((p) => prefetchProduct(p.id).catch(() => {}))
       } catch (error) {
+        if (controller.signal.aborted || seq !== searchSeq.current) return
         console.error('Error al obtener los productos:', error)
-        if (seq === searchSeq.current) {
-          setSearchResults([])
-          setSearchError((error as any)?.response?.data?.message || (error as any)?.message || 'No se pudo buscar')
-        }
+        setSearchResults([])
+        setSearchError((error as any)?.response?.data?.message || (error as any)?.message || 'No se pudo buscar')
       } finally {
         if (seq === searchSeq.current) setSearching(false)
       }
-    }, 250)
+    }, field === 'code' ? 80 : 120)
   }
 
   const handleSearchCodeChange = (code: string) => {
@@ -519,8 +602,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
     setSaleLines((prev) => mergeSaleLines([...prev, line]))
     setFields({ codigo: '', name: '' })
-    searchSeq.current += 1
-    setSearchResults([])
+    clearSearch()
     setActiveField(null)
     setTimeout(() => codeInputRef.current?.focus(), 0)
   }
@@ -718,8 +800,10 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     setSaleDueDate('')
     setSaleUrgency('NORMAL')
     setFields({ codigo: '', name: '' })
-    searchSeq.current += 1
-    setSearchResults([])
+    // Tras cobrar cambian las existencias: nada de lo guardado en caché vale
+    searchCache.current.clear()
+    detailCache.current.clear()
+    clearSearch()
     setActiveField(null)
   }
 
@@ -904,7 +988,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     return (
       <div className='modal-sale-results' onMouseDown={(e) => e.preventDefault()}>
         {trimmed.length < SEARCH_MIN[field] ? (
-          <p className='sales-sheet-search-empty'>Escribe al menos {SEARCH_MIN[field]} letras para buscar por nombre</p>
+          <p className='sales-sheet-search-empty'>Escribe al menos {SEARCH_MIN[field]} letras para buscar</p>
         ) : searchError ? (
           <p className='sales-sheet-search-empty'>No se pudo buscar: {searchError}</p>
         ) : searching && searchResults.length === 0 ? (
@@ -914,7 +998,13 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
             const stock = Number(product.totalStock ?? 0)
             const tracks = product.trackInventory !== false
             return (
-              <button type='button' key={product.id} className='modal-sale-result-item' onClick={() => addProduct(product)}>
+              <button type='button' key={product.id} className='modal-sale-result-item'
+                onClick={() => selectResult(product)}
+                onMouseEnter={() => prefetchProduct(product.id).catch(() => {})}
+                onPointerDown={() => prefetchProduct(product.id).catch(() => {})}
+                onTouchStart={() => prefetchProduct(product.id).catch(() => {})}
+                disabled={pickingId === product.id}
+              >
                 {getProductImage(product) ? (
                   <img src={getProductImage(product) ?? ''} alt='' className='modal-sale-result-img' />
                 ) : (
@@ -1051,16 +1141,19 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                       if (e.key !== 'Enter' || !fields.codigo.trim()) return
                       e.preventDefault()
                       if (searchTimer.current) clearTimeout(searchTimer.current)
+                      const term = fields.codigo.trim()
                       try {
-                        const response: any = await APIs.getProducts(fields.codigo.trim(), '', undefined, {
-                          companyId: selectedCompany || readCompanyId() || undefined,
-                          branchId: selectedBranch > 0 ? selectedBranch : readBranchId(),
-                        })
-                        const list: any[] = response?.data ?? []
+                        // Usa la lista ya pintada/en caché si es de este texto; si no, una búsqueda inmediata
+                        const cached = searchCache.current.get(searchKey('code', term))
+                        let list: any[] = cached && Date.now() - cached.at < SEARCH_TTL ? cached.data : []
+                        if (list.length === 0) {
+                          searchAbort.current?.abort()
+                          const response: any = await APIs.searchProducts('code', term, searchFilters())
+                          list = response?.data ?? []
+                        }
                         // Prioriza la coincidencia exacta de código o código de barras
-                        const exact = list.find((p) => p.code === fields.codigo.trim() || p.barcode === fields.codigo.trim())
-                        const pick = exact ?? list[0]
-                        if (pick) addProduct(pick)
+                        const pick = list.find((p) => p.exact || p.code === term || p.barcode === term) ?? list[0]
+                        if (pick) await selectResult(pick)
                       } catch {
                         /* sin resultado: se queda el texto para corregirlo */
                       }

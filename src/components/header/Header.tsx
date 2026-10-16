@@ -39,9 +39,9 @@ const ROUTE_LABELS: Record<string, string> = {
   'pos-config': 'Configurar cobro',
   quotation: 'Cotizaciones',
   salesorder: 'Pedidos',
-  /* Cobranza */
-  cobranza: 'Cobranza',
-  'menu-cobranza': 'Cobranza',
+  /* Cuentas por cobrar */
+  'cuentas-por-cobrar': 'Cuentas por cobrar',
+  'menu-cuentas-por-cobrar': 'Cuentas por cobrar',
   'credit-accounts': 'Cuentas de Crédito',
   debtors: 'Deudores',
   'credit-payments': 'Pagos',

@@ -21,8 +21,8 @@
 .modal-req-popup {
   background: var(--surface);
   color: var(--text-color);
-  border-radius: 20px;
-  width: 1150px;
+  border-radius: 12px;
+  width: min(1100px, 96vw);
   max-height: 92vh;
   display: flex;
   flex-direction: column;
@@ -129,48 +129,61 @@
 }
 
 .modal-req-body {
-  padding: 24px;
+  flex: 1;
+  min-height: 0;
+  padding: 16px 20px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
 .modal-req-container {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
+/* Una sola fila que se reparte el ancho: si no hay Empresa o Sucursal, los demás campos crecen para ocupar el lugar */
 .modal-req-row-0 {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  display: flex;
+  gap: 10px 12px;
   align-items: flex-end;
+}
+
+.modal-req-row-0 > .modal-req-select-field {
+  flex: 1 1 0;
+}
+
+.modal-req-row-0 > .modal-req-field--title {
+  flex: 1.7 1 0;
 }
 
 .modal-req-select-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .modal-req-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 
 .modal-req-select {
-  height: 42px;
-  border-radius: 10px;
+  height: 34px;
+  width: 100%;
+  border-radius: 8px;
   background: var(--modal-input-bg);
   color: var(--modal-text);
   border: 1px solid var(--modal-input-border);
-  padding: 0 12px;
+  padding: 0 10px;
   font-family: "Poppins", sans-serif;
+  font-size: 0.82rem;
   outline: none;
   cursor: pointer;
   transition: border-color 0.2s ease;
@@ -181,10 +194,10 @@
   box-shadow: 0 0 0 2px rgba(88, 106, 233, 0.1);
 }
 
+/* Comentario a todo el ancho (el título va en la primera fila, junto a Sucursal) */
 .modal-req-row-1 {
-  display: flex;
-  gap: 24px;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr;
 }
 
 .modal-req-main-fields {
@@ -200,23 +213,25 @@
 .modal-req-input-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .modal-req-inputs {
-  height: 42px;
-  border-radius: 10px;
+  height: 34px;
+  border-radius: 8px;
   background: var(--modal-input-bg);
   color: var(--modal-text);
   border: 1px solid var(--modal-input-border);
-  padding: 0 12px;
+  padding: 0 10px;
   font-family: "Poppins", sans-serif;
+  font-size: 0.82rem;
   outline: none;
   transition: all 0.2s ease;
 }
 
 .modal-req-search-input {
-  padding-left: 40px !important;
+  padding-right: 10px;
 }
 
 .modal-req-inputs:focus {
@@ -226,14 +241,17 @@
 
 .modal-req-textarea {
   width: 100%;
-  height: 80px;
-  border-radius: 10px;
+  height: 34px;
+  min-height: 34px;
+  border-radius: 8px;
   background: var(--modal-input-bg);
   color: var(--modal-text);
   border: 1px solid var(--modal-input-border);
-  padding: 12px;
+  padding: 7px 10px;
   font-family: "Poppins", sans-serif;
-  resize: none;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  resize: vertical;
   outline: none;
   transition: all 0.2s ease;
 }
@@ -246,7 +264,7 @@
 .modal-req-search-area {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .modal-req-search-box {
@@ -254,97 +272,175 @@
   border-radius: 16px;
 }
 
+/* Una sola fila: tipo de búsqueda, término y artículo temporal */
 .modal-req-search-controls {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: end;
 }
 
 .modal-req-select-wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 0 0 200px;
+  gap: 4px;
 }
 
 .modal-req-input-wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  gap: 4px;
   position: relative;
+  min-width: 0;
 }
 
+/* Input y botón de buscar lado a lado: el botón queda fuera del input */
 .modal-req-input-with-icon {
-  position: relative;
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
-.modal-req-input-with-icon .material-symbols-rounded {
-  position: absolute;
-  left: 12px;
+.modal-req-input-with-icon .modal-req-inputs {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Lupa a la derecha: al darle clic busca y los resultados salen en el dropdown de abajo */
+.modal-req-search-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-req-search-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(88, 106, 233, 0.3);
+}
+
+.modal-req-search-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.modal-req-search-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.modal-req-result-empty {
+  padding: 14px;
+  text-align: center;
   color: var(--text-muted);
-  font-size: 20px;
-  pointer-events: none;
-  z-index: 1;
+  font-size: 0.82rem;
 }
 
 .modal-req-results-list {
   position: absolute;
-  top: 46px;
+  top: 60px;
   left: 0;
   right: 0;
   background: var(--surface);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   z-index: 100;
-  max-height: 250px;
+  max-height: 260px;
   overflow-y: auto;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-  padding: 8px;
+  box-shadow: 0 16px 36px rgba(7, 42, 87, 0.18);
+  padding: 6px;
+  animation: reqResultsIn 0.14s ease-out;
+}
+
+@keyframes reqResultsIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-req-results-head {
+  padding: 6px 10px 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .modal-req-result-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  margin-bottom: 4px;
+  gap: 12px;
+  padding: 9px 10px;
+  margin-bottom: 2px;
   cursor: pointer;
   border-radius: 8px;
-  transition: background 0.2s ease;
-  background: none;
   border: none;
+  border-left: 3px solid transparent;
+  background: none;
   width: 100%;
   text-align: left;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.modal-req-result-item:hover {
+.modal-req-result-item:hover,
+.modal-req-result-item:focus-visible {
   background: var(--modal-overlay-hover-bg);
+  border-left-color: var(--primary-color);
+  outline: none;
 }
 
 .modal-req-result-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
 }
 
 .modal-req-result-name {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .modal-req-result-code {
-  font-size: 0.75rem;
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.modal-req-result-add {
+  flex-shrink: 0;
+  font-size: 22px;
   color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.modal-req-result-item:hover .modal-req-result-add,
+.modal-req-result-item:focus-visible .modal-req-result-add {
+  opacity: 1;
+  color: var(--primary-color);
 }
 
 .modal-req-result-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
   object-fit: cover;
   background: var(--modal-input-bg);
 }
@@ -355,11 +451,16 @@
   align-items: center;
 }
 
+.modal-req-tmp-input-wrap .modal-req-inputs {
+  flex: 1;
+  min-width: 0;
+}
+
 .modal-req-tmp-field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
+  gap: 4px;
+  min-width: 0;
 }
 
 .modal-req-tmp-field .modal-req-label {
@@ -371,14 +472,15 @@
 }
 
 .modal-req-btn-add-tmp {
-  height: 42px;
-  padding: 0 24px;
+  height: 34px;
+  padding: 0 16px;
   background: var(--primary-color) !important;
   color: white !important;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -390,10 +492,9 @@
 
 .modal-req-items-table {
   background: var(--surface);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid var(--panel-border);
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .modal-req-table-head {
@@ -411,7 +512,7 @@
 }
 
 .modal-req-th {
-  padding: 14px 16px;
+  padding: 9px 12px;
   border-bottom: 1px solid var(--panel-border);
   text-align: center;
 }
@@ -434,8 +535,8 @@
   display: grid;
   grid-template-columns: 3fr 1fr 1fr 1fr 2fr 50px;
   align-items: center;
-  padding: 12px 16px;
-  gap: 12px;
+  padding: 8px 12px;
+  gap: 10px;
 }
 
 .modal-req-td {
@@ -515,29 +616,32 @@
 }
 
 .modal-req-empty-state {
-  padding: 40px;
+  padding: 24px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
 .modal-req-footer {
-  padding: 24px;
+  flex-shrink: 0; /* fijo abajo: el cuerpo es lo único que hace scroll */
+  padding: 12px 20px;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 10px;
   border-top: 1px solid var(--panel-border);
   background: var(--surface);
 }
 
 .modal-req-btn-cancel {
-  padding: 10px 24px;
-  border-radius: 10px;
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 8px;
   border: 1px solid var(--panel-border);
   background: transparent;
   color: var(--text-color);
   font-family: "Poppins", sans-serif;
+  font-size: 0.82rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -548,12 +652,14 @@
 }
 
 .modal-req-btn-save {
-  padding: 10px 28px;
-  border-radius: 10px;
+  height: 34px;
+  padding: 0 22px;
+  border-radius: 8px;
   border: none;
   background: var(--primary-color);
   color: white;
   font-family: "Poppins", sans-serif;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -567,4 +673,116 @@
 @keyframes modalSlideUp {
   from { opacity: 0; transform: translateY(30px) scale(0.95); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media screen and (max-width: 900px) {
+  .modal-req-row-0 {
+    flex-wrap: wrap;
+  }
+
+  .modal-req-row-0 > .modal-req-select-field,
+  .modal-req-row-0 > .modal-req-field--title {
+    flex: 1 1 170px;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .modal-req-search-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Móvil: la tabla de artículos pasa a tarjetas (cada artículo es una tarjeta con sus campos etiquetados) */
+@media screen and (max-width: 700px) {
+  .modal-req-popup {
+    width: 100vw;
+    max-height: 100dvh;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .modal-req-overlay {
+    padding: 0;
+  }
+
+  .modal-req-body {
+    padding: 12px;
+  }
+
+  .modal-req-row-0 {
+    flex-wrap: wrap;
+  }
+
+  .modal-req-row-0 > .modal-req-select-field {
+    flex: 1 1 100%;
+  }
+
+  .modal-req-table-head {
+    display: none;
+  }
+
+  .modal-req-items-table {
+    border: none;
+    background: transparent;
+  }
+
+  .modal-req-table-body {
+    gap: 10px;
+  }
+
+  .modal-req-table-row-wrap {
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .modal-req-table-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 12px;
+    position: relative;
+  }
+
+  /* nombre del artículo arriba, a todo el ancho, con espacio para el botón de eliminar */
+  .modal-req-table-row > .modal-req-td-left {
+    grid-column: 1 / -1;
+    padding-right: 40px;
+  }
+
+  .modal-req-table-row > .modal-req-td-delete {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: auto !important;
+  }
+
+  .modal-req-table-row > .modal-req-td[data-label] {
+    flex: none !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .modal-req-table-row > .modal-req-td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* comentarios ocupan toda la tarjeta */
+  .modal-req-table-row > .modal-req-td[data-label='Comentarios'] {
+    grid-column: 1 / -1;
+  }
+
+  .modal-req-footer {
+    padding: 10px 12px;
+  }
+
+  .modal-req-footer button {
+    flex: 1;
+  }
 }

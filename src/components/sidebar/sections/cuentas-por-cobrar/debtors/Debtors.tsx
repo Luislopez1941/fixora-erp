@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import './Debtors.css'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import { readCategoryBranchId } from '../../../../../constants/category'
@@ -48,7 +49,9 @@ const formatDate = (value?: string) =>
 
 const Debtors: React.FC = () => {
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
-  const [search, setSearch] = useState('')
+  // Desde Clientes se llega con ?search=<nombre> para ver solo las cuentas de ese cliente
+  const [searchParams] = useSearchParams()
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '')
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -72,7 +75,7 @@ const Debtors: React.FC = () => {
           <span className='material-symbols-rounded'>info</span>
           <div>
             <strong>Vista de ejemplo</strong>
-            <span>Los deudores y montos de esta pantalla son de muestra: el módulo de cobranza aún no está conectado a los datos reales.</span>
+            <span>Los deudores y montos de esta pantalla son de muestra: el módulo de cuentas por cobrar aún no está conectado a los datos reales.</span>
           </div>
         </div>
 

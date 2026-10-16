@@ -10,6 +10,7 @@ import './ModuleStore.css'
 const MOD_ICON: Record<string, string> = {
   sales:          'tag',
   cobranza:       'cash',
+  customers:      'customers',
   shopping:       'cart',
   'cash-register':'box',
   production:     'production',

@@ -1,0 +1,716 @@
+/* Modal de cotización — mismo diseño compacto que Requisiciones y Órdenes de compra: esquinas de 12px,
+   controles de 34px, etiquetas chicas en mayúsculas, pie fijo y búsqueda con la lupa afuera del input. */
+
+.qt-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.qt-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.qt-popup {
+  width: min(1100px, 100%);
+  /* alto casi completo de la ventana: más conceptos a la vista sin hacer scroll */
+  height: min(96vh, 1100px);
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface);
+  color: var(--text-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  font-family: "Poppins", sans-serif;
+}
+
+.qt-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.qt-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.qt-close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--modal-input-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qt-close:hover {
+  background: var(--panel-border);
+  color: var(--text-color);
+}
+
+.qt-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.qt-loading {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--modal-input-bg);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Campos: etiquetas chicas y controles de 34px */
+.qt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px 12px;
+  align-items: end;
+}
+
+.qt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.qt-field--wide {
+  grid-column: span 2;
+}
+
+.qt-field > label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.qt-field input,
+.qt-field select,
+.qt-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  border-radius: 8px;
+  background: var(--modal-input-bg);
+  color: var(--modal-text, var(--text-color));
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.qt-field input:focus,
+.qt-field select:focus,
+.qt-field textarea:focus,
+.qt-input:focus {
+  border-color: var(--primary-color);
+}
+
+.qt-field textarea {
+  width: 100%;
+  height: 34px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  border-radius: 8px;
+  background: var(--modal-input-bg);
+  color: var(--modal-text, var(--text-color));
+  font-family: inherit;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  resize: vertical;
+  outline: none;
+}
+
+.qt-section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Búsqueda de artículos ── */
+.qt-search-controls {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 10px 12px;
+  align-items: end;
+}
+
+.qt-search-wrap {
+  position: relative;
+}
+
+.qt-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qt-search-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.qt-search-btn,
+.qt-free-btn {
+  flex-shrink: 0;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: filter 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.qt-search-btn {
+  width: 34px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.qt-search-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(88, 106, 233, 0.3);
+}
+
+.qt-search-btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.qt-search-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.qt-free-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px;
+  border: 1px solid var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+  color: var(--secondary-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.qt-free-btn:hover {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.qt-free-btn .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.qt-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(7, 42, 87, 0.18);
+}
+
+.qt-results-head {
+  padding: 6px 10px 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.qt-result-empty {
+  padding: 14px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.qt-result-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+  padding: 9px 10px;
+  border: none;
+  border-left: 3px solid transparent;
+  border-radius: 8px;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.qt-result-item:hover,
+.qt-result-item:focus-visible {
+  background: var(--modal-overlay-hover-bg);
+  border-left-color: var(--primary-color);
+  outline: none;
+}
+
+.qt-result-img {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--modal-input-bg);
+}
+
+.qt-result-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.qt-result-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.qt-result-code {
+  align-self: flex-start;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+}
+
+.qt-result-price {
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.qt-result-add {
+  flex-shrink: 0;
+  font-size: 22px;
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.qt-result-item:hover .qt-result-add,
+.qt-result-item:focus-visible .qt-result-add {
+  opacity: 1;
+  color: var(--primary-color);
+}
+
+/* ── Tabla de conceptos ── */
+.qt-table-wrap {
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.qt-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.qt-table th {
+  padding: 9px 10px;
+  background: rgba(7, 42, 87, 0.05);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--panel-border);
+  white-space: nowrap;
+}
+
+.qt-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.84rem;
+  vertical-align: middle;
+}
+
+.qt-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.qt-table .qt-input {
+  height: 30px;
+  min-width: 72px;
+}
+
+.qt-cell-name {
+  min-width: 200px;
+}
+
+.qt-cell-name strong {
+  display: block;
+  font-weight: 600;
+}
+
+.qt-cell-name small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.qt-cell-total {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qt-cell-center {
+  text-align: center;
+}
+
+.qt-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.qt-remove {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qt-remove:hover {
+  background: rgba(231, 76, 60, 0.1);
+  color: #e74c3c;
+}
+
+/* Checkbox con el diseño del sistema: cuadro redondeado azul marino con palomita blanca */
+.qt-overlay input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0;
+  padding: 0 !important;
+  display: inline-grid;
+  place-content: center;
+  border: 2px solid var(--modal-input-border, #c9d1dc) !important;
+  border-radius: 6px !important;
+  background-color: var(--modal-input-bg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.qt-overlay input[type='checkbox']:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.qt-overlay input[type='checkbox']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+}
+
+.qt-overlay input[type='checkbox']:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
+}
+
+/* ── Totales ── */
+/* Totales en horizontal: Subtotal · Descuento · IVA · Total en una sola barra, para ocupar menos alto */
+.qt-totals {
+  /* en el pie, arriba de los botones */
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.qt-totals > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 4px 10px;
+  border-right: 1px solid var(--panel-border);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.qt-totals > div > span:last-child {
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text-color);
+}
+
+.qt-totals > div:last-child {
+  border-right: none;
+}
+
+.qt-totals .qt-totals__grand {
+  padding: 4px 12px;
+  background: var(--primary-color);
+  color: #c9d6ea;
+}
+
+.qt-totals .qt-totals__grand > span:last-child {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+/* ── Pie fijo ── */
+.qt-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--panel-border);
+  background: var(--surface);
+}
+
+/* Botones en su propio renglón, debajo de la barra de totales; el pie completo queda fijo */
+.qt-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.qt-btn {
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qt-btn--ghost {
+  background: transparent;
+  color: var(--text-color);
+  border-color: var(--panel-border);
+}
+
+.qt-btn--ghost:hover {
+  background: var(--modal-overlay-hover-bg);
+}
+
+.qt-btn--primary {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.qt-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 4px 12px rgba(7, 42, 87, 0.3);
+}
+
+.qt-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Celular: pantalla completa, un campo por renglón y conceptos como tarjetas ── */
+@media screen and (max-width: 700px) {
+  .qt-overlay {
+    padding: 0;
+  }
+
+  .qt-popup {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .qt-body {
+    padding: 12px;
+  }
+
+  .qt-field--wide {
+    grid-column: auto;
+  }
+
+  .qt-search-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .qt-search-row {
+    flex-wrap: wrap;
+  }
+
+  .qt-search-row input {
+    flex: 1 1 calc(100% - 50px);
+  }
+
+  .qt-free-btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+
+  .qt-table thead {
+    display: none;
+  }
+
+  .qt-table-wrap {
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .qt-table,
+  .qt-table tbody {
+    display: block;
+  }
+
+  .qt-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .qt-table tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 12px;
+    padding: 12px;
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .qt-table tbody tr td {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0;
+    border: none;
+  }
+
+  .qt-table tbody tr td[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .qt-table tbody tr td.qt-cell-name {
+    grid-column: 1 / -1;
+    padding-right: 36px;
+  }
+
+  .qt-table tbody tr td.qt-cell-name::before {
+    display: none;
+  }
+
+  .qt-table tbody tr td.qt-cell-actions {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .qt-table tbody tr td[colspan] {
+    grid-column: 1 / -1;
+  }
+
+  .qt-footer {
+    padding: 10px 12px;
+  }
+
+  .qt-btn {
+    flex: 1;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .qt-totals {
+    width: 100%;
+  }
+
+  .qt-footer-actions {
+    width: 100%;
+  }
+
+  .qt-totals > div {
+    flex: 1 1 30%;
+    min-width: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 4px 8px;
+  }
+}

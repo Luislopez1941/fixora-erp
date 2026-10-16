@@ -150,7 +150,6 @@ const Login: React.FC = () => {
         <div className='left'>
           <div className='left__container'>
             <div className="erp__header">
-              <img src={logoFixora} alt="Fixora ERP" className="erp__icon" />
               <h1>ERP Punto de Venta</h1>
               <p>Potencia tu negocio con herramientas de gestión modernas y eficientes.</p>
             </div>

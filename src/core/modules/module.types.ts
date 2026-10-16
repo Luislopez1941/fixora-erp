@@ -51,4 +51,9 @@ export interface ModuleManifest {
    * Nunca se filtra por empresa — siempre visible para el dueño.
    */
   ownerOnly?: boolean
+  /**
+   * Otros módulos licenciados que ya incluyen a este (ej: Clientes viene con Ventas y con Cuentas por cobrar). El módulo se muestra si la
+   * licencia tiene su propia clave O alguna de estas.
+   */
+  includedIn?: string[]
 }

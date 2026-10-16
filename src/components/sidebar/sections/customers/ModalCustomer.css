@@ -1,0 +1,243 @@
+/* Modal de cliente — mismo diseño compacto que los demás modales: esquinas de 12px, controles de 34px,
+   etiquetas chicas en mayúsculas y pie fijo. */
+
+.cm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.cm-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cm-popup {
+  width: min(640px, 100%);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: var(--surface);
+  color: var(--text-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  font-family: "Poppins", sans-serif;
+}
+
+.cm-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.cm-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.cm-close {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--modal-input-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cm-close:hover {
+  background: var(--panel-border);
+  color: var(--text-color);
+}
+
+.cm-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  overflow-y: auto;
+}
+
+.cm-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.cm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cm-field--wide {
+  grid-column: 1 / -1;
+}
+
+.cm-field > label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cm-field input[type='text'],
+.cm-field input[type='tel'],
+.cm-field input[type='email'],
+.cm-field select {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  border-radius: 8px;
+  background: var(--modal-input-bg);
+  color: var(--modal-text, var(--text-color));
+  font-family: inherit;
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.cm-field input:focus,
+.cm-field select:focus {
+  border-color: var(--primary-color);
+}
+
+/* Casilla con el diseño del sistema: cuadro redondeado azul marino con palomita blanca */
+.cm-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  font-size: 0.84rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cm-check input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  display: inline-grid;
+  place-content: center;
+  border: 2px solid var(--modal-input-border, #c9d1dc);
+  border-radius: 6px;
+  background-color: var(--modal-input-bg);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cm-check input[type='checkbox']:hover {
+  border-color: var(--primary-color);
+}
+
+.cm-check input[type='checkbox']:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+}
+
+.cm-check input[type='checkbox']:checked {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round' d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 14px 14px;
+}
+
+.cm-footer {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 20px;
+  border-top: 1px solid var(--panel-border);
+  background: var(--surface);
+}
+
+.cm-btn {
+  height: 34px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cm-btn--ghost {
+  background: transparent;
+  color: var(--text-color);
+  border-color: var(--panel-border);
+}
+
+.cm-btn--ghost:hover {
+  background: var(--modal-overlay-hover-bg);
+}
+
+.cm-btn--primary {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.cm-btn--primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+  box-shadow: 0 4px 12px rgba(7, 42, 87, 0.3);
+}
+
+.cm-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Celular: pantalla completa, un campo por renglón ── */
+@media screen and (max-width: 700px) {
+  .cm-overlay {
+    padding: 0;
+  }
+
+  .cm-popup {
+    width: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+
+  .cm-body {
+    padding: 12px;
+  }
+
+  .cm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cm-btn {
+    flex: 1;
+  }
+}

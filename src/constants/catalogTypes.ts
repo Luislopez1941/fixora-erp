@@ -7,6 +7,7 @@ export const SERIES_MODULE_TYPES = [
   { id: 6, code: 'QUOTATION', label: 'Cotización', areaType: 'SALES' },
   { id: 7, code: 'SALES_ORDER', label: 'Orden de venta', areaType: 'SALES' },
   { id: 8, code: 'STOCK_EXIT', label: 'Salida de almacén', areaType: 'WAREHOUSE' },
+  { id: 9, code: 'SALE_RETURN', label: 'Devolución de venta', areaType: 'SALES' },
 ];
 
 export const getSeriesTypeLabel = (typeId?: number | null) =>

@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/sidebar/Sidebar'
 import { Routes, Route } from 'react-router-dom';
 import RouteSales from '../../routes/sections/sales/RouteSales';
-import RouteCobranza from '../../routes/sections/cobranza/RouteCobranza';
+import RouteCuentasPorCobrar from '../../routes/sections/cuentas-por-cobrar/RouteCuentasPorCobrar';
 import RouteCash from '../../routes/sections/cash/RouteCash';
 import RouteStore from '../../routes/sections/store/RouteStore';
 import RoutesConfigurations from '../../routes/sections/configurations/RoutesConfigurations';
@@ -14,6 +14,7 @@ import Menu from '../../components/sidebar/Menu';
 import Dashboard from '../../components/sidebar/sections/dashboard/Dashboard';
 import OptionsMenu from '../../components/sidebar/OptionsMenu';
 import Income from '../../components/sidebar/sections/income/Income';
+import Customers from '../../components/sidebar/sections/customers/Customers';
 import Sales from '../../components/sidebar/options-menu/Sales';
 import Shopping from '../../components/sidebar/options-menu/Shopping';
 import Store from '../../components/sidebar/options-menu/Store';
@@ -29,6 +30,12 @@ import { PrivateRoutes } from '../../models/routes';
 import Header from '../../components/header/Header';
 import Profile from '../profile/Profile';
 import './RootPage.css'
+
+// /auth/cobranza/... -> /auth/cuentas-por-cobrar/... (conserva la ruta interna y los parámetros de búsqueda)
+const LegacyCobranzaRedirect: React.FC = () => {
+  const { pathname, search } = useLocation()
+  return <Navigate replace to={pathname.replace('/cobranza', '/cuentas-por-cobrar') + search} />
+}
 
 const RootPage: React.FC = () => {
   const dispatch = useDispatch()
@@ -71,7 +78,9 @@ const RootPage: React.FC = () => {
         <main className='main'>
           <Routes>
             <Route path={`${PrivateRoutes.SALES}/*`} element={<RouteSales />} />
-            <Route path={`${PrivateRoutes.COBRANZA}/*`} element={<RouteCobranza />} />
+            <Route path={`${PrivateRoutes.CUENTAS_POR_COBRAR}/*`} element={<RouteCuentasPorCobrar />} />
+            {/* El módulo se llamaba Cobranza: los enlaces y favoritos viejos siguen funcionando */}
+            <Route path='cobranza/*' element={<LegacyCobranzaRedirect />} />
             <Route path={`${PrivateRoutes.CASH}/*`} element={<RouteCash />} />
             <Route path={`${PrivateRoutes.SHOPPING}/*`} element={<RoutesShopping />} />
             <Route path={`${PrivateRoutes.STORE}/*`} element={<RouteStore />} />
@@ -79,6 +88,7 @@ const RootPage: React.FC = () => {
             <Route path={`${PrivateRoutes.CATALOGOS}/*`} element={<RoutescCatalogos />} />
             <Route path={`${PrivateRoutes.CONFIGURATIONS}/*`} element={<RoutesConfigurations />} />
             <Route path={`${PrivateRoutes.INCOME}/*`} element={<Income />} />
+            <Route path={`${PrivateRoutes.CUSTOMERS}/*`} element={<Customers />} />
             <Route path={`/options/*`} element={<OptionsMenu />} />
             <Route path={`/profile`} element={<Profile />} />
             <Route path={`/`} element={<Dashboard />} />

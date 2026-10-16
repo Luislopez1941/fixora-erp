@@ -1,0 +1,33 @@
+/* Cotizaciones: lo demás sale de Requisition.css (clases .reqs__*); aquí solo lo propio de esta pantalla */
+.quote-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.quote-name strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quote-name small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.quote-pager .reqs__pill-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

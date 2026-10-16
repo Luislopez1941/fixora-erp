@@ -30,21 +30,32 @@ export const MODULES: ModuleManifest[] = [
     requiredPermission: 'sales.view',
     children: [
       { key: 'sales.sheet', label: 'Ficha de venta', path: 'sales/sales-sheet', requiredPermission: 'sales.sheet.view' },
-      { key: 'sales.quote', label: 'Cotización', path: 'sales/sales-sheet', requiredPermission: 'sales.quote.view' },
-      { key: 'sales.order', label: 'Orden de venta', path: 'sales/sales-sheet', requiredPermission: 'sales.order.view' },
+      { key: 'sales.quote', label: 'Cotización', path: 'sales/quotation', requiredPermission: 'sales.quote.view' },
+      { key: 'sales.order', label: 'Orden de venta', path: 'sales/salesorder', requiredPermission: 'sales.order.view' },
       { key: 'sales.config', label: 'Configurar cobro', path: 'sales/pos-config', requiredPermission: 'sales.config.view' },
     ],
   },
   {
+    key: 'customers',
+    label: 'Clientes',
+    icon: 'customers',
+    order: 25,
+    path: 'customers',
+    requiredPermission: 'customers.view',
+    // Viene incluido con Ventas y con Cuentas por cobrar: así aparece en las licencias que ya existen sin tener que reasignarlas
+    includedIn: ['sales', 'cobranza'],
+  },
+  {
+    // La clave interna sigue siendo 'cobranza' (licencias, permisos y sucursales ya la usan); solo cambia cómo se llama y su ruta
     key: 'cobranza',
-    label: 'Cobranza',
+    label: 'Cuentas por cobrar',
     icon: 'cash',
     order: 30,
     requiredPermission: 'cobranza.view',
     children: [
-      { key: 'cobranza.credit', label: 'Cuentas de crédito', path: 'cobranza/credit-accounts', requiredPermission: 'cobranza.credit.view' },
-      { key: 'cobranza.debtors', label: 'Deudores', path: 'cobranza/debtors', requiredPermission: 'cobranza.debtors.view' },
-      { key: 'cobranza.payments', label: 'Abonos', path: 'cobranza/credit-payments', requiredPermission: 'cobranza.payments.view' },
+      { key: 'cobranza.credit', label: 'Cuentas de crédito', path: 'cuentas-por-cobrar/credit-accounts', requiredPermission: 'cobranza.credit.view' },
+      { key: 'cobranza.debtors', label: 'Deudores', path: 'cuentas-por-cobrar/debtors', requiredPermission: 'cobranza.debtors.view' },
+      { key: 'cobranza.payments', label: 'Abonos', path: 'cuentas-por-cobrar/credit-payments', requiredPermission: 'cobranza.payments.view' },
     ],
   },
   {

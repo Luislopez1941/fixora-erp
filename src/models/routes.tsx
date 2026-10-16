@@ -22,12 +22,12 @@ export const PrivateRoutes = {
   QUOTATION: 'quotation',
   SALESORDER: 'salesorder',
 
-  ///////////////////////////COBRANZA///////////////////////////////
-  COBRANZA: 'cobranza',
+  ///////////////////////////CUENTAS POR COBRAR///////////////////////////////
+  CUENTAS_POR_COBRAR: 'cuentas-por-cobrar',
   CREDIT_ACCOUNTS: 'credit-accounts',
   DEBTORS: 'debtors',
   CREDIT_PAYMENTS: 'credit-payments',
-  MENU_COBRANZA: 'menu-cobranza',
+  MENU_CUENTAS_POR_COBRAR: 'menu-cuentas-por-cobrar',
 
   ///////////////////////////SHOPPING///////////////////////////////
   SHOPPING: 'shopping',
@@ -85,6 +85,7 @@ export const PrivateRoutes = {
   PAYMENT_METHODS: 'payment-methods',
 
   INCOME: 'income',
+  CUSTOMERS: 'customers',
 
   MODULE_STORE: 'module-store',
 

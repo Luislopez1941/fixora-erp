@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './ModalRequisition.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
@@ -25,6 +25,9 @@ const ModalRequisition: React.FC = () => {
   const isOpen = modalState === 'requisition_modal'
 
   const [searchResults, setSearchResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const searchWrapRef = useRef<HTMLDivElement>(null)
   const [items, setItems] = useState<ReqItem[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedOption, setSelectedOption] = useState<number>(0)
@@ -36,6 +39,9 @@ const ModalRequisition: React.FC = () => {
   const [selectedCompany, setSelectedCompany] = useState<number>(0)
   const [selectedBranch, setSelectedBranch] = useState<number>(0)
   const [selectedArea, setSelectedArea] = useState<number>(0)
+  // Subáreas del área general elegida (solo se muestra el select si existen)
+  const [subareas, setSubareas] = useState<any[]>([])
+  const [selectedSubarea, setSelectedSubarea] = useState<number>(0)
   const [selectedUrgency, setSelectedUrgency] = useState<string>('NORMAL')
 
   const [fields, setFields] = useState({
@@ -80,50 +86,115 @@ const ModalRequisition: React.FC = () => {
     }
   }
 
+  // Áreas generales (tipos del catálogo de áreas) de la empresa, y de la sucursal si ya se eligió
+  const loadAreaTypes = async (companyId: number, branchId?: number) => {
+    try {
+      const response: any = await APIs.getAreaTypes(companyId, branchId)
+      setAreas(Array.isArray(response) ? response : (response?.data || []))
+    } catch (error) {
+      console.error('Error loading area types:', error)
+      setAreas([])
+    }
+  }
+
+  useEffect(() => {
+    setSelectedSubarea(0)
+    setSubareas([])
+    if (!selectedArea || !selectedCompany) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const response: any = await APIs.getAreas({
+          companyId: selectedCompany,
+          branchId: selectedBranch || undefined,
+          typeId: selectedArea,
+        })
+        if (!cancelled) setSubareas(Array.isArray(response) ? response : (response?.data || []))
+      } catch (error) {
+        console.error('Error loading subareas:', error)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [selectedArea, selectedCompany, selectedBranch])
+
+  useEffect(() => {
+    setSearchResults([])
+    setSearched(false)
+  }, [selectedCompany, selectedBranch])
+
   const handleCompanyChange = async (companyId: number) => {
     setSelectedCompany(companyId)
     setSelectedBranch(0)
     setSelectedArea(0)
+    setAreas([])
+    if (!companyId) return
     try {
       const userId = userState?.id || 1
       const response = await APIs.getBranchOffices(companyId, userId)
       const branches = Array.isArray(response) ? response : (response?.data || [])
       setBranchOffices(branches)
-      // Con una sola sucursal se elige sola (y carga sus áreas).
-      if (branches.length === 1) await handleBranchChange(branches[0].id)
+      // Con una sola sucursal se elige sola.
+      if (branches.length === 1) {
+        await handleBranchChange(branches[0].id, companyId)
+        return
+      }
     } catch (error) {
       console.error('Error loading branches:', error)
     }
+    await loadAreaTypes(companyId)
   }
 
-  const handleBranchChange = async (branchId: number) => {
+  const handleBranchChange = async (branchId: number, companyId: number = selectedCompany) => {
     setSelectedBranch(branchId)
     setSelectedArea(0)
-    try {
-      const response = await APIs.getAreas({ branchId })
-      const areasData = Array.isArray(response) ? response : (response?.data || [])
-      setAreas(areasData)
-    } catch (error) {
-      console.error('Error loading areas:', error)
-    }
+    if (companyId) await loadAreaTypes(companyId, branchId || undefined)
   }
 
-  const searchProducts = async (code: string, name: string) => {
+  // La búsqueda se hace al dar clic en la lupa (o Enter); los resultados salen en un dropdown bajo el input
+  const runSearch = async () => {
+    const term = searchState.field.trim()
+    if (!term) {
+      setSearchResults([])
+      setSearched(false)
+      return
+    }
+    if (!selectedBranch) {
+      setSearchResults([])
+      setSearched(true)
+      return
+    }
+    const isCodeSearch = searchState.type === 1
+    setSearching(true)
     try {
-      const response: any = await APIs.getProducts(code, name, undefined)
+      // El producto se busca con la empresa y la sucursal elegidas arriba en el modal
+      const response: any = await APIs.getProducts(isCodeSearch ? term : '', !isCodeSearch ? term : '', undefined, {
+        companyId: selectedCompany || undefined,
+        branchId: selectedBranch || undefined,
+      })
       setSearchResults(response?.data ?? [])
     } catch (error) {
       console.error('Error searching products:', error)
       setSearchResults([])
+    } finally {
+      setSearching(false)
+      setSearched(true)
     }
   }
 
-  const handleSearchChange = async (val: string) => {
-    const isCodeSearch = searchState.type === 1;
-    const code = isCodeSearch ? val : '';
-    const name = !isCodeSearch ? val : '';
-    await searchProducts(code, name);
-  };
+  const closeResults = () => {
+    setSearchResults([])
+    setSearched(false)
+  }
+
+  // Cierra el dropdown al hacer clic fuera del buscador
+  useEffect(() => {
+    if (!searchResults.length && !searched) return
+    const onDown = (event: MouseEvent) => {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(event.target as Node)) closeResults()
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [searchResults.length, searched])
 
   const addItem = (product: any) => {
     const newItem: ReqItem = {
@@ -188,7 +259,8 @@ const ModalRequisition: React.FC = () => {
         title: fields.title,
         companyId: selectedCompany,
         branchId: selectedBranch,
-        areaId: selectedArea,
+        areaTypeId: selectedArea || undefined,
+        areaId: selectedSubarea || undefined,
         urgency: selectedUrgency,
         comments: fields.comments,
         userId: userState?.id || 1,
@@ -284,20 +356,45 @@ const ModalRequisition: React.FC = () => {
                 </select>
               </div>
               )}
+              <div className='modal-req-select-field modal-req-field--title'>
+                <label className='modal-req-label'>Título</label>
+                <input
+                  className='modal-req-inputs'
+                  type='text'
+                  value={fields.title}
+                  onChange={(e) => setFields(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder='Ingresa el título'
+                />
+              </div>
               <div className='modal-req-select-field'>
-                <label className='modal-req-label'>Area</label>
+                <label className='modal-req-label'>Área solicitante</label>
                 <select
                   className='modal-req-select'
                   value={selectedArea}
                   onChange={(e) => setSelectedArea(Number(e.target.value))}
-                  disabled={!selectedBranch}
+                  disabled={!selectedCompany}
                 >
-                  <option value={0}>Selecciona Area</option>
+                  <option value={0}>Selecciona el área</option>
                   {areas.map((a: any) => (
-                    <option key={a.id} value={a.id}>{a.name}</option>
+                    <option key={a.id} value={a.id}>{a.label}</option>
                   ))}
                 </select>
               </div>
+              {subareas.length > 0 && (
+                <div className='modal-req-select-field'>
+                  <label className='modal-req-label'>Subárea</label>
+                  <select
+                    className='modal-req-select'
+                    value={selectedSubarea}
+                    onChange={(e) => setSelectedSubarea(Number(e.target.value))}
+                  >
+                    <option value={0}>Sin subárea</option>
+                    {subareas.map((a: any) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className='modal-req-select-field'>
                 <label className='modal-req-label'>Urgencia</label>
                 <select
@@ -311,31 +408,17 @@ const ModalRequisition: React.FC = () => {
                   <option value='URGENT'>Urgente</option>
                 </select>
               </div>
-              <div className='modal-req-select-field'>
-                <label className='modal-req-label'>Título</label>
-                <input
-                  className='modal-req-inputs'
-                  type='text'
-                  value={fields.title}
-                  onChange={(e) => setFields(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder='Ingresa el título'
-                />
-              </div>
             </div>
 
             <div className='modal-req-row-1'>
-              <div className='modal-req-main-fields'>
-                <div className='modal-req-field-group'>
-                  <div className='modal-req-input-field'>
-                    <label className='modal-req-label'>Comentario</label>
-                    <textarea
-                      className='modal-req-textarea'
-                      value={fields.comments}
-                      onChange={(e) => setFields(prev => ({ ...prev, comments: e.target.value }))}
-                      placeholder='Comentarios generales'
-                    />
-                  </div>
-                </div>
+              <div className='modal-req-input-field'>
+                <label className='modal-req-label'>Comentario</label>
+                <textarea
+                  className='modal-req-textarea'
+                  value={fields.comments}
+                  onChange={(e) => setFields(prev => ({ ...prev, comments: e.target.value }))}
+                  placeholder='Comentarios generales'
+                />
               </div>
             </div>
 
@@ -353,36 +436,66 @@ const ModalRequisition: React.FC = () => {
                       <option value={2}>Nombre</option>
                     </select>
                   </div>
-                  <div className='modal-req-input-wrap'>
+                  <div className='modal-req-input-wrap' ref={searchWrapRef}>
                     <label className='modal-req-label'>Término de búsqueda</label>
                     <div className='modal-req-input-with-icon'>
-                      <span className="material-symbols-rounded">search</span>
                       <input
                         className='modal-req-inputs modal-req-search-input'
-                        placeholder='Escribe para buscar...'
+                        placeholder='Escribe y presiona la lupa para buscar...'
                         value={searchState.field}
                         type='text'
                         onChange={(e) => {
                           const val = e.target.value
                           setSearchState(prev => ({ ...prev, field: val }))
-                          handleSearchChange(val)
+                          if (!val.trim()) closeResults()
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            runSearch()
+                          } else if (e.key === 'Escape') {
+                            closeResults()
+                          }
                         }}
                       />
+                      <button
+                        type='button'
+                        className='modal-req-search-btn'
+                        onClick={runSearch}
+                        disabled={searching}
+                        title='Buscar producto'
+                        aria-label='Buscar producto'
+                      >
+                        <span className="material-symbols-rounded">{searching ? 'progress_activity' : 'search'}</span>
+                      </button>
                     </div>
-                    {searchResults.length > 0 && (
+                    {(searchResults.length > 0 || (searched && !searching)) && (
                       <div className='modal-req-results-list'>
-                        {searchResults.map((product: any) => (
+                        {searchResults.length > 0 && (
+                          <div className='modal-req-results-head'>{searchResults.length} {searchResults.length === 1 ? 'resultado' : 'resultados'}</div>
+                        )}
+                        {searchResults.length === 0 ? (
+                          <div className='modal-req-result-empty'>{selectedBranch ? 'No se encontraron productos en esta sucursal' : 'Selecciona primero la empresa y la sucursal'}</div>
+                        ) : searchResults.map((product: any) => (
                           <button
                             type='button'
                             key={product.id}
                             className='modal-req-result-item'
-                            onClick={() => addItem(product)}
+                            onClick={() => { addItem(product); setSearchState(prev => ({ ...prev, field: '' })); closeResults() }}
                           >
+                            {product.images?.[0] && (
+                              <img
+                                src={product.images[0]}
+                                alt=''
+                                className='modal-req-result-img'
+                                onError={(e: any) => { e.target.style.display = 'none' }}
+                              />
+                            )}
                             <div className="modal-req-result-info">
                               <span className="modal-req-result-name">{product.name}</span>
                               <span className="modal-req-result-code">{product.code}</span>
                             </div>
-                            <img src={product.images?.[0] || ''} alt='' className='modal-req-result-img' onError={(e: any) => e.target.style.display = 'none'} />
+                            <span className='modal-req-result-add material-symbols-rounded' aria-hidden>add_circle</span>
                           </button>
                         ))}
                       </div>
@@ -426,7 +539,7 @@ const ModalRequisition: React.FC = () => {
                         <div className='modal-req-td modal-req-td-left' style={{ flex: 3 }}>
                           <p className='modal-req-item-id'>{item.code} - {item.name}</p>
                         </div>
-                        <div className='modal-req-td' style={{ flex: 1 }}>
+                        <div className='modal-req-td' data-label='Cantidad' style={{ flex: 1 }}>
                           <input
                             className='modal-req-inputs'
                             value={item.quantity}
@@ -434,7 +547,7 @@ const ModalRequisition: React.FC = () => {
                             type="number"
                           />
                         </div>
-                        <div className='modal-req-td' style={{ flex: 1 }}>
+                        <div className='modal-req-td' data-label='Unidad' style={{ flex: 1 }}>
                           <select
                             className='modal-req-traditional-select'
                             value={item.unitId}
@@ -445,7 +558,7 @@ const ModalRequisition: React.FC = () => {
                             ))}
                           </select>
                         </div>
-                        <div className='modal-req-td' style={{ flex: 1 }}>
+                        <div className='modal-req-td' data-label='Almacén' style={{ flex: 1 }}>
                           <select
                             className='modal-req-traditional-select'
                             value={item.storeId}
@@ -456,7 +569,7 @@ const ModalRequisition: React.FC = () => {
                             ))}
                           </select>
                         </div>
-                        <div className='modal-req-td' style={{ flex: 2 }}>
+                        <div className='modal-req-td' data-label='Comentarios' style={{ flex: 2 }}>
                           <input
                             className='modal-req-inputs'
                             value={item.comments}
@@ -479,21 +592,21 @@ const ModalRequisition: React.FC = () => {
               </div>
             </div>
           </div>
-
-          <footer className="modal-req-footer">
-            <button type='button' className='modal-req-btn-cancel' onClick={() => handleModalChange('')}>
-              Cancelar
-            </button>
-            <button
-              type='button'
-              className='modal-req-btn-save'
-              onClick={handleSave}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Guardando...' : 'Crear Requisición'}
-            </button>
-          </footer>
         </div>
+
+        <footer className="modal-req-footer">
+          <button type='button' className='modal-req-btn-cancel' onClick={() => handleModalChange('')}>
+            Cancelar
+          </button>
+          <button
+            type='button'
+            className='modal-req-btn-save'
+            onClick={handleSave}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Guardando...' : 'Crear Requisición'}
+          </button>
+        </footer>
       </div>
     </div>
   )

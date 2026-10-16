@@ -35,6 +35,9 @@ const ICONS: Record<string, React.ReactNode> = {
   income: (
     <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="currentColor"><path d="M480-520q150 0 255-47t105-113q0-66-105-113t-255-47q-150 0-255 47T120-680q0 66 105 113t255 47Zm0 100q41 0 102.5-8.5T701-456q57-19 98-49.5t41-74.5v100q0 44-41 74.5T701-356q-57 19-118.5 27.5T480-320q-41 0-102.5-8.5T259-356q-57-19-98-49.5T120-480v-100q0 44 41 74.5t98 49.5q57 19 118.5 27.5T480-420Zm0 200q41 0 102.5-8.5T701-256q57-19 98-49.5t41-74.5v100q0 44-41 74.5T701-156q-57 19-118.5 27.5T480-120q-41 0-102.5-8.5T259-156q-57-19-98-49.5T120-280v-100q0 44 41 74.5t98 49.5q57 19 118.5 27.5T480-220Z" /></svg>
   ),
+  customers: (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="icon_sidebar"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M9 3a4 4 0 1 1 0 8a4 4 0 0 1 0 -8z" /><path d="M9 13c-3.3 0 -7 1.7 -7 4v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1 -1v-2c0 -2.3 -3.7 -4 -7 -4z" /><path d="M16.5 3.2a4 4 0 0 1 0 7.6a5 5 0 0 0 0 -7.6z" /><path d="M17.5 13.3c2.6 .5 5.5 1.9 5.5 3.7v2a1 1 0 0 1 -1 1h-2.2a3.8 3.8 0 0 0 .2 -1.2v-2.3c0 -1.2 -.8 -2.3 -2.5 -3.2z" /></svg>
+  ),
   user: (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" className="icon_sidebar"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M12 2a5 5 0 1 1 -5 5l.005 -.217a5 5 0 0 1 4.995 -4.783z" /><path d="M14 14a5 5 0 0 1 5 5v1a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-1a5 5 0 0 1 5 -5h4z" /></svg>
   ),

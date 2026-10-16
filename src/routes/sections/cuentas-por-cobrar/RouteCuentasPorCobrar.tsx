@@ -1,11 +1,11 @@
 import React from 'react'
 import { Route, Routes } from 'react-router-dom'
 import { PrivateRoutes } from '../../../models/routes'
-import CreditAccounts from '../../../components/sidebar/sections/cobranza/credit-accounts/CreditAccounts'
-import Debtors from '../../../components/sidebar/sections/cobranza/debtors/Debtors'
-import CreditPayments from '../../../components/sidebar/sections/cobranza/credit-payments/CreditPayments'
+import CreditAccounts from '../../../components/sidebar/sections/cuentas-por-cobrar/credit-accounts/CreditAccounts'
+import Debtors from '../../../components/sidebar/sections/cuentas-por-cobrar/debtors/Debtors'
+import CreditPayments from '../../../components/sidebar/sections/cuentas-por-cobrar/credit-payments/CreditPayments'
 
-const RouteCobranza: React.FC = () => {
+const RouteCuentasPorCobrar: React.FC = () => {
   return (
     <Routes>
       <Route path={`/${PrivateRoutes.CREDIT_ACCOUNTS}`} element={<CreditAccounts />} />
@@ -15,4 +15,4 @@ const RouteCobranza: React.FC = () => {
   )
 }
 
-export default RouteCobranza
+export default RouteCuentasPorCobrar

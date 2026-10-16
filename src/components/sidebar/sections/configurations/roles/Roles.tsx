@@ -24,6 +24,11 @@ const actionLabels: Record<string, string> = {
   view: 'Ver',
   create: 'Crear',
   manage: 'Gestionar',
+  approve: 'Aprobar',
+  override: 'Autorizar fuera de plazo o monto alto',
+  cancel: 'Cancelar',
+  return: 'Devolver',
+  reject: 'Rechazar',
 }
 
 const submoduleLabels: Record<string, string> = {
@@ -31,7 +36,7 @@ const submoduleLabels: Record<string, string> = {
   sheet: 'Ficha',
   quote: 'Cotización',
   order: 'Orden',
-  // Cobranza
+  // Cuentas por cobrar
   credit: 'Cuentas crédito',
   debtors: 'Deudores',
   payments: 'Abonos',
