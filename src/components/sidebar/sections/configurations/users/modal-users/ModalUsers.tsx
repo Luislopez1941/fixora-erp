@@ -7,6 +7,9 @@ import APIs from '../../../../../../services/APIs'
 import { fetchBranchActiveModules } from '../../../../../../core/modules/kernel.service'
 import Swal from 'sweetalert2'
 import { getRoleLabel } from '../../../../../../constants/userRoles'
+import { MODULE_LABELS, SUBMODULE_LABELS, TAXONOMY } from '../../../../../../core/modules/taxonomy.generated'
+import { renderIcon } from '../../../../../../core/modules/icons'
+import { groupSubmodules, orderModules, HIDDEN_PERMISSION_MODULES, PERMISSION_MODULE_ALIAS } from '../../../../../../core/permissions/permissionTree'
 
 type Props = {
   user?: any | null
@@ -28,6 +31,7 @@ const emptyFields = {
   areasId: '',
   companyId: '',
   userKind: 'STAFF',
+  sidebarType: '3',
 }
 
 const ModalUsers: React.FC<Props> = ({
@@ -51,8 +55,9 @@ const ModalUsers: React.FC<Props> = ({
   const [saving, setSaving] = useState(false)
   const [_allPermissions, setAllPermissions] = useState<any[]>([])
   const [rolePermissions, setRolePermissions] = useState<Set<number>>(new Set())
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [permissionOverrides, setPermissionOverrides] = useState<Map<number, boolean>>(new Map())
-  const [activeTab, setActiveTab] = useState<'info' | 'company' | 'permissions'>('info')
+  const [activeTab, setActiveTab] = useState<'info' | 'company' | 'modules' | 'permissions'>('info')
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const isEdit = Boolean(user?.id)
 
@@ -72,6 +77,7 @@ const ModalUsers: React.FC<Props> = ({
     configurations: 'Configuraciones',
     delivery: 'Entregas',
     general: 'General',
+    accounting: 'Contabilidad',
   }
 
   const submoduleLabels: Record<string, string> = {
@@ -103,6 +109,7 @@ const ModalUsers: React.FC<Props> = ({
     familias: 'Familias',
     containers: 'Categorías',
     units: 'Unidades',
+    suppliers: 'Proveedores',
     services: 'Servicios',
     articles: 'Artículos',
     prices: 'Rangos de precio',
@@ -150,6 +157,9 @@ const ModalUsers: React.FC<Props> = ({
 
     for (const perm of perms) {
       const parts = perm.name.split('.')
+      if (HIDDEN_PERMISSION_MODULES.includes(parts[0])) continue
+      const rawModule = parts[0]
+      parts[0] = PERMISSION_MODULE_ALIAS[parts[0]] ?? parts[0]
       const actionKey = parts.length >= 2 ? parts[parts.length - 1] : ''
       const actionLabel = actionLabels[actionKey] || actionKey
 
@@ -160,7 +170,7 @@ const ModalUsers: React.FC<Props> = ({
         if (!modulesMap.has(moduleKey)) {
           modulesMap.set(moduleKey, {
             key: moduleKey,
-            label: moduleLabels[moduleKey] || moduleKey,
+            label: moduleLabels[moduleKey] || MODULE_LABELS[moduleKey] || moduleKey,
             permissions: [],
             submodules: [],
           })
@@ -171,7 +181,7 @@ const ModalUsers: React.FC<Props> = ({
         if (!sub) {
           sub = {
             key: subKey,
-            label: submoduleLabels[subKey] || subKey,
+            label: submoduleLabels[subKey] || SUBMODULE_LABELS[`${rawModule}.${subKey}`] || subKey,
             permissions: [],
           }
           mod.submodules.push(sub)
@@ -182,7 +192,7 @@ const ModalUsers: React.FC<Props> = ({
         if (!modulesMap.has(moduleKey)) {
           modulesMap.set(moduleKey, {
             key: moduleKey,
-            label: moduleLabels[moduleKey] || moduleKey,
+            label: moduleLabels[moduleKey] || MODULE_LABELS[moduleKey] || moduleKey,
             permissions: [],
             submodules: [],
           })
@@ -191,7 +201,7 @@ const ModalUsers: React.FC<Props> = ({
       }
     }
 
-    return Array.from(modulesMap.values()).sort((a, b) => a.label.localeCompare(b.label))
+    return orderModules(Array.from(modulesMap.values()))
   }
 
   const [modules, setModules] = useState<ModuleGroup[]>([])
@@ -284,6 +294,7 @@ const ModalUsers: React.FC<Props> = ({
         areasId: user.Areas?.id ? String(user.Areas.id) : '',
         companyId: user.branch?.companyId ? String(user.branch.companyId) : (companyId ? String(companyId) : ''),
         userKind: user.userKind ?? 'STAFF',
+        sidebarType: String(user.sidebarType ?? 3),
       })
     } else {
       setFields({ ...emptyFields, companyId: companyId ? String(companyId) : '' })
@@ -463,6 +474,71 @@ const ModalUsers: React.FC<Props> = ({
     loadUserOverrides(user.id)
   }, [isEdit, user?.id])
 
+  // ───────────── Acceso por módulo ─────────────
+  // Un módulo agrupa los permisos de sus pantallas (taxonomía). Se elige un NIVEL por módulo y se traduce a "excepciones" sobre
+  // lo que ya da el rol: Sin acceso (nada), Consulta (solo ver) o Completo (ver + crear + gestionar). Las acciones especiales
+  // (aprobar, cancelar, devolver, autorizar…) solo se quitan con "Sin acceso"; ajustarlas una por una sigue en Permisos avanzados.
+  type AccessLevel = 'none' | 'view' | 'full'
+  const stemOf = (name: string) => name.split('.').slice(0, -1).join('.')
+  const actionOf = (name: string) => name.split('.').pop() ?? ''
+  const isViewPerm = (name: string) => actionOf(name) === 'view'
+  const isWritePerm = (name: string) => ['create', 'manage'].includes(actionOf(name))
+
+  const effective = (permissionId: number) =>
+    permissionOverrides.has(permissionId) ? permissionOverrides.get(permissionId) === true : rolePermissions.has(permissionId)
+
+  const accessModules = React.useMemo(() => {
+    return TAXONOMY.filter((m) => !m.ownerOnly)
+      .map((m) => {
+        const stems = new Set<string>()
+        const addStem = (perm?: string | string[]) => (Array.isArray(perm) ? perm : perm ? [perm] : []).forEach((x) => stems.add(stemOf(x)))
+        addStem(m.requiredPermission)
+        m.groups.forEach((g) => g.screens.forEach((sc) => addStem(sc.permission)))
+        const perms = _allPermissions.filter((perm: any) => stems.has(stemOf(perm.name)))
+        const screens = m.groups.reduce((n, g) => n + g.screens.length, 0)
+        return { key: m.key, label: m.label, icon: m.icon, screens, perms }
+      })
+      // Solo los módulos que existen en la licencia de la sucursal (el catálogo ya viene filtrado)
+      .filter((m) => m.perms.length > 0)
+  }, [_allPermissions])
+
+  const levelOf = (mod: { perms: any[] }): AccessLevel | 'custom' => {
+    const views = mod.perms.filter((x) => isViewPerm(x.name))
+    const writes = mod.perms.filter((x) => isWritePerm(x.name))
+    const viewsOn = views.filter((x) => effective(x.id)).length
+    const writesOn = writes.filter((x) => effective(x.id)).length
+    if (viewsOn === 0) return writesOn === 0 ? 'none' : 'custom'
+    if (viewsOn < views.length) return 'custom'
+    if (writesOn === 0) return 'view'
+    if (writesOn === writes.length) return 'full'
+    return 'custom'
+  }
+
+  const setModuleLevel = (mod: { perms: any[] }, level: AccessLevel) => {
+    setPermissionOverrides((prev) => {
+      const next = new Map(prev)
+      for (const perm of mod.perms) {
+        let desired: boolean | undefined
+        if (isViewPerm(perm.name)) desired = level !== 'none'
+        else if (isWritePerm(perm.name)) desired = level === 'full'
+        else desired = level === 'none' ? false : undefined // acciones especiales: solo se quitan con "Sin acceso"
+        if (desired === undefined) continue
+        // Solo se guarda una excepción cuando difiere de lo que ya da el rol
+        if (desired === rolePermissions.has(perm.id)) next.delete(perm.id)
+        else next.set(perm.id, desired)
+      }
+      return next
+    })
+  }
+
+  const resetModule = (mod: { perms: any[] }) => {
+    setPermissionOverrides((prev) => {
+      const next = new Map(prev)
+      mod.perms.forEach((perm) => next.delete(perm.id))
+      return next
+    })
+  }
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
@@ -495,6 +571,7 @@ const ModalUsers: React.FC<Props> = ({
         areasId: fields.areasId ? Number(fields.areasId) : undefined,
         createdByUserId,
         userKind: fields.userKind,
+        sidebarType: Number(fields.sidebarType) || 3,
       }
 
       let savedUserId = user?.id
@@ -579,10 +656,17 @@ const ModalUsers: React.FC<Props> = ({
           </button>
           <button
             type='button'
+            className={`users-modal__tab ${activeTab === 'modules' ? 'active' : ''}`}
+            onClick={() => setActiveTab('modules')}
+          >
+            Acceso a módulos
+          </button>
+          <button
+            type='button'
             className={`users-modal__tab ${activeTab === 'permissions' ? 'active' : ''}`}
             onClick={() => setActiveTab('permissions')}
           >
-            Permisos
+            Permisos avanzados
           </button>
         </div>
 
@@ -660,6 +744,17 @@ const ModalUsers: React.FC<Props> = ({
                     </select>
                   </div>
                 </div>
+
+                <div className='row__one'>
+                  <div>
+                    <label className='label__general'>Tipo de sidebar</label>
+                    <select className='inputs__general' name='sidebarType' value={fields.sidebarType} onChange={handleChange}>
+                      <option value='1'>1 · Secciones directas</option>
+                      <option value='2'>2 · Un sidebar con submódulos</option>
+                      <option value='3'>3 · Dos sidebars (completo)</option>
+                    </select>
+                  </div>
+                </div>
               </>
             )}
 
@@ -685,6 +780,61 @@ const ModalUsers: React.FC<Props> = ({
                   title='Sucursales donde puede trabajar'
                   hint={branches.length > 1 ? 'Marca todas las sucursales donde este usuario puede operar; la primera es su sucursal principal.' : undefined}
                 />
+              </div>
+            )}
+
+            {/* ─── TAB ACCESO A MÓDULOS ─── */}
+            {activeTab === 'modules' && (
+              <div className='users-modal__access'>
+                <p className='users-modal__perm-hint'>
+                  Decide a qué módulos entra este usuario. Parte de lo que ya da su rol y aquí lo ajustas: <b>Sin acceso</b> oculta el módulo,{' '}
+                  <b>Consulta</b> solo deja ver y <b>Completo</b> deja ver, crear y gestionar.
+                </p>
+                {!fields.roleId && <p className='users-modal__access-warn'>Elige primero el rol en la pestaña Información: el acceso se calcula sobre lo que ese rol ya permite.</p>}
+                {accessModules.length === 0 && <p className='users-modal__access-empty'>Esta sucursal todavía no tiene módulos activos.</p>}
+                <div className='users-modal__access-summary'>
+                  {accessModules.filter((m) => levelOf(m) !== 'none').length} de {accessModules.length} módulos con acceso
+                </div>
+                <ul className='users-modal__access-list'>
+                  {accessModules.map((m) => {
+                    const level = levelOf(m)
+                    const views = m.perms.filter((x: any) => isViewPerm(x.name))
+                    const on = views.filter((x: any) => effective(x.id)).length
+                    const hasOverride = m.perms.some((x: any) => permissionOverrides.has(x.id))
+                    return (
+                      <li key={m.key} className={`users-modal__access-row ${level === 'none' ? 'is-off' : ''}`}>
+                        <span className='users-modal__access-icon'>{renderIcon(m.icon)}</span>
+                        <div className='users-modal__access-text'>
+                          <strong>{m.label}</strong>
+                          <small>
+                            {on} de {views.length} pantallas
+                            {hasOverride && ' · ajustado para este usuario'}
+                          </small>
+                        </div>
+                        <div className='users-modal__access-control' role='radiogroup' aria-label={`Acceso a ${m.label}`}>
+                          {([['none', 'Sin acceso'], ['view', 'Consulta'], ['full', 'Completo']] as [AccessLevel, string][]).map(([value, label]) => (
+                            <button
+                              key={value}
+                              type='button'
+                              role='radio'
+                              aria-checked={level === value}
+                              className={`users-modal__access-btn users-modal__access-btn--${value} ${level === value ? 'active' : ''}`}
+                              onClick={() => setModuleLevel(m, value)}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                        {level === 'custom' && (
+                          <div className='users-modal__access-custom'>
+                            <span>Personalizado</span>
+                            {hasOverride && <button type='button' onClick={() => resetModule(m)}>Restablecer al rol</button>}
+                          </div>
+                        )}
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
             )}
 
@@ -748,55 +898,91 @@ const ModalUsers: React.FC<Props> = ({
                             )
                           })}
 
-                          {/* Submódulos */}
-                          {mod.submodules.map((sub) => {
-                            const subExpanded = expandedSubmodules.has(`${mod.key}.${sub.key}`)
-                            const subViewPerm = sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))
-                            const subOtherPerms = sub.permissions.filter((p) => p.id !== subViewPerm?.id)
-                            const subViewChecked = subViewPerm ? permissionOverrides.get(subViewPerm.id) === true || (rolePermissions.has(subViewPerm.id) && !permissionOverrides.has(subViewPerm.id)) : false
-                            const subViewDenied = subViewPerm ? permissionOverrides.get(subViewPerm.id) === false : false
-
+                          {/* Pantallas agrupadas como en el menú (Punto de venta, Gestión comercial…) */}
+                          {groupSubmodules(mod.submodules).map(({ group, subs }) => {
+                            const groupKey = `${mod.key}.${group}`
+                            const groupOpen = !group || expandedGroups.has(groupKey)
+                            const viewPerms = subs.map((sub) => sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))).filter(Boolean) as { id: number }[]
+                            const isOn = (id: number) => (permissionOverrides.has(id) ? permissionOverrides.get(id) === true : rolePermissions.has(id))
+                            const onCount = viewPerms.filter((p) => isOn(p.id)).length
                             return (
-                              <div key={sub.key} className='users-modal__submodule'>
-                                <div className='users-modal__submodule-header'>
-                                  {subViewPerm && (
-                                    <label className={`users-modal__submodule-view ${subViewChecked ? 'checked' : ''} ${subViewDenied ? 'denied' : ''}`} title='Acceso al submódulo'>
-                                      <input
-                                        type='checkbox'
-                                        checked={subViewChecked}
-                                        onChange={() => {
-                                          if (subViewPerm) toggleOverride(subViewPerm.id)
-                                        }}
-                                      />
-                                    </label>
-                                  )}
-                                  <button type='button' className='users-modal__submodule-toggle' onClick={() => toggleSubmodule(`${mod.key}.${sub.key}`)}>
-                                    <span className='users-modal__submodule-name'>{sub.label}</span>
-                                    <span className={`users-modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
+                              <div key={group || 'sin-grupo'} className='users-modal__group'>
+                                {group && (
+                                  <button
+                                    type='button'
+                                    className='users-modal__group-toggle'
+                                    aria-expanded={groupOpen}
+                                    onClick={() =>
+                                      setExpandedGroups((prev) => {
+                                        const next = new Set(prev)
+                                        if (next.has(groupKey)) next.delete(groupKey)
+                                        else next.add(groupKey)
+                                        return next
+                                      })
+                                    }
+                                  >
+                                    <span className={`users-modal__group-arrow ${groupOpen ? 'open' : ''}`}>
                                       <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
                                     </span>
+                                    <span className='users-modal__group-name'>{group}</span>
+                                    <span className='users-modal__group-count'>{onCount}/{subs.length}</span>
                                   </button>
-                                </div>
-                                {subExpanded && (
-                                  <div className='users-modal__submodule-body'>
-                                    {subOtherPerms.map((perm) => {
-                                      const inherited = rolePermissions.has(perm.id)
-                                      const override = permissionOverrides.get(perm.id)
-                                      const isGranted = override === true
-                                      const isDenied = override === false
-                                      const rowClass = `users-modal__perm-row ${isGranted ? 'granted' : ''} ${isDenied ? 'denied' : ''} ${!override && inherited ? 'inherited' : ''}`
-                                      return (
-                                        <div
-                                          key={perm.id}
-                                          className={rowClass}
-                                          onClick={() => toggleOverride(perm.id)}
-                                          title={perm.description || perm.name}
-                                        >
-                                          <input type='checkbox' checked={isGranted} readOnly onClick={(e) => { e.stopPropagation(); toggleOverride(perm.id) }} />
-                                          <span className='users-modal__perm-action'>{perm.actionLabel || perm.name}</span>
-                                          <span className='users-modal__perm-desc'>{perm.description}</span>
+                                )}
+                                {groupOpen && (
+                                  <div className='users-modal__group-body'>
+                                    {subs.map((sub) => {
+                                const subExpanded = expandedSubmodules.has(`${mod.key}.${sub.key}`)
+                                    const subViewPerm = sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))
+                                    const subOtherPerms = sub.permissions.filter((p) => p.id !== subViewPerm?.id)
+                                    const subViewChecked = subViewPerm ? permissionOverrides.get(subViewPerm.id) === true || (rolePermissions.has(subViewPerm.id) && !permissionOverrides.has(subViewPerm.id)) : false
+                                    const subViewDenied = subViewPerm ? permissionOverrides.get(subViewPerm.id) === false : false
+    
+                                    return (
+                                      <div key={sub.key} className='users-modal__submodule'>
+                                        <div className='users-modal__submodule-header'>
+                                          {subViewPerm && (
+                                            <label className={`users-modal__submodule-view ${subViewChecked ? 'checked' : ''} ${subViewDenied ? 'denied' : ''}`} title='Acceso al submódulo'>
+                                              <input
+                                                type='checkbox'
+                                                checked={subViewChecked}
+                                                onChange={() => {
+                                                  if (subViewPerm) toggleOverride(subViewPerm.id)
+                                                }}
+                                              />
+                                            </label>
+                                          )}
+                                          <button type='button' className='users-modal__submodule-toggle' onClick={() => toggleSubmodule(`${mod.key}.${sub.key}`)}>
+                                            <span className='users-modal__submodule-name'>{sub.label}</span>
+                                            <span className={`users-modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
+                                              <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
+                                            </span>
+                                          </button>
                                         </div>
-                                      )
+                                        {subExpanded && (
+                                          <div className='users-modal__submodule-body'>
+                                            {subOtherPerms.map((perm) => {
+                                              const inherited = rolePermissions.has(perm.id)
+                                              const override = permissionOverrides.get(perm.id)
+                                              const isGranted = override === true
+                                              const isDenied = override === false
+                                              const rowClass = `users-modal__perm-row ${isGranted ? 'granted' : ''} ${isDenied ? 'denied' : ''} ${!override && inherited ? 'inherited' : ''}`
+                                              return (
+                                                <div
+                                                  key={perm.id}
+                                                  className={rowClass}
+                                                  onClick={() => toggleOverride(perm.id)}
+                                                  title={perm.description || perm.name}
+                                                >
+                                                  <input type='checkbox' checked={isGranted} readOnly onClick={(e) => { e.stopPropagation(); toggleOverride(perm.id) }} />
+                                                  <span className='users-modal__perm-action'>{perm.actionLabel || perm.name}</span>
+                                                  <span className='users-modal__perm-desc'>{perm.description}</span>
+                                                </div>
+                                              )
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
                                     })}
                                   </div>
                                 )}

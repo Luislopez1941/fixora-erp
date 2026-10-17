@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
-import { setArticles, updateArticles } from '../../../../../redux/state/Articles'
+import { updateArticles } from '../../../../../redux/state/Articles'
 import { PrivateRoutes } from '../../../../../models/routes'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
@@ -463,13 +463,8 @@ const Modal = () => {
         await APIs.setItemProductionRoute(itemId, [], token)
       }
 
-      const result: any = await APIs.getItemList(token, {
-        companyId: companyId ?? undefined,
-        branchId: branchId > 0 ? branchId : undefined,
-      })
-      const list = Array.isArray(result) ? result : Array.isArray(result?.data) ? result.data : []
-      const filtered = list.filter((item: any) => item.type === 'ARTICLE')
-      dispatch(setArticles(filtered))
+      // La lista de Artículos está paginada desde el servidor: se le avisa para que vuelva a pedir su página
+      window.dispatchEvent(new Event('articles:changed'))
 
       setIsSaving(false)
       closeModal()

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
 import APIs from '../../../../services/APIs';
 import './ModalCustomer.css';
@@ -10,13 +11,31 @@ interface Props {
   companies: any[];
   /** Empresa seleccionada en la lista (la que se usa al crear) */
   companyId: number;
+  /** Sucursales de la empresa (para asignar el cliente) */
+  branches: any[];
+  /** Sucursal elegida en la lista; 0 = todas */
+  defaultBranchId: number;
   onClose: () => void;
   onSaved: () => void;
 }
 
-const empty = { businessName: '', firstName: '', lastName: '', taxId: '', email: '', phone: '', address: '', active: true };
+type CustomerType = 'FISICA' | 'MORAL';
 
-const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, onClose, onSaved }) => {
+// Qué es cada tipo de cliente y por qué cambian los campos
+const TYPES: { id: CustomerType; label: string; hint: string; icon: string }[] = [
+  { id: 'FISICA', label: 'Persona física', hint: 'Nombre y apellidos. El RFC es opcional', icon: 'person' },
+  { id: 'MORAL', label: 'Persona moral', hint: 'Empresa: razón social y RFC', icon: 'apartment' },
+];
+
+const RFC_FISICA = /^[A-ZÑ&]{4}\d{6}[A-Z0-9]{3}$/;
+const RFC_MORAL = /^[A-ZÑ&]{3}\d{6}[A-Z0-9]{3}$/;
+
+const empty = { branchId: 0, customerType: 'FISICA' as CustomerType, businessName: '', firstName: '', lastName: '', taxId: '', email: '', phone: '', address: '', active: true };
+
+const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, branches: pageBranches, defaultBranchId, onClose, onSaved }) => {
+  const userState = useSelector((state: any) => state.user);
+  // Sucursales de la empresa que se está usando en el modal (si cambias de empresa se piden de nuevo)
+  const [branches, setBranches] = useState<any[]>(pageBranches);
   const [fields, setFields] = useState(empty);
   const [company, setCompany] = useState(companyId);
   const [saving, setSaving] = useState(false);
@@ -29,6 +48,8 @@ const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, 
     setFields(
       customer
         ? {
+            branchId: customer.branchId ?? 0,
+            customerType: (customer.customerType === 'MORAL' || (!customer.customerType && customer.businessName) ? 'MORAL' : 'FISICA') as CustomerType,
             businessName: customer.businessName ?? '',
             firstName: customer.firstName ?? '',
             lastName: customer.lastName ?? '',
@@ -38,15 +59,46 @@ const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, 
             address: customer.address ?? '',
             active: customer.active !== false,
           }
-        : empty,
+        : { ...empty, branchId: defaultBranchId || 0 },
     );
-  }, [open, customer, companyId]);
+  }, [open, customer, companyId, defaultBranchId]);
 
-  const set = (key: keyof typeof empty, value: string | boolean) => setFields((prev) => ({ ...prev, [key]: value }));
+  useEffect(() => {
+    if (!open || !company) return;
+    let alive = true;
+    APIs.getBranchOffices(company, userState?.id || 1)
+      .then((response: any) => {
+        if (!alive) return;
+        const list = Array.isArray(response) ? response : response?.data || [];
+        setBranches(list);
+        // Una sucursal de otra empresa no vale: vuelve a "Todas"
+        setFields((prev) => (prev.branchId > 0 && !list.some((b: any) => b.id === prev.branchId) ? { ...prev, branchId: 0 } : prev));
+      })
+      .catch(() => alive && setBranches([]));
+    return () => {
+      alive = false;
+    };
+  }, [open, company, userState?.id]);
+
+  const set = (key: keyof typeof empty, value: string | boolean | number) => setFields((prev) => ({ ...prev, [key]: value }));
+
+  const type = fields.customerType;
+  const isMoral = type === 'MORAL';
+
+  const validate = (): string | null => {
+    if (isMoral && !fields.businessName.trim()) return 'Escribe la razón social.';
+    if (!isMoral && !fields.firstName.trim()) return 'Escribe el nombre del cliente.';
+    const rfc = fields.taxId.trim().toUpperCase();
+    if (isMoral && !rfc) return 'El RFC es obligatorio para una persona moral.';
+    if (rfc && !isMoral && !RFC_FISICA.test(rfc)) return 'El RFC de una persona física tiene 13 caracteres (ej. PEPJ800101AB1).';
+    if (rfc && isMoral && !RFC_MORAL.test(rfc)) return 'El RFC de una persona moral tiene 12 caracteres (ej. ABC800101AB1).';
+    return null;
+  };
 
   const handleSave = async () => {
-    if (!fields.businessName.trim() && !fields.firstName.trim()) {
-      Swal.fire('Atención', 'Escribe la razón social o el nombre del cliente.', 'warning');
+    const problem = validate();
+    if (problem) {
+      Swal.fire('Atención', problem, 'warning');
       return;
     }
     if (!isEdit && !company) {
@@ -55,7 +107,14 @@ const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, 
     }
     setSaving(true);
     try {
-      const payload = { ...fields, ...(isEdit ? {} : { companyId: company }) };
+      // La persona física no lleva razón social
+      const payload = {
+        ...fields,
+        branchId: fields.branchId > 0 ? fields.branchId : null,
+        taxId: fields.taxId.trim().toUpperCase(),
+        businessName: isMoral ? fields.businessName : '',
+        ...(isEdit ? {} : { companyId: company }),
+      };
       if (isEdit) await APIs.updateCustomer(customer.id, payload);
       else await APIs.createCustomer(payload);
       Swal.fire({ icon: 'success', title: isEdit ? 'Cliente actualizado' : 'Cliente creado', timer: 1400, showConfirmButton: false });
@@ -79,32 +138,74 @@ const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, 
         </div>
 
         <div className='cm-body'>
-          {!isEdit && companies.length > 1 && (
-            <div className='cm-field'>
-              <label>Empresa</label>
-              <select value={company} onChange={(e) => setCompany(Number(e.target.value))}>
-                {companies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+          {((!isEdit && companies.length > 1) || branches.length > 0) && (
+            <div className='cm-row'>
+              {!isEdit && companies.length > 1 && (
+                <div className='cm-field'>
+                  <label>Empresa</label>
+                  <select value={company} onChange={(e) => setCompany(Number(e.target.value))}>
+                    {companies.map((c) => (
+                      <option key={c.id} value={c.id}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {branches.length > 0 && (
+                <div className='cm-field'>
+                  <label>Sucursal</label>
+                  <select value={fields.branchId} onChange={(e) => set('branchId', Number(e.target.value))}>
+                    <option value={0}>Todas (compartido)</option>
+                    {branches.map((br: any) => (
+                      <option key={br.id} value={br.id}>{br.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
 
+          <div className='cm-types' role='tablist' aria-label='Tipo de cliente'>
+            {TYPES.map((t) => (
+              <button
+                key={t.id}
+                type='button'
+                role='tab'
+                aria-selected={type === t.id}
+                className={`cm-type ${type === t.id ? 'is-active' : ''}`}
+                onClick={() => set('customerType', t.id)}
+              >
+                <span className='material-symbols-rounded' aria-hidden>{t.icon}</span>
+                <span className='cm-type__text'>
+                  <strong>{t.label}</strong>
+                  <small>{t.hint}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+
           <div className='cm-grid'>
-            <div className='cm-field cm-field--wide'>
-              <label>Razón social</label>
-              <input type='text' value={fields.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder='Empresa o nombre comercial' />
+            {isMoral && (
+              <div className='cm-field cm-field--wide'>
+                <label>Razón social *</label>
+                <input type='text' value={fields.businessName} onChange={(e) => set('businessName', e.target.value)} placeholder='Nombre de la empresa' autoFocus />
+              </div>
+            )}
+            <div className={`cm-field ${isMoral ? 'cm-field--wide' : ''}`}>
+              <label>{isMoral ? 'RFC *' : 'RFC (opcional)'}</label>
+              <input
+                type='text'
+                value={fields.taxId}
+                maxLength={isMoral ? 12 : 13}
+                onChange={(e) => set('taxId', e.target.value.toUpperCase().replace(/\s/g, ''))}
+                placeholder={isMoral ? 'ABC800101AB1' : 'PEPJ800101AB1'}
+              />
             </div>
             <div className='cm-field'>
-              <label>RFC</label>
-              <input type='text' value={fields.taxId} onChange={(e) => set('taxId', e.target.value.toUpperCase())} placeholder='XAXX010101000' />
+              <label>{isMoral ? 'Nombre del contacto' : 'Nombre *'}</label>
+              <input type='text' value={fields.firstName} onChange={(e) => set('firstName', e.target.value)} placeholder='Nombre(s)' autoFocus={!isMoral} />
             </div>
             <div className='cm-field'>
-              <label>Nombre</label>
-              <input type='text' value={fields.firstName} onChange={(e) => set('firstName', e.target.value)} placeholder='Nombre(s)' />
-            </div>
-            <div className='cm-field'>
-              <label>Apellidos</label>
+              <label>{isMoral ? 'Apellidos del contacto' : 'Apellidos'}</label>
               <input type='text' value={fields.lastName} onChange={(e) => set('lastName', e.target.value)} placeholder='Apellidos' />
             </div>
             <div className='cm-field'>
@@ -116,7 +217,7 @@ const ModalCustomer: React.FC<Props> = ({ open, customer, companies, companyId, 
               <input type='email' value={fields.email} onChange={(e) => set('email', e.target.value)} placeholder='cliente@correo.com' />
             </div>
             <div className='cm-field cm-field--wide'>
-              <label>Dirección</label>
+              <label>{isMoral ? 'Domicilio fiscal' : 'Dirección'}</label>
               <input type='text' value={fields.address} onChange={(e) => set('address', e.target.value)} placeholder='Calle, número, colonia, ciudad' />
             </div>
           </div>

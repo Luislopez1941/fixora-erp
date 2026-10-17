@@ -1,0 +1,266 @@
+/* Selector de fecha de Fixora: usa las variables de tema (claro/oscuro) del sistema */
+.dfield {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.dfield.is-empty .dfield__value {
+  color: var(--text-muted);
+}
+
+.dfield__value {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+
+.dfield__icon {
+  font-size: 18px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.dfield[aria-expanded='true'] {
+  border-color: var(--secondary-color);
+}
+
+/* Tono de caducidad del campo */
+.dfield.is-expired { border-color: #e5484d; }
+.dfield.is-expired .dfield__icon { color: #e5484d; }
+.dfield.is-soon { border-color: #f5a524; }
+.dfield.is-soon .dfield__icon { color: #f5a524; }
+.dfield.is-ok .dfield__icon { color: #30a46c; }
+
+/* ── Calendario ── */
+.dfield__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 11999;
+  background: rgba(0, 0, 0, 0.45);
+  animation: dfield-fade 0.15s ease;
+}
+
+.dfield__pop {
+  position: fixed;
+  z-index: 12000;
+  width: 300px;
+  padding: 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+  font-family: inherit;
+  animation: dfield-pop 0.14s ease;
+}
+
+.dfield__pop--sheet {
+  inset: auto 0 0 0;
+  width: auto;
+  padding: 8px 16px calc(16px + env(safe-area-inset-bottom));
+  border-radius: 20px 20px 0 0;
+  border-bottom: none;
+  animation: dfield-up 0.2s ease;
+}
+
+.dfield__grabber {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 8px;
+  border-radius: 999px;
+  background: var(--panel-border);
+}
+
+.dfield__head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.dfield__title {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.dfield__title .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.dfield__nav {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dfield__title:hover,
+.dfield__nav:hover {
+  background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+}
+
+.dfield__days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  animation: dfield-fade 0.15s ease;
+}
+
+.dfield__weekday {
+  display: grid;
+  place-items: center;
+  height: 28px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.dfield__day {
+  aspect-ratio: 1;
+  min-height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dfield__day:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+}
+
+.dfield__day.is-outside { opacity: 0.35; }
+.dfield__day.is-past { color: var(--text-muted); }
+.dfield__day:disabled { opacity: 0.2; cursor: not-allowed; }
+
+.dfield__day.is-today {
+  box-shadow: inset 0 0 0 1.5px var(--secondary-color);
+  font-weight: 700;
+}
+
+.dfield__day.is-selected,
+.dfield__month.is-selected {
+  background: var(--secondary-color);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.dfield__months {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 4px 0;
+}
+
+.dfield__month {
+  height: 44px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.86rem;
+  cursor: pointer;
+}
+
+.dfield__month:hover:not(.is-selected) {
+  border-color: var(--secondary-color);
+}
+
+.dfield__presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.dfield__chip {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dfield__chip:hover {
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
+
+.dfield__foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.dfield__link {
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dfield__link--strong { color: var(--secondary-color); }
+.dfield__link:disabled { opacity: 0.4; cursor: default; }
+.dfield__link:hover:not(:disabled) { background: color-mix(in srgb, var(--secondary-color) 10%, transparent); }
+
+@keyframes dfield-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes dfield-up {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}
+
+@keyframes dfield-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dfield__pop, .dfield__backdrop, .dfield__days { animation: none; }
+}

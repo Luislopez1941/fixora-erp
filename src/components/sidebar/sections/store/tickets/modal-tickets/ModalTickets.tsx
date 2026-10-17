@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './ModalTickets.css';
 import { useDispatch, useSelector } from "react-redux";
 import { modal } from '../../../../../../redux/state/modals';
@@ -6,6 +6,16 @@ import APIs from '../../../../../../services/APIs';
 import Swal from 'sweetalert2';
 import CategoriesStorePicker from '../../../catalogos/categories/CategoriesStorePicker';
 import { readCategoryBranchId } from '../../../../../../constants/category';
+import DateField, { type DatePreset } from '../../../../../general/date-field/DateField'
+
+// Atajos de caducidad: lo más común al recibir mercancía perecedera
+const EXPIRY_PRESETS: DatePreset[] = [
+  { label: '1 mes', months: 1 },
+  { label: '3 meses', months: 3 },
+  { label: '6 meses', months: 6 },
+  { label: '1 año', months: 12 },
+  { label: '2 años', months: 24 },
+]
 
 const LS_COMPANY = 'categories-picker-company-id';
 
@@ -86,57 +96,6 @@ const getVariationStockForStore = (
   return null
 }
 
-const getProductVariations = (product: any) =>
-  product?.usesSizes ? (product.variations ?? product.itemVariations ?? []) : []
-
-const groupVariationsByColorForDisplay = (product: any) => {
-  const map = new Map<string, { color: string; colorHex?: string; sizes: string[] }>()
-
-  for (const v of getProductVariations(product)) {
-    if (!map.has(v.color)) {
-      map.set(v.color, { color: v.color, colorHex: v.colorHex, sizes: [] })
-    }
-    map.get(v.color)!.sizes.push(v.size)
-  }
-
-  return Array.from(map.values())
-}
-
-const ProductVariationsPreview: React.FC<{ product: any; compact?: boolean }> = ({
-  product,
-  compact = false,
-}) => {
-  const groups = groupVariationsByColorForDisplay(product)
-  if (!product?.usesSizes || groups.length === 0) return null
-
-  const storeId = product?.stores?.[0]?.id ?? product?.stores?.[0]?.storeId
-
-  return (
-    <div className={`tickets-variations-preview${compact ? ' tickets-variations-preview--compact' : ''}`}>
-      {groups.map((group) => (
-        <div key={group.color} className='tickets-variations-preview__row'>
-          {group.colorHex ? (
-            <span
-              className='tickets-variations-preview__swatch'
-              style={{ backgroundColor: group.colorHex }}
-              title={group.color}
-            />
-          ) : null}
-          <span className='tickets-variations-preview__color'>{group.color}</span>
-          <span className='tickets-variations-preview__sizes'>
-            Tallas:{' '}
-            {group.sizes
-              .map((size) => {
-                const stock = getVariationStockForStore(product, storeId, group.color, size)
-                return stock != null ? `${size} (${stock})` : size
-              })
-              .join(', ')}
-          </span>
-        </div>
-      ))}
-    </div>
-  )
-}
 
 const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null }> = ({
   onSaved,
@@ -151,6 +110,8 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
   const [comments, setComments] = useState('');
   const [editingTicketId, setEditingTicketId] = useState<number | null>(null);
   const [loadingTicket, setLoadingTicket] = useState(false);
+  // Guardado: 'saving' mientras se envía (evita doble clic y entradas duplicadas) y 'done' un momento con el botón en verde
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'done'>('idle');
 
   const resolveNames = async (companyId: number, selectedBranchId: number) => {
     try {
@@ -180,28 +141,22 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
     // dispatch(updateAdministrator('reset'));
   };
 
-  const [selectAdd, setSelectAdd] = useState<any>({
-    types: [
-      {
-        id: 1,
-        name: 'Codigo'
-      },
-      {
-        id: 2,
-        name: 'Nombre'
-      }
-    ],
-    selectType: null,
-    selectedType: null,
-    selectResult: null,
-    selectedResult: '',
-    result: [],
-    field: ''
-  })
+  // Buscador de artículos: una sola caja (código, código de barras o nombre) con resultados al escribir
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<any[]>([])
+  const [searching, setSearching] = useState(false)
+  const [finderOpen, setFinderOpen] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [addingId, setAddingId] = useState<number | null>(null)
+  const [branchStores, setBranchStores] = useState<any[]>([])
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const searchSeq = useRef(0)
+  const resultsFor = useRef('') // texto al que corresponden los resultados que se muestran
 
   const [concepts, setConcepts] = useState<any>([])
 
   useEffect(() => {
+    setSaveState('idle');
     if (!isOpen) {
       setEditingTicketId(null);
       return;
@@ -240,20 +195,11 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
               variationColorHex: c.variationColorHex ?? null,
               stores: c.stores ?? [],
               units: c.units ?? [],
+              lotCode: c.lotCode ?? '',
+              expiryDate: c.expiryDate ?? '',
             })),
           );
-          setSelectAdd({
-            types: [
-              { id: 1, name: 'Codigo' },
-              { id: 2, name: 'Nombre' },
-            ],
-            selectType: null,
-            selectedType: null,
-            selectResult: null,
-            selectedResult: '',
-            result: [],
-            field: '',
-          });
+          resetFinder();
         } catch (error) {
           console.error('Error al cargar entrada:', error);
           Swal.fire({
@@ -276,92 +222,182 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
     setBranchId(readCategoryBranchId());
     setComments('');
     setConcepts([]);
-    setSelectAdd({
-      types: [
-        { id: 1, name: 'Codigo' },
-        { id: 2, name: 'Nombre' },
-      ],
-      selectType: null,
-      selectedType: null,
-      selectResult: null,
-      selectedResult: '',
-      result: [],
-      field: '',
-    });
+          resetFinder();
   }, [isOpen, isUpdate, selectedTicket?.id, dispatch]);
 
-  const openSelectType = () => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectType: !prevState.selectType,
-    }));
+  const resetFinder = () => {
+    setQuery('')
+    setResults([])
+    setFinderOpen(false)
+    setActiveIndex(0)
   }
 
-  const handleTypeChange = async (type: any) => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectType: !prevState.selectType,
-    }));
+  // Almacenes de la sucursal para el selector de cada línea: no dependen de a qué almacén esté ligado el artículo
+  useEffect(() => {
+    if (!isOpen) return
+    const companyId = readCompanyId()
+    if (!companyId) {
+      setBranchStores([])
+      return
+    }
+    let alive = true
+    APIs.getWarehouses({ companyId, branchId: branchId > 0 ? branchId : undefined })
+      .then((r: any) => {
+        if (alive) setBranchStores(Array.isArray(r) ? r : r?.data ?? [])
+      })
+      .catch(() => alive && setBranchStores([]))
+    return () => {
+      alive = false
+    }
+  }, [isOpen, branchId])
 
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectedType: type.id,
-    }));
+  // Un código parece "código" si empieza con pocas letras y tiene números (ABR-00010, 7501…); si no, se busca por nombre.
+  // Si el primer intento no encuentra nada se prueba el otro modo, así una sola caja sirve para todo.
+  const fetchRows = async (term: string): Promise<any[]> => {
+    const companyId = readCompanyId()
+    if (!companyId || branchId <= 0) return []
+    const looksLikeCode = /^[A-Za-z]{0,5}-?\d[\w-]*$/.test(term)
+    const run = async (mode: 'code' | 'name') => {
+      const res: any = await APIs.searchProducts(mode, term, { companyId, branchId })
+      return (res?.data ?? []) as any[]
+    }
+    const first = await run(looksLikeCode ? 'code' : 'name')
+    return first.length ? first : run(looksLikeCode ? 'name' : 'code')
   }
 
-  const openSelectResult = () => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectResult: !prevState.selectResult
-    }));
-  }
+  // Búsqueda al escribir (con una pausa corta); una respuesta vieja nunca pisa a una nueva
+  useEffect(() => {
+    const term = query.trim()
+    if (!isOpen || !term) {
+      setResults([])
+      setSearching(false)
+      return
+    }
+    const seq = ++searchSeq.current
+    const timer = setTimeout(async () => {
+      setSearching(true)
+      try {
+        const rows = await fetchRows(term)
+        if (seq !== searchSeq.current) return
+        resultsFor.current = term
+        setResults(rows)
+        setActiveIndex(0)
+      } catch (error) {
+        if (seq === searchSeq.current) setResults([])
+        console.error('Error al buscar artículos:', error)
+      } finally {
+        if (seq === searchSeq.current) setSearching(false)
+      }
+    }, 250)
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, isOpen, branchId])
 
-  const handleResultChange = (result: any) => {
-    setSelectAdd((prevState: any) => ({
-      ...prevState,
-      selectResult: !prevState.selectResult,
-      selectedResult: result
-    }));
-  }
-
-  const search = async () => {
+  // Agrega el artículo elegido como una línea nueva (cantidad 1); si ya está (sin variaciones, misma unidad y almacén) suma 1
+  const addProduct = async (hit: any) => {
+    if (!hit?.id || addingId != null) return
+    setAddingId(hit.id)
     try {
-      const companyId = readCompanyId();
-      if (!companyId) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Empresa requerida',
-          text: 'Selecciona una empresa antes de buscar artículos.',
-          confirmButtonColor: '#3085d6',
-        });
-        return;
+      const response: any = await APIs.getProductForSale(hit.id, { branchId: branchId > 0 ? branchId : undefined })
+      const product = response?.data ?? response
+      const usesSizes = product.usesSizes === true
+      const variations = usesSizes ? (product.variations ?? product.itemVariations ?? []) : []
+      const colors = getVariationColors(variations)
+      const initialColor = colors.length === 1 ? colors[0].color : ''
+      const sizes = initialColor ? getSizesForColor(variations, initialColor) : []
+      const initialSize = sizes.length === 1 ? sizes[0].size : ''
+      const selectedVariation = resolveVariation(variations, initialColor || null, initialSize || null)
+
+      const units = product.productUnits ?? []
+      const unitId = units.find((u: any) => u.predetermined)?.unitId ?? units[0]?.unitId ?? units[0]?.unit?.id ?? 0
+      const lastStore = concepts.length ? concepts[concepts.length - 1].storeId : 0
+      const productStores = getProductStores(product)
+      const defaultStore =
+        lastStore ||
+        branchStores.find((st: any) => st.predetermined)?.id ||
+        branchStores[0]?.id ||
+        productStores[0]?.storeId ||
+        productStores[0]?.id ||
+        0
+
+      const sameLine = !usesSizes
+        ? concepts.findIndex((c: any) => c.productId === product.id && !c.usesSizes && Number(c.unitId) === Number(unitId) && Number(c.storeId) === Number(defaultStore))
+        : -1
+      if (sameLine >= 0) {
+        setConcepts(concepts.map((c: any, i: number) => (i === sameLine ? { ...c, quantity: (Number(c.quantity) || 0) + 1 } : c)))
+        return
       }
 
-      const filters = {
-        companyId,
-        branchId: branchId > 0 ? branchId : undefined,
-      };
-      if (selectAdd.selectedType == 1) {
-        const response: any = await APIs.getProducts(selectAdd.field, '', undefined, filters);
-        setSelectAdd((prevState: any) => ({
-          ...prevState,
-          result: response.data
-        }));
-      }
-      if (selectAdd.selectedType == 2) {
-        const response: any = await APIs.getProducts('', selectAdd.field, undefined, filters);
-        setSelectAdd((prevState: any) => ({
-          ...prevState,
-          result: response.data
-        }));
-      }
-
+      setConcepts([
+        ...concepts,
+        {
+          code: product.code,
+          name: product.name,
+          productId: product.id,
+          quantity: 1,
+          unitId,
+          storeId: defaultStore,
+          usesSizes,
+          variations,
+          selectedColor: initialColor,
+          selectedSize: initialSize,
+          itemVariationId: selectedVariation?.id ?? null,
+          variationColor: selectedVariation?.color ?? null,
+          variationSize: selectedVariation?.size ?? null,
+          variationColorHex: selectedVariation?.colorHex ?? null,
+          stores: productStores,
+          units,
+          lotCode: '',
+          expiryDate: '',
+          totalStock: product.totalStock ?? 0,
+          generalStock: product.generalStock ?? 0,
+          stockStatus: product.stockStatus ?? null,
+          stockByStore: product.stockByStore ?? [],
+        },
+      ])
     } catch (error) {
-      console.error('Error al obtener los productos:', error);
+      console.error('Error al agregar el artículo:', error)
+      Swal.fire({ icon: 'error', title: 'No se pudo agregar', text: 'No pudimos cargar el artículo. Intenta de nuevo.', confirmButtonColor: '#3085d6' })
+    } finally {
+      setAddingId(null)
+      resetFinder()
+      searchInputRef.current?.focus()
+    }
+  }
+
+  // Enter agrega: el código o código de barras exacto (lector de códigos) o, si no, el resultado resaltado
+  const handleFinderKeyDown = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setFinderOpen(true)
+      setActiveIndex((i) => Math.min(i + 1, Math.max(results.length - 1, 0)))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex((i) => Math.max(i - 1, 0))
+    } else if (e.key === 'Escape') {
+      setFinderOpen(false)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      const term = query.trim()
+      if (!term) return
+      // Los resultados en pantalla solo valen si son de lo que está escrito (un lector de códigos escribe y da Enter casi a la vez)
+      let rows = results
+      if (searching || !rows.length || resultsFor.current !== term) {
+        try {
+          rows = await fetchRows(term)
+        } catch {
+          rows = []
+        }
+      }
+      const lower = term.toLowerCase()
+      const exact = rows.find((r) => String(r.barcode ?? '').toLowerCase() === lower || String(r.code ?? '').toLowerCase() === lower)
+      const hit = exact ?? (resultsFor.current === term ? rows[activeIndex] : undefined) ?? rows[0]
+      if (hit) addProduct(hit)
     }
   }
 
   const saveTicket = async () => {
+    if (saveState !== 'idle') return;
     const companyId = readCompanyId();
 
     if (!companyId) {
@@ -417,6 +453,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
     }
 
     try {
+      setSaveState('saving');
       const { companyName, branchName } = await resolveNames(companyId, branchId || 0);
 
       const payload = {
@@ -433,6 +470,8 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
           itemVariationId: c.itemVariationId != null ? Number(c.itemVariationId) : null,
           code: c.code,
           name: c.name,
+          ...(c.lotCode?.trim() ? { lotCode: c.lotCode.trim() } : {}),
+          ...(c.expiryDate ? { expiryDate: c.expiryDate } : {}),
         })),
       };
 
@@ -446,15 +485,14 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
         });
       }
 
-      Swal.fire({
-        icon: 'success',
-        title: isUpdate ? 'Entrada actualizada' : 'Entrada creada',
-        text: response.message,
-        confirmButtonColor: '#3085d6',
-      })
+      // El botón confirma el resultado ("Entrada creada") un instante y luego se cierra el modal
+      void response;
+      setSaveState('done');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       dispatch(modal(''))
       onSaved?.()
     } catch (error: any) {
+      setSaveState('idle');
       console.error('Error al guardar la entrada:', error)
       Swal.fire({
         icon: 'error',
@@ -504,127 +542,6 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
     )
   }
 
-  const renderVariationCells = (item: any, index: number) => {
-    if (!item.usesSizes) {
-      const stock = getVariationStockForStore(item, item.storeId)
-      return (
-        <>
-          <div className='td td--color tickets-variation-empty'>
-            <span>—</span>
-          </div>
-          <div className='td td--size tickets-variation-empty'>
-            <span>—</span>
-            {stock != null ? (
-              <span className='tickets-stock-hint'>Exist: {stock}</span>
-            ) : null}
-          </div>
-        </>
-      )
-    }
-
-    const colors = getVariationColors(item.variations ?? [])
-    const sizes = item.selectedColor
-      ? getSizesForColor(item.variations ?? [], item.selectedColor)
-      : []
-    const selectedStock = getVariationStockForStore(
-      item,
-      item.storeId,
-      item.selectedColor,
-      item.selectedSize,
-    )
-
-    return (
-      <>
-        <div className='td td--color'>
-          <select
-            className='traditional__selector tickets-entry-select'
-            value={item.selectedColor ?? ''}
-            onChange={(e) => handleColorChange(e, index)}
-          >
-            <option value=''>Color</option>
-            {colors.map((c) => (
-              <option key={c.color} value={c.color}>
-                {c.color}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className='td td--size'>
-          <select
-            className='traditional__selector tickets-entry-select'
-            value={item.selectedSize ?? ''}
-            onChange={(e) => handleSizeChange(e, index)}
-            disabled={!item.selectedColor}
-          >
-            <option value=''>Talla</option>
-            {sizes.map((v: any) => {
-              const sizeStock = getVariationStockForStore(
-                item,
-                item.storeId,
-                item.selectedColor,
-                v.size,
-              )
-              return (
-                <option key={v.id} value={v.size}>
-                  {sizeStock != null ? `${v.size} (${sizeStock})` : v.size}
-                </option>
-              )
-            })}
-          </select>
-          {selectedStock != null && item.selectedColor && item.selectedSize ? (
-            <span className='tickets-stock-hint'>
-              Exist: {selectedStock} · {item.selectedColor} · {item.selectedSize}
-            </span>
-          ) : null}
-        </div>
-      </>
-    )
-  }
-
-  const addTickets = () => {
-    const product = selectAdd.selectedResult
-    if (!product?.id) return
-
-    const usesSizes = product.usesSizes === true
-    const variations = usesSizes ? (product.variations ?? product.itemVariations ?? []) : []
-    const colors = getVariationColors(variations)
-    const initialColor = colors.length === 1 ? colors[0].color : ''
-    const sizes = initialColor ? getSizesForColor(variations, initialColor) : []
-    const initialSize = sizes.length === 1 ? sizes[0].size : ''
-    const selectedVariation = resolveVariation(
-      variations,
-      initialColor || null,
-      initialSize || null,
-    )
-
-    const stores = getProductStores(product)
-    const units = product.productUnits ?? []
-
-    const data = {
-      code: product.code,
-      name: product.name,
-      productId: product.id,
-      quantity: 0,
-      unitId: units[0]?.unitId ?? units[0]?.unit?.id ?? 0,
-      storeId: stores[0]?.storeId ?? stores[0]?.id ?? 0,
-      usesSizes,
-      variations,
-      selectedColor: initialColor,
-      selectedSize: initialSize,
-      itemVariationId: selectedVariation?.id ?? null,
-      variationColor: selectedVariation?.color ?? null,
-      variationSize: selectedVariation?.size ?? null,
-      variationColorHex: selectedVariation?.colorHex ?? null,
-      stores,
-      units,
-      totalStock: product.totalStock ?? 0,
-      generalStock: product.generalStock ?? 0,
-      stockStatus: product.stockStatus ?? null,
-      stockByStore: product.stockByStore ?? [],
-    }
-    setConcepts([...concepts, data])
-  }
-
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const value = e.target.value.trim()
     const parsedValue = value === '' ? null : Number(value)
@@ -636,6 +553,11 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
     setConcepts(updatedConcepts)
   }
 
+
+  // Lote y caducidad de la línea (opcionales): al guardar la entrada crean el lote que verás en Caducidades
+  const handleLotField = (index: number, field: 'lotCode' | 'expiryDate', value: string) => {
+    setConcepts(concepts.map((concept: any, i: number) => (i === index ? { ...concept, [field]: value } : concept)))
+  }
 
   const handlUnitsChange = (e: React.ChangeEvent<HTMLSelectElement>, index: number) => {
     const value = Number(e.target.value)
@@ -657,20 +579,6 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
   const deleteBranch = (_: any, i: number) => {
     let filter = concepts.filter((_: any, index: any) => index !== i)
     setConcepts(filter)
-  }
-
-  const getSelectedResultLabel = (): string => {
-    const selected = selectAdd.selectedResult
-    if (!selected?.id) return 'Selecciona artículo'
-    const item = selectAdd.result?.find((s: any) => s.id === selected.id) ?? selected
-    return item.code ? `${item.code} · ${item.name}` : item.name
-  }
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      search()
-    }
   }
 
   return (
@@ -695,6 +603,66 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
                   localStorage.setItem('categories-store-id', String(id));
                 }}
               />
+              <div className='tickets-add-panel'>
+                <label className='label__general'>Agregar artículo</label>
+                <div className='tickets-add-row'>
+                <div className='tickets-finder'>
+                  <span className='tickets-finder__icon material-symbols-rounded' aria-hidden>search</span>
+                  <input
+                    ref={searchInputRef}
+                    className='inputs__general tickets-finder__input'
+                    type='text'
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value)
+                      setFinderOpen(true)
+                    }}
+                    onFocus={() => setFinderOpen(true)}
+                    onBlur={() => setTimeout(() => setFinderOpen(false), 150)}
+                    onKeyDown={handleFinderKeyDown}
+                    placeholder={branchId > 0 ? 'Buscar por código, código de barras o nombre (Enter agrega)' : 'Elige una sucursal para buscar artículos'}
+                    disabled={branchId <= 0}
+                    autoComplete='off'
+                    aria-label='Buscar artículo'
+                  />
+                  {searching && <span className='tickets-finder__spinner material-symbols-rounded' aria-hidden>progress_activity</span>}
+
+                  {finderOpen && query.trim() && (
+                    <ul className='tickets-finder__list' role='listbox'>
+                      {results.length > 0 ? (
+                        results.map((r: any, i: number) => {
+                          const already = concepts.some((c: any) => c.productId === r.id)
+                          return (
+                            <li
+                              key={r.id}
+                              role='option'
+                              aria-selected={i === activeIndex}
+                              className={`tickets-finder__item ${i === activeIndex ? 'is-active' : ''}`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onMouseEnter={() => setActiveIndex(i)}
+                              onClick={() => addProduct(r)}
+                            >
+                              <span className='tickets-finder__code'>{r.code || 's/c'}</span>
+                              <span className='tickets-finder__name'>
+                                <strong>{r.name}</strong>
+                                <small>
+                                  {[r.barcode, r.usesSizes ? 'Con tallas' : null].filter(Boolean).join(' · ')}
+                                </small>
+                              </span>
+                              {already && <span className='tickets-finder__badge'>En la entrada</span>}
+                              {addingId === r.id && <span className='tickets-finder__badge'>Agregando…</span>}
+                            </li>
+                          )
+                        })
+                      ) : (
+                        <li className='tickets-finder__empty'>{searching ? 'Buscando…' : 'Sin resultados'}</li>
+                      )}
+                    </ul>
+                  )}
+                </div>
+                <span className='tickets-add-count' title='Líneas en la entrada'>{concepts.length}</span>
+                </div>
+              </div>
               <div className='tickets-meta-comments'>
                 <label className='label__general'>Comentarios</label>
                 <input
@@ -706,211 +674,124 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
                 />
               </div>
             </div>
-            <div className='tickets-add-panel'>
-              <div className='tickets-add-toolbar'>
-                <div className='tickets-add-field tickets-add-field--type'>
-                  <div className='select__container tickets-add-select'>
-                    <div className='select-btn__general'>
-                      <div className={`select-btn ${selectAdd.selectType ? 'active' : ''}`} onClick={openSelectType}>
-                        <p>{selectAdd.selectedType !== null ? selectAdd?.types.find((s: { id: number }) => s.id === selectAdd.selectedType)?.name : 'Tipo'}</p>
-                        <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                      </div>
-                      <div className={`content ${selectAdd.selectType ? 'active' : ''}`}>
-                        <ul className={`options ${selectAdd.selectType ? 'active' : ''}`} style={{ opacity: selectAdd.selectType ? '1' : '0' }}>
-                          {selectAdd?.types?.map((type: any) => (
-                            <li key={type.id} onClick={() => handleTypeChange(type)}>
-                              {type.name}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <input
-                  className='inputs__general tickets-add-input'
-                  type='text'
-                  value={selectAdd.field}
-                  onChange={(e) => setSelectAdd({ ...selectAdd, field: e.target.value })}
-                  onKeyDown={handleSearchKeyDown}
-                  placeholder='Código o nombre'
-                />
-
-                <button
-                  type='button'
-                  className='btn__general-primary tickets-add-btn'
-                  onClick={search}
-                >
-                  Buscar
-                </button>
-
-                <div className='tickets-add-field tickets-add-field--result'>
-                  <div className='select__container tickets-add-select'>
-                    <div className='select-btn__general'>
-                      <div className={`select-btn ${selectAdd.selectResult ? 'active' : ''}`} onClick={openSelectResult}>
-                        <p className='tickets-add-result-label'>{getSelectedResultLabel()}</p>
-                        <svg className='chevron__down' xmlns="http://www.w3.org/2000/svg" height="14" width="14" viewBox="0 0 512 512"><path d="M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z" /></svg>
-                      </div>
-                      <div className={`content ${selectAdd.selectResult ? 'active' : ''}`}>
-                        <ul className={`options tickets-search-results ${selectAdd.selectResult ? 'active' : ''}`} style={{ opacity: selectAdd.selectResult ? '1' : '0' }}>
-                          {selectAdd?.result?.length > 0 ? (
-                            selectAdd.result.map((result: any) => (
-                              <li
-                                key={result.id}
-                                className='tickets-search-result'
-                                onClick={() => handleResultChange(result)}
-                              >
-                                <span className='tickets-search-result__name'>
-                                  {result.code ? `${result.code} · ` : ''}
-                                  {result.name}
-                                </span>
-                                <ProductVariationsPreview product={result} compact />
-                                {!result.usesSizes ? (
-                                  <span className='tickets-search-result__no-sizes'>Sin tallas</span>
-                                ) : null}
-                              </li>
-                            ))
-                          ) : (
-                            <li className='tickets-search-result tickets-search-result--empty'>
-                              Sin resultados
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  type='button'
-                  className='btn__general-primary tickets-add-btn'
-                  onClick={addTickets}
-                  disabled={!selectAdd.selectedResult?.id}
-                >
-                  Agregar
-                </button>
-
-                <span className='tickets-add-count'>{concepts.length}</span>
+            {/* Líneas de la entrada: mismo diseño de lista en filas del resto del sistema */}
+            <div className={`tickets-lines ${concepts.some((c: any) => c.usesSizes) ? 'tickets-lines--variants' : ''}`}>
+              <div className='tickets-lines__row tickets-lines__row--head'>
+                <span>Artículo</span>
+                <span>Cantidad</span>
+                {concepts.some((c: any) => c.usesSizes) && <span>Color y talla</span>}
+                <span>Unidad</span>
+                <span>Almacén</span>
+                <span>Lote</span>
+                <span>Caduca</span>
+                <span className='tickets-lines__col-actions' />
               </div>
-            </div>
-            <div className='store_tickets_table tickets-entry-table'>
-              <div className='tickets-entry-table__scroll'>
-              <div className='table__head'>
-                <div className='thead'>
-                  <div className='th th--name'>
-                    <p>Codigo / Nombre</p>
-                  </div>
-                  <div className='th th--qty'>
-                    <p>Cantidad</p>
-                  </div>
-                  <div className='th th--color'>
-                    <p>Color</p>
-                  </div>
-                  <div className='th th--size'>
-                    <p>Talla</p>
-                  </div>
-                  <div className='th th--unit'>
-                    <p>Unidad</p>
-                  </div>
-                  <div className='th th--store'>
-                    <p>Almacén</p>
-                  </div>
-                  <div className='th th--actions'>
-                    <p>Acciones</p>
-                  </div>
-                </div>
-              </div>
+
               {concepts?.length > 0 ? (
-                <div className='table__body'>
-                  {concepts?.map((item: any, index: any) => (
-                    <div className='tbody__container' key={index}>
-                      <div className='tbody-desk'>
-                        <div className='td td--name'>
-                          <p className='code-identifier tickets-entry-code'>{item.code}-{item.name}</p>
-                        </div>
-                        <div className='td td--qty'>
-                          <input className='inputs__general tickets-entry-qty' type='text' value={item.quantity === null ? '' : item.quantity} onChange={(e) => handleAmountChange(e, index)} placeholder='0' />
-                        </div>
-                        {renderVariationCells(item, index)}
-                        <div className='td td--unit'>
-                          <select className='traditional__selector tickets-entry-select' onChange={(event) => handlUnitsChange(event, index)} value={item.unitId} >
-                            {item.units?.map((unitRow: any) => (
-                              <option key={unitRow.id} value={unitRow.unitId ?? unitRow.unit?.id}>
-                                {unitRow.unit?.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className='td td--store'>
-                          <select className='traditional__selector tickets-entry-select' onChange={(event) => handlStoreChange(event, index)} value={item.storeId} >
-                            {item.stores?.map((store: any) => (
-                              <option key={store.id} value={store.storeId ?? store.id}>
-                                {getStoreLabel(store)}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div className='td td--actions'>
-                          <button
-                            type='button'
-                            className='delete-icon tickets-entry-action'
-                            onClick={() => deleteBranch(item, index)}
-                            title='Eliminar línea'
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
-                          </button>
+                concepts.map((item: any, index: number) => {
+                  const stock = !item.usesSizes
+                    ? getVariationStockForStore(item, item.storeId)
+                    : getVariationStockForStore(item, item.storeId, item.selectedColor, item.selectedSize)
+                  const colors = item.usesSizes ? getVariationColors(item.variations ?? []) : []
+                  const sizes = item.usesSizes && item.selectedColor ? getSizesForColor(item.variations ?? [], item.selectedColor) : []
+                  return (
+                    <div className='tickets-lines__row' key={index}>
+                      <div className='tickets-lines__cell tickets-lines__cell--name'>
+                        <span className='tickets-lines__code'>{item.code || 's/c'}</span>
+                        <div className='tickets-lines__name'>
+                          <strong>{item.name}</strong>
+                          {stock != null && <small>Existencia actual: {stock}</small>}
                         </div>
                       </div>
-                      <div className='tbody-response'>
-                        <div className='td td--name td--full'>
-                          <p className='code-identifier tickets-entry-code'>{item.code}-{item.name}</p>
-                        </div>
-                        <div className='td td--qty'>
-                          <label className='tickets-entry-mobile-label'>Cantidad</label>
-                          <input className='inputs__general tickets-entry-qty' type='text' value={item?.quantity === null ? '' : item?.quantity} onChange={(e) => handleAmountChange(e, index)} placeholder='0' />
-                        </div>
-                        {renderVariationCells(item, index)}
-                        <div className='td td--unit'>
-                          <label className='tickets-entry-mobile-label'>Unidad</label>
-                          <select className='traditional__selector tickets-entry-select' onChange={(event) => handlUnitsChange(event, index)} value={item.unitId} >
-                            {item.units?.map((unitRow: any) => (
-                              <option key={unitRow.id} value={unitRow.unitId ?? unitRow.unit?.id}>
-                                {unitRow.unit?.name}
-                              </option>
-                            ))}
-                          </select>
 
-                        </div>
+                      <div className='tickets-lines__cell' data-label='Cantidad'>
+                        <input
+                          className='tickets-lines__input'
+                          type='text'
+                          inputMode='decimal'
+                          value={item.quantity === null ? '' : item.quantity}
+                          onChange={(e) => handleAmountChange(e, index)}
+                          placeholder='0'
+                          aria-label={`Cantidad de ${item.name}`}
+                        />
+                      </div>
 
-                        <div className='td td--store'>
-                          <label className='tickets-entry-mobile-label'>Almacén</label>
-                          <select className='traditional__selector tickets-entry-select' onChange={(event) => handlStoreChange(event, index)} value={item.storeId} >
-                            {item.stores?.map((store: any) => (
-                              <option key={store.id} value={store.storeId ?? store.id}>
-                                {getStoreLabel(store)}
-                              </option>
-                            ))}
-                          </select>
+                      {concepts.some((c: any) => c.usesSizes) && (
+                        <div className='tickets-lines__cell tickets-lines__cell--variants' data-label='Color y talla'>
+                          {item.usesSizes ? (
+                            <>
+                              <select className='tickets-lines__select' value={item.selectedColor ?? ''} onChange={(e) => handleColorChange(e, index)} aria-label='Color'>
+                                <option value=''>Color</option>
+                                {colors.map((c: any) => <option key={c.color} value={c.color}>{c.color}</option>)}
+                              </select>
+                              <select className='tickets-lines__select' value={item.selectedSize ?? ''} onChange={(e) => handleSizeChange(e, index)} disabled={!item.selectedColor} aria-label='Talla'>
+                                <option value=''>Talla</option>
+                                {sizes.map((v: any) => {
+                                  const sizeStock = getVariationStockForStore(item, item.storeId, item.selectedColor, v.size)
+                                  return <option key={v.id} value={v.size}>{sizeStock != null ? `${v.size} (${sizeStock})` : v.size}</option>
+                                })}
+                              </select>
+                            </>
+                          ) : (
+                            <span className='tickets-lines__muted'>—</span>
+                          )}
                         </div>
-                        <div className='td td--actions td--full'>
-                          <button
-                            type='button'
-                            className='delete-icon tickets-entry-action'
-                            onClick={() => deleteBranch(item, index)}
-                            title='Eliminar línea'
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M20 6a1 1 0 0 1 .117 1.993l-.117 .007h-.081l-.919 11a3 3 0 0 1 -2.824 2.995l-.176 .005h-8c-1.598 0 -2.904 -1.249 -2.992 -2.75l-.005 -.167l-.923 -11.083h-.08a1 1 0 0 1 -.117 -1.993l.117 -.007h16z" /><path d="M14 2a2 2 0 0 1 2 2a1 1 0 0 1 -1.993 .117l-.007 -.117h-4l-.007 .117a1 1 0 0 1 -1.993 -.117a2 2 0 0 1 1.85 -1.995l.15 -.005h4z" /></svg>
-                          </button>
-                        </div>
+                      )}
+
+                      <div className='tickets-lines__cell' data-label='Unidad'>
+                        <select className='tickets-lines__select' value={item.unitId} onChange={(e) => handlUnitsChange(e, index)} aria-label='Unidad'>
+                          {item.units?.map((unitRow: any) => (
+                            <option key={unitRow.id} value={unitRow.unitId ?? unitRow.unit?.id}>{unitRow.unit?.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className='tickets-lines__cell' data-label='Almacén'>
+                        <select className='tickets-lines__select' value={item.storeId} onChange={(e) => handlStoreChange(e, index)} aria-label='Almacén'>
+                          {(branchStores.length ? branchStores : item.stores)?.map((store: any) => (
+                            <option key={store.id} value={store.storeId ?? store.id}>{getStoreLabel(store)}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className='tickets-lines__cell' data-label='Lote'>
+                        <input
+                          className='tickets-lines__input tickets-lines__input--left'
+                          type='text'
+                          maxLength={60}
+                          value={item.lotCode ?? ''}
+                          onChange={(e) => handleLotField(index, 'lotCode', e.target.value)}
+                          placeholder='Opcional'
+                          aria-label={`Lote de ${item.name}`}
+                        />
+                      </div>
+
+                      <div className='tickets-lines__cell' data-label='Caduca'>
+                        <DateField
+                          className='tickets-lines__input tickets-lines__input--left'
+                          value={item.expiryDate ?? ''}
+                          onChange={(v) => handleLotField(index, 'expiryDate', v)}
+                          aria-label={`Caducidad de ${item.name}`}
+                          presets={EXPIRY_PRESETS}
+                          expiryTone
+                        />
+                      </div>
+
+                      <div className='tickets-lines__cell tickets-lines__col-actions'>
+                        <button type='button' className='tickets-lines__icon-btn' onClick={() => deleteBranch(item, index)} title='Quitar de la entrada' aria-label='Quitar de la entrada'>
+                          <span className='material-symbols-rounded'>delete</span>
+                        </button>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )
+                })
               ) : (
-                <p className='text'>No hay máximos y mínimos que mostrar</p>
+                <div className='tickets-lines__empty'>
+                  <span className='material-symbols-rounded' aria-hidden>inventory_2</span>
+                  <p>Todavía no hay artículos en la entrada</p>
+                  <small>Búscalos arriba por código, código de barras o nombre.</small>
+                </div>
               )}
-              </div>
             </div>
           </div>
           <div className='row__three'>
@@ -918,20 +799,26 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
               type='button'
               className='btn__general-secondary'
               onClick={() => handleModalChange('')}
-              disabled={loadingTicket}
+              disabled={loadingTicket || saveState !== 'idle'}
             >
               Cancelar
             </button>
             <button
-              className='btn__general-primary'
+              className={`btn__general-primary tickets-save-btn ${saveState === 'done' ? 'is-done' : ''}`}
               onClick={saveTicket}
-              disabled={loadingTicket}
+              disabled={loadingTicket || saveState !== 'idle'}
             >
-              {loadingTicket
-                ? 'Cargando...'
-                : isUpdate
-                  ? 'Guardar cambios'
-                  : 'Crear entrada'}
+              {saveState === 'saving' && <span className='tickets-save-btn__icon tickets-save-btn__icon--spin material-symbols-rounded' aria-hidden>progress_activity</span>}
+              {saveState === 'done' && <span className='tickets-save-btn__icon material-symbols-rounded' aria-hidden>check_circle</span>}
+              {saveState === 'saving'
+                ? isUpdate ? 'Guardando…' : 'Creando entrada…'
+                : saveState === 'done'
+                  ? isUpdate ? 'Cambios guardados' : 'Entrada creada'
+                  : loadingTicket
+                    ? 'Cargando...'
+                    : isUpdate
+                      ? 'Guardar cambios'
+                      : 'Crear entrada'}
             </button>
           </div>
         </div>

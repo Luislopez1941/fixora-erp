@@ -4,6 +4,7 @@
 .inventory-list {
   width: 100%;
   min-width: 0;
+  height: 100%;
 }
 
 .inventory-list__container {
@@ -11,9 +12,13 @@
   flex-direction: column;
   gap: 16px;
   padding: 24px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .inventory-list__header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +68,11 @@ select.inventory-list__filter {
   background: var(--card-bg);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
-  overflow: hidden;
+  /* El scroll es solo de la tabla: filtros, resumen y paginado se quedan fijos */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .inventory-list__row {
@@ -92,7 +101,10 @@ select.inventory-list__filter {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  background: rgba(7, 42, 87, 0.05);
+  background: linear-gradient(rgba(7, 42, 87, 0.05), rgba(7, 42, 87, 0.05)), var(--card-bg);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .inventory-list__cell {
@@ -288,6 +300,7 @@ select.inventory-list__filter {
 
 /* ── Resumen ── */
 .inventory-list__summary {
+  flex-shrink: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;

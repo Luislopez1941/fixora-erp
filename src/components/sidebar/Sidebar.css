@@ -270,7 +270,7 @@
 
 .sidebar-links .item .sub-menu.active .sub-menu-container {
     display: block;
-    max-height: 180px;
+    max-height: min(360px, 55vh);
     padding-bottom: 8px;
 }
 
@@ -285,7 +285,163 @@
 
 .sidebar-links .item .sub-menu.active {
     opacity: 1;
-    max-height: 220px;
+    max-height: min(400px, 60vh);
+}
+
+/* Grupo (submódulo) del submenú: acordeón. Solo el de la pantalla actual se abre solo. */
+.sidebar-links .sub-menu-block + .sub-menu-block {
+    margin-top: 2px;
+}
+
+.sidebar-links .sub-menu-group {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 0;
+    padding: 6px 8px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--sub-menu-text);
+    font-family: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-align: left;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.75;
+}
+
+.sidebar-links .sub-menu-group span:first-child {
+    flex: 1;
+}
+
+.sidebar-links .sub-menu-group small {
+    font-size: 0.64rem;
+    font-weight: 600;
+    opacity: 0.6;
+}
+
+.sidebar-links .sub-menu-group:hover {
+    background: var(--sub-menu-hover-bg);
+    opacity: 1;
+}
+
+.sidebar-links .sub-menu-group.is-current {
+    opacity: 1;
+    color: var(--secondary-color);
+}
+
+.sidebar-links .sub-menu-group__chevron {
+    font-size: 1rem;
+    line-height: 1;
+    transition: transform 0.15s ease;
+}
+
+.sidebar-links .sub-menu-group__chevron.open {
+    transform: rotate(90deg);
+}
+
+/* Pantalla actual y módulo que la contiene */
+.sidebar-links .sub-menu-link.is-current {
+    background: color-mix(in srgb, var(--secondary-color) 16%, transparent);
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.sidebar-links .sub-menu-toggle.is-current .link {
+    font-weight: 600;
+}
+
+.sidebar-links .sub-menu-toggle.is-current svg {
+    color: var(--secondary-color);
+}
+
+/* Buscador de pantallas (menú abierto) */
+.sidebar-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 12px 6px;
+    padding: 0 10px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-search .material-symbols-rounded {
+    font-size: 18px;
+    opacity: 0.7;
+}
+
+.sidebar-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 0.82rem;
+}
+
+.sidebar-search input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.sidebar-results {
+    list-style: none;
+    margin: 0;
+    padding: 0 8px;
+}
+
+.sidebar-results__link {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    color: var(--text-link);
+    text-decoration: none;
+}
+
+.sidebar-results__link strong {
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.sidebar-results__link small {
+    font-size: 0.68rem;
+    opacity: 0.6;
+}
+
+.sidebar-results__link:hover,
+.sidebar-results__link.is-current {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-results__empty {
+    padding: 10px;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+
+/* Pantalla que todavía no existe: se ve más tenue */
+.sidebar-links .sub-menu-link.is-soon,
+.tooltip__sub-popup-link.is-soon {
+    opacity: 0.6;
+}
+
+.tooltip__sub-popup-group {
+    margin: 8px 12px 2px;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.55;
 }
 
 /* El panel de submenú tiene su PROPIO fondo (--sub-menu-bg), distinto al navy

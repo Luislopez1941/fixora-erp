@@ -16,8 +16,12 @@ export interface MenuLink {
   label: string
   /** Ruta relativa al área privada, ej: `sales/sales-sheet`. */
   path: string
-  /** Permiso requerido para verlo (opcional). */
-  requiredPermission?: string
+  /** Permiso requerido para verlo (opcional). Con varios, basta con tener cualquiera. */
+  requiredPermission?: string | string[]
+  /** Grupo del submenú al que pertenece (encabezado que agrupa pantallas), ej: "Punto de venta". */
+  group?: string
+  /** true = la pantalla todavía no existe: se muestra "en construcción" hasta que se cree su archivo. */
+  placeholder?: boolean
 }
 
 /**

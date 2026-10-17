@@ -6,6 +6,8 @@ export interface UserInfo {
   firstName?: string;
   firstLastName?: string;
   userKind?: 'SYSTEM' | 'ACCOUNT' | 'STAFF';
+  /** Tipo de menú lateral: 1 directo, 2 un sidebar con submódulos, 3 dos sidebars (por omisión) */
+  sidebarType?: 1 | 2 | 3;
   role?: {
     id: number;
     name: string;

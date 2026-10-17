@@ -50,19 +50,23 @@ function getBranchIdFromToken(): number | null {
  * Verifica si el usuario tiene un permiso.
  * `.manage` y `.create` de un módulo cubren `.view` del mismo módulo.
  */
-function hasPermission(userPermissions: string[] = [], required?: string): boolean {
-  if (!required) return true
+function hasPermission(userPermissions: string[] = [], required?: string | string[]): boolean {
+  if (!required || (Array.isArray(required) && required.length === 0)) return true
+  // Varios permisos: basta con tener cualquiera
+  if (Array.isArray(required)) return required.some((r) => hasPermission(userPermissions, r))
   if (!userPermissions.length) return false
 
   // Permiso exacto
   if (userPermissions.includes(required)) return true
 
-  // Si requiere .view y tiene .manage o .create del mismo módulo
-  const [module, action] = required.split('.')
-  if (action === 'view') {
+  // Si requiere .view y tiene .manage o .create del MISMO módulo (permiso de módulo) o de la MISMA pantalla (permiso de pantalla).
+  // Un permiso de otra pantalla del módulo no cuenta: cada pantalla se muestra solo si su propio permiso está marcado.
+  const need = required.split('.')
+  if (need[need.length - 1] === 'view') {
     return userPermissions.some((p) => {
-      const [m, a] = p.split('.')
-      return m === module && (a === 'manage' || a === 'create')
+      const have = p.split('.')
+      const action = have[have.length - 1]
+      return have.length === need.length && have.slice(0, -1).join('.') === need.slice(0, -1).join('.') && (action === 'manage' || action === 'create')
     })
   }
 
@@ -194,7 +198,10 @@ export function useModules() {
       .filter((m) => m.enabled !== false)
       .map((m) => {
         // Dashboard y ownerOnly siempre se muestran tal cual
-        if (m.key === 'dashboard') return m
+        // El panel siempre se ve, pero sus pantallas respetan el permiso de cada una
+        if (m.key === 'dashboard') {
+          return { ...m, children: m.children?.filter((c) => isOwner || hasPermission(userPermissions, c.requiredPermission)) }
+        }
         if (m.ownerOnly) return isOwner ? m : { ...m, children: [] }
 
         // Filtrar children por permisos, módulos activos de la empresa,
@@ -211,6 +218,7 @@ export function useModules() {
             return isModuleActive(m, activeModuleIds)
           }
           // Staff: filtrar por permisos; si el padre está activo, mostrar child
+          // Cada pantalla (también las que están en construcción) se muestra solo si el rol/usuario tiene su permiso marcado
           const hasPerm = hasPermission(userPermissions, child.requiredPermission)
           if (!hasPerm) return false
           if (!activeModuleIds) return true

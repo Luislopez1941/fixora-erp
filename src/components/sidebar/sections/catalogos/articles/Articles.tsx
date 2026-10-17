@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import './Articles.css'
 import Modal from './Modal'
 import './Modal.css'
@@ -10,6 +10,7 @@ import { readCategoryBranchId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import Swal from 'sweetalert2'
 import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
+import Pagination from '../../../../general/pagination/Pagination'
 
 const readCompanyId = (): number | null => {
   const id = Number(localStorage.getItem('categories-picker-company-id'))
@@ -54,7 +55,10 @@ const Articles: React.FC = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const userState = useSelector((state: any) => state.user)
   const [loading, setLoading] = useState(true)
-  const fetchingRef = useRef(false)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const pageSize = 50
+  const requestRef = useRef(0)
 
   const setModal = (value: string) => {
     dispatch(modal(value))
@@ -76,60 +80,61 @@ const Articles: React.FC = () => {
     return () => clearTimeout(timer)
   }, [search])
 
+  // Cada página es una petición: el servidor filtra (búsqueda), ordena y entrega solo los 50 de esa página
   const fetchArticles = useCallback(async () => {
-    if (fetchingRef.current) return
-    fetchingRef.current = true
-
     // Empresa del selector, la guardada o, si no hay ninguna vinculada, la activa de la sesión.
     const resolvedCompanyId =
       companyId ?? readCompanyId() ?? userState?.activeCompanyId ?? userState?.companyId ?? userState?.companyIds?.[0] ?? null
     if (!token || !resolvedCompanyId) {
       dispatch(setArticles([]))
+      setTotal(0)
       setLoading(false)
-      fetchingRef.current = false
       return
     }
 
+    const requestId = ++requestRef.current
     setLoading(true)
     try {
       const result: any = await APIs.getItemList(token, {
         companyId: resolvedCompanyId,
         branchId: branchId > 0 ? branchId : undefined,
+        page,
+        pageSize,
+        search: debouncedSearch,
+        type: 'ARTICLE',
       })
-      const filtered = normalizeItemList(result).filter((item: any) => item.type === 'ARTICLE')
-      dispatch(setArticles(filtered))
+      if (requestId !== requestRef.current) return // llegó una respuesta más nueva: esta se descarta
+      const rows = normalizeItemList(result)
+      const pagination = result?.pagination ?? result?.data?.pagination
+      dispatch(setArticles(rows))
+      setTotal(pagination?.total ?? rows.length)
+      // Si la página pedida ya no existe (se borraron artículos), regresa a la última
+      if (pagination?.pages && page > pagination.pages) setPage(pagination.pages)
     } catch (error) {
+      if (requestId !== requestRef.current) return
       console.error('Error al cargar artículos:', error)
       dispatch(setArticles([]))
+      setTotal(0)
     } finally {
-      setLoading(false)
-      fetchingRef.current = false
+      if (requestId === requestRef.current) setLoading(false)
     }
-  }, [branchId, companyId, dispatch, token, userState?.activeCompanyId])
+  }, [branchId, companyId, dispatch, token, userState?.activeCompanyId, page, debouncedSearch])
 
   useEffect(() => {
     fetchArticles()
   }, [fetchArticles])
 
-  const filteredArticles = useMemo(() => {
-    const q = debouncedSearch.trim().toLowerCase()
-    const list = articles ?? []
-    if (!q) return list
-    return list.filter((item: any) => {
-      const name = String(item.name ?? '').toLowerCase()
-      const code = String(item.code ?? '').toLowerCase()
-      const desc = String(item.description ?? '').toLowerCase()
-      const category = String(item.category?.title ?? item.category?.name ?? '').toLowerCase()
-      const unit = getUnitLabel(item).toLowerCase()
-      return (
-        name.includes(q) ||
-        code.includes(q) ||
-        desc.includes(q) ||
-        category.includes(q) ||
-        unit.includes(q)
-      )
-    })
-  }, [articles, debouncedSearch])
+  // Al buscar o cambiar de empresa/sucursal se vuelve a la primera página
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, branchId, companyId])
+
+  // El modal avisa cuando crea o edita un artículo: se vuelve a pedir la página actual
+  useEffect(() => {
+    const refresh = () => fetchArticles()
+    window.addEventListener('articles:changed', refresh)
+    return () => window.removeEventListener('articles:changed', refresh)
+  }, [fetchArticles])
 
   const updateModalArticles = async (item: any) => {
     if (!token || item?.id == null) {
@@ -226,8 +231,8 @@ const Articles: React.FC = () => {
 
           {loading ? (
             <TableSkeleton rowClassName='articles-page__row' cols={[{ pill: true, width: '64px' }, { width: '70%' }, { width: '60%' }, { width: '55%' }, { width: '50%' }, { width: '30%' }, { actions: 2 }]} />
-          ) : filteredArticles.length > 0 ? (
-            filteredArticles.map((item: any) => (
+          ) : (articles ?? []).length > 0 ? (
+            (articles ?? []).map((item: any) => (
               <div className='articles-page__row' key={item.id}>
                 <div className='articles-page__cell' data-label='Código'>
                   {item.code ? <span className='articles-page__tag'>{item.code}</span> : '—'}
@@ -280,6 +285,19 @@ const Articles: React.FC = () => {
             </div>
           )}
         </div>
+
+        {total > 0 && (
+          <Pagination
+            total={total}
+            page={page}
+            pageSize={pageSize}
+            onPage={(p) => {
+              setPage(p)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+            noun='artículos'
+          />
+        )}
       </div>
       <Modal />
     </div>

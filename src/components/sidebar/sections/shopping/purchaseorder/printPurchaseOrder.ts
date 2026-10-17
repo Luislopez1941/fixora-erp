@@ -22,7 +22,7 @@ const when = (value?: string | null) => (value ? new Date(value).toLocaleString(
 
 export const purchaseOrderFolio = (po: any) => `${po?.serie?.name || 'OC'}-${po?.folio}`
 
-/** Importes de la orden con la misma fórmula del modal de captura: subtotal - descuentos + IVA (16 %) + flete si se suma. */
+/** Importes de la orden con la misma fórmula del modal de captura: subtotal - descuentos + IVA (16 %) + envío si se suma. */
 export function purchaseOrderTotals(po: any) {
   const items: any[] = po?.items ?? []
   let subtotal = 0
@@ -136,7 +136,7 @@ export function printPurchaseOrder(po: any) {
     <div><span>Subtotal</span><span>${money(totals.subtotal)}</span></div>
     ${totals.discount ? `<div><span>Descuento</span><span>-${money(totals.discount)}</span></div>` : ''}
     <div><span>IVA</span><span>${money(totals.iva)}</span></div>
-    ${po?.sumFreight ? `<div><span>Flete${po?.freightComments ? ` (${esc(po.freightComments)})` : ''}</span><span>${money(totals.freight)}</span></div>` : ''}
+    ${po?.sumFreight ? `<div><span>Envío${po?.freightComments ? ` (${esc(po.freightComments)})` : ''}</span><span>${money(totals.freight)}</span></div>` : ''}
     <div class="grand"><span>Total</span><span>${money(totals.total)}</span></div>
   </div>
 

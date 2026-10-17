@@ -1,0 +1,72 @@
+/* Paginador de listas en filas. Todas las clases cuelgan de .pager (notación padre__hijo); colores con variables del tema. */
+.pager {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 2px 2px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.pager__info strong {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.pager__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Cuadritos */
+.pager__btn {
+  display: grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.pager__btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.pager__btn:hover:not(:disabled):not(.is-current) {
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
+
+.pager__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pager__btn.is-current {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: #fff;
+  cursor: default;
+}
+
+.pager__gap {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 34px;
+  color: var(--text-muted);
+}

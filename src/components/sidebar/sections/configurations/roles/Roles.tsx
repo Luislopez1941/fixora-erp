@@ -6,6 +6,7 @@ import { getRoleLabel } from '../../../../../constants/userRoles'
 import { useDispatch } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import ModalRoles from './modal-roles/ModalRoles'
+import { SUBMODULE_LABELS } from '../../../../../core/modules/taxonomy.generated'
 
 const permissionColors: Record<string, string> = {
   users: 'roles__chip--users',
@@ -60,6 +61,7 @@ const submoduleLabels: Record<string, string> = {
   familias: 'Familias',
   containers: 'Categorías',
   units: 'Unidades',
+  suppliers: 'Proveedores',
   services: 'Servicios',
   articles: 'Artículos',
   prices: 'Rangos precio',
@@ -81,7 +83,7 @@ function getChipClass(name: string): string {
 function getPermissionLabel(name: string): string {
   const parts = name.split('.')
   if (parts.length >= 3) {
-    const sub = submoduleLabels[parts[1]] || parts[1]
+    const sub = submoduleLabels[parts[1]] || SUBMODULE_LABELS[`${parts[0]}.${parts[1]}`] || parts[1]
     const action = actionLabels[parts[2]] || parts[2]
     return `${sub} — ${action}`
   }

@@ -9,6 +9,7 @@ import CatalogTypes from '../../../components/sidebar/sections/catalogos/types/C
 import Users from '../../../components/sidebar/sections/configurations/users/Users';
 import AuditLog from '../../../components/sidebar/sections/configurations/audit/AuditLog';
 import UserGroups from '../../../components/sidebar/sections/configurations/userGroups/UserGroups';
+import ModuleScreen from '../../../core/modules/ModuleScreen';
 
 const RoutesConfigurations: React.FC = () => {
   return (
@@ -21,6 +22,8 @@ const RoutesConfigurations: React.FC = () => {
         <Route path={`/${PrivateRoutes.AREAS}`} element={<CatalogTypes />} />
         <Route path={`/${PrivateRoutes.AUDIT}`} element={<AuditLog />} />
         <Route path={`/${PrivateRoutes.USER_GROUPS}`} element={<UserGroups />} />
+      {/* Pantallas nuevas de la taxonomía de módulos (aún sin ruta propia): se resuelven en core/modules/ModuleScreen */}
+      <Route path='*' element={<ModuleScreen />} />
     </Routes>
   )
 }

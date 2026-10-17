@@ -85,6 +85,7 @@ const Login: React.FC = () => {
           firstName: payload.firstName,
           firstLastName: payload.firstLastName,
           userKind: payload.userKind,
+          sidebarType: payload.sidebarType ?? 3,
           role: payload.role,
           permissions: payload.permissions ?? [],
           branchId: payload.branch?.id,

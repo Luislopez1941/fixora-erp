@@ -4,6 +4,7 @@
 .articles-page {
   width: 100%;
   min-width: 0;
+  height: 100%;
 }
 
 .articles-page__container {
@@ -11,9 +12,13 @@
   flex-direction: column;
   gap: 16px;
   padding: 24px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .articles-page__header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +68,11 @@ select.articles-page__filter {
   background: var(--card-bg);
   border: 1px solid var(--panel-border);
   border-radius: 12px;
-  overflow: hidden;
+  /* El scroll es solo de la tabla: la cabecera de la página y el paginador se quedan fijos */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .articles-page__row {
@@ -92,7 +101,10 @@ select.articles-page__filter {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
-  background: rgba(7, 42, 87, 0.05);
+  background: linear-gradient(rgba(7, 42, 87, 0.05), rgba(7, 42, 87, 0.05)), var(--card-bg);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .articles-page__cell {

@@ -1,0 +1,64 @@
+.soon {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  padding: 24px 16px;
+}
+
+.soon__card {
+  width: min(520px, 100%);
+  padding: 28px 24px;
+  text-align: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.soon__crumb {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.soon__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 4px 0;
+  border-radius: 16px;
+  font-size: 30px;
+  color: var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 14%, transparent);
+}
+
+.soon__card h2 {
+  margin: 8px 0 6px;
+  font-size: 1.2rem;
+}
+
+.soon__card p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.soon__hint {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  font-size: 0.78rem;
+  background: color-mix(in srgb, var(--text-color) 6%, transparent);
+}
+
+.soon__hint code {
+  word-break: break-all;
+}

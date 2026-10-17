@@ -96,7 +96,7 @@ const ModalPurchaseOrder: React.FC = () => {
   const [searched, setSearched] = useState(false);
   const searchWrapRef = useRef<HTMLDivElement>(null);
 
-  // Catálogos del modal (empresas, proveedores de flete, unidades). Al crear una orden con una sola empresa, se elige sola.
+  // Catálogos del modal (empresas, proveedores de envío, unidades). Al crear una orden con una sola empresa, se elige sola.
   const loadInitialData = async (autoSelectCompany: boolean) => {
     try {
       const userId = userState?.id || 1;
@@ -116,6 +116,14 @@ const ModalPurchaseOrder: React.FC = () => {
       console.error('Error loading initial data', e);
     }
   };
+
+  // Proveedores de flete de la empresa elegida (los del catálogo de Proveedores marcados como "de envíos")
+  useEffect(() => {
+    if (!modalActive || !selectedCompany) return;
+    APIs.getSuppliers({ id_usuario: userState?.id || 1, is_flete: true, companyId: selectedCompany })
+      .then((res: any) => setSuppliers(Array.isArray(res) ? res : res?.data || []))
+      .catch(() => {});
+  }, [modalActive, selectedCompany, userState?.id]);
 
   // Unidades de la empresa/sucursal elegidas (sin empresa el backend no devuelve ninguna, por eso antes el select quedaba vacío)
   useEffect(() => {
@@ -541,25 +549,25 @@ const ModalPurchaseOrder: React.FC = () => {
           </div>
 
           <div className='freight-section'>
-            <h4>Datos de Flete</h4>
+            <h4>Datos de envío</h4>
             <div className='freight-grid'>
               <div className='input-group'>
-                <label>Proveedor Flete</label>
+                <label>Proveedor de envío</label>
                 <select value={freightProvider} onChange={(e) => setFreightProvider(Number(e.target.value))}>
                   <option value={0}>Seleccione Proveedor</option>
-                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.nombre_comercial}</option>)}
+                  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name ?? s.nombre_comercial}</option>)}
                 </select>
               </div>
               <div className='input-group'>
-                <label>Costo Flete</label>
+                <label>Costo de envío</label>
                 <NumericInput value={freightCost} onValueChange={setFreightCost} />
               </div>
               <div className='input-group checkbox-group'>
-                <label htmlFor='po-sum-freight'>Sumar el flete al total</label>
+                <label htmlFor='po-sum-freight'>Sumar el envío al total</label>
                 <input id='po-sum-freight' type="checkbox" checked={sumFreight} onChange={(e) => setSumFreight(e.target.checked)} />
               </div>
               <div className='input-group full-width'>
-                <label>Comentarios Flete</label>
+                <label>Comentarios del envío</label>
                 <input type="text" value={freightComments} onChange={(e) => setFreightComments(e.target.value)} />
               </div>
             </div>
@@ -792,7 +800,7 @@ const ModalPurchaseOrder: React.FC = () => {
               <span className='value'>${ivaTotal.toFixed(2)}</span>
             </div>
             <div className='total-row'>
-              <span>Flete:</span>
+              <span>Envío:</span>
               <span className='value'>${sumFreight ? freightCost.toFixed(2) : '0.00'}</span>
             </div>
             <div className='total-row grand-total'>

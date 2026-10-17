@@ -13,7 +13,7 @@ import RoutesShopping from '../../routes/sections/shopping/RoutesShopping';
 import Menu from '../../components/sidebar/Menu';
 import Dashboard from '../../components/sidebar/sections/dashboard/Dashboard';
 import OptionsMenu from '../../components/sidebar/OptionsMenu';
-import Income from '../../components/sidebar/sections/income/Income';
+import ModuleScreen from '../../core/modules/ModuleScreen';
 import Customers from '../../components/sidebar/sections/customers/Customers';
 import Sales from '../../components/sidebar/options-menu/Sales';
 import Shopping from '../../components/sidebar/options-menu/Shopping';
@@ -87,8 +87,11 @@ const RootPage: React.FC = () => {
             <Route path={`${PrivateRoutes.PRODUCTION}/*`} element={<RouteProduction />} />
             <Route path={`${PrivateRoutes.CATALOGOS}/*`} element={<RoutescCatalogos />} />
             <Route path={`${PrivateRoutes.CONFIGURATIONS}/*`} element={<RoutesConfigurations />} />
-            <Route path={`${PrivateRoutes.INCOME}/*`} element={<Income />} />
-            <Route path={`${PrivateRoutes.CUSTOMERS}/*`} element={<Customers />} />
+            {/* "Ingresos" era una pantalla vacía: la ruta (y el icono de la barra inferior) llevan a la ficha de venta */}
+            <Route path={`${PrivateRoutes.INCOME}/*`} element={<Navigate replace to={`/${PrivateRoutes.PRIVATE}/sales/sales-sheet`} />} />
+            <Route path={PrivateRoutes.CUSTOMERS} element={<Customers />} />
+            {/* Las pantallas nuevas de Clientes y CRM (Prospectos, Oportunidades…) se resuelven en ModuleScreen */}
+            <Route path={`${PrivateRoutes.CUSTOMERS}/*`} element={<ModuleScreen />} />
             <Route path={`/options/*`} element={<OptionsMenu />} />
             <Route path={`/profile`} element={<Profile />} />
             <Route path={`/`} element={<Dashboard />} />
@@ -101,6 +104,8 @@ const RootPage: React.FC = () => {
             <Route path={PrivateRoutes.MENUCATALOGOS} element={<Catalogo />} />
             <Route path={PrivateRoutes.MENUSETTINGS} element={<Settings />} />
             <Route path={PrivateRoutes.MODULE_STORE} element={<ModuleStore />} />
+            {/* Pantallas nuevas de la taxonomía de módulos: "en construcción" hasta que exista su archivo en src/modules/ */}
+            <Route path='*' element={<ModuleScreen />} />
             
           </Routes>
         </main>

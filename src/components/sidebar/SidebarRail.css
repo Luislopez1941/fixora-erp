@@ -1,0 +1,492 @@
+/* Sidebar de dos niveles: riel de módulos (64 px) + panel de submódulos (200 px). Sobrescribe el diseño de una sola columna. */
+.sidebar.sbx {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: row;
+  width: auto;
+  height: 100vh;
+  padding: 0;
+  background: var(--sidebar-background);
+  color: var(--text-link);
+  transition: none;
+}
+
+/* ── Riel ── */
+.sbx-rail {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0;
+  gap: 8px;
+  height: 100%;
+  background: var(--sidebar-background);
+}
+
+.sbx-logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.sbx-logo img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.sbx-rail__list.sbx-rail__list--shortcuts {
+  flex: 0 0 auto;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sbx-rail__bolt {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  font-size: 12px !important;
+  color: var(--secondary-color);
+}
+
+.sbx-rail__list {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.sbx-rail__list::-webkit-scrollbar {
+  display: none;
+}
+
+.sbx-rail__bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+.sbx-rail__item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-link);
+  cursor: pointer;
+  opacity: 0.78;
+  text-decoration: none;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.sbx-rail__item:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sbx-rail__item.is-active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--secondary-color) 22%, transparent);
+  color: var(--secondary-color);
+}
+
+/* Marca del módulo donde estás aunque el panel esté oculto */
+.sbx-rail__item.is-current::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--secondary-color);
+}
+
+.sbx-rail__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sbx-rail__item .material-symbols-rounded {
+  font-size: 22px;
+}
+
+.sbx-rail__item--logout:hover {
+  color: #ff9e9e;
+  background: rgba(250, 117, 117, 0.16);
+}
+
+/* ── Panel ── */
+.sbx-panel {
+  width: 224px;
+  flex-shrink: 0;
+  overflow: hidden;
+  height: 100%;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
+  background: var(--sub-menu-bg);
+  color: var(--sub-menu-text);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sbx-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 8px 6px 14px;
+}
+
+.sbx-panel__head h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.sbx-panel__hide {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.sbx-panel__hide:hover {
+  opacity: 1;
+  background: var(--sub-menu-hover-bg);
+}
+
+.sbx-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 10px 8px;
+  padding: 0 8px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--sub-menu-text) 8%, transparent);
+}
+
+.sbx-search .material-symbols-rounded {
+  font-size: 17px;
+  opacity: 0.6;
+}
+
+.sbx-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.88rem;
+}
+
+.sbx-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.sbx-panel__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 8px 14px;
+  scrollbar-width: thin;
+}
+
+.sbx-block + .sbx-block {
+  margin-top: 2px;
+}
+
+.sbx-group {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.sbx-group > span:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.sbx-group small {
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.6;
+}
+
+.sbx-group__chev {
+  flex: none;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.sbx-group__chev.open {
+  transform: rotate(90deg);
+}
+
+.sbx-group:hover {
+  opacity: 1;
+  background: var(--sub-menu-hover-bg);
+}
+
+.sbx-group.is-current {
+  opacity: 1;
+  color: var(--secondary-color);
+}
+
+.sbx-link,
+.sbx-result {
+  display: block;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: inherit;
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+
+.sbx-link:hover,
+.sbx-result:hover {
+  background: var(--sub-menu-hover-bg);
+}
+
+.sbx-link.is-current,
+.sbx-result.is-current {
+  background: color-mix(in srgb, var(--secondary-color) 16%, transparent);
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+.sbx-link.is-soon {
+  opacity: 0.6;
+}
+
+.sbx-result strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.sbx-result small {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.65;
+}
+
+.sbx-empty {
+  margin: 12px 8px;
+  font-size: 0.86rem;
+  opacity: 0.6;
+}
+
+/* El contenido del panel conserva su ancho mientras el panel se abre o se cierra (no se aplasta) */
+.sbx-panel__inner {
+  width: 224px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sbx-panel.is-hidden {
+  width: 0;
+  border-left-width: 0;
+  visibility: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.28s;
+}
+
+/* Al cambiar de módulo el contenido entra con un desvanecido */
+.sbx-panel__body {
+  animation: sbx-fade 0.25s ease;
+}
+
+/* Grupos que se despliegan y pliegan con altura animada */
+.sbx-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.25s;
+}
+
+.sbx-collapse.is-open {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
+}
+
+.sbx-collapse__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.sbx-link,
+.sbx-result {
+  transition: background 0.15s ease, padding-left 0.15s ease, color 0.15s ease;
+}
+
+.sbx-link:hover {
+  padding-left: 14px;
+}
+
+.sbx-rail__item {
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+}
+
+.sbx-rail__item:hover {
+  transform: scale(1.06);
+}
+
+.sbx-handle {
+  animation: sbx-fade 0.25s ease;
+}
+
+@keyframes sbx-fade {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Pantallas medianas: el panel flota encima del contenido (no empuja nada) ── */
+.sidebar.sbx.is-narrow .sbx-panel {
+  position: fixed;
+  top: 0;
+  left: 64px;
+  z-index: 60;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel.is-hidden {
+  width: 224px;
+  transform: translateX(-110%);
+  box-shadow: none;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.28s;
+}
+
+.sbx-backdrop {
+  animation: sbx-backdrop-in 0.25s ease;
+  position: fixed;
+  inset: 0;
+  left: 64px;
+  z-index: 55;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+@media (max-width: 768px) {
+  .sidebar.sbx {
+    display: none;
+  }
+}
+
+/* Tooltip del riel (fixed para no recortarse con el scroll del riel) */
+.sbx-tip {
+  position: fixed;
+  left: 72px;
+  transform: translateY(-50%);
+  z-index: 80;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: #1c2230;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+/* Pestaña para volver a abrir el panel cuando está oculto */
+.sbx-handle {
+  position: absolute;
+  top: 18px;
+  left: 100%;
+  z-index: 45;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 0 10px 10px 0;
+  background: var(--sidebar-background);
+  color: var(--secondary-color);
+  cursor: pointer;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.18);
+}
+
+.sbx-handle .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.sbx-handle:hover {
+  width: 24px;
+}
+
+@keyframes sbx-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sbx-panel,
+  .sbx-panel__body,
+  .sbx-collapse,
+  .sbx-link,
+  .sbx-rail__item,
+  .sbx-handle,
+  .sbx-backdrop {
+    animation: none;
+    transition: none;
+  }
+}

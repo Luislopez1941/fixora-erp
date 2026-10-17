@@ -207,7 +207,7 @@ const ModalPurchaseOrderDetail: React.FC = () => {
                   <div><span>Subtotal</span><span>{money(totals.subtotal)}</span></div>
                   {totals.discount > 0 && <div><span>Descuento</span><span>-{money(totals.discount)}</span></div>}
                   <div><span>IVA</span><span>{money(totals.iva)}</span></div>
-                  {po.sumFreight && <div><span>Flete</span><span>{money(totals.freight)}</span></div>}
+                  {po.sumFreight && <div><span>Envío</span><span>{money(totals.freight)}</span></div>}
                   <div className='detail-totals__grand'><span>Total</span><span>{money(totals.total)}</span></div>
                 </div>
               )}

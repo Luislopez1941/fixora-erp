@@ -246,7 +246,7 @@
 }
 
 .roles_modal__module-name {
-  text-transform: capitalize;
+  text-transform: none;
 }
 
 .roles_modal__module-arrow {
@@ -341,7 +341,6 @@
 .roles_modal__perm-action {
   font-size: 12px;
   font-weight: 600;
-  text-transform: capitalize;
   letter-spacing: 0.3px;
 }
 
@@ -369,7 +368,7 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 6px 12px;
+  padding: 5px 12px;
   background: transparent;
   border: none;
 }
@@ -450,10 +449,9 @@
 }
 
 .roles_modal__submodule-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.2px;
 }
 
 .roles_modal__submodule-arrow {
@@ -501,4 +499,101 @@
   .roles_modal__fields {
     grid-template-columns: 1fr;
   }
+}
+
+/* Grupos de pantallas dentro de un módulo (Punto de venta, Gestión comercial…) */
+.roles_modal__group {
+  margin-top: 6px;
+}
+
+.roles_modal__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 8px 3px 6px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--text-color) 4%, transparent);
+}
+
+.roles_modal__group-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.roles_modal__group-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.roles_modal__group-arrow {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.roles_modal__group-arrow svg {
+  width: 13px;
+  height: 13px;
+}
+
+.roles_modal__group-toggle:hover .roles_modal__group-arrow {
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+}
+
+.roles_modal__group-arrow.open {
+  transform: rotate(90deg);
+}
+
+.roles_modal__group-count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.roles_modal__group-all {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.roles_modal__group-all:hover:not(:disabled) {
+  color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}
+
+.roles_modal__group-all:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Pantallas de un grupo */
+.roles_modal__group-body {
+  padding-left: 6px;
 }

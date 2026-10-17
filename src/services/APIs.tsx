@@ -374,8 +374,8 @@ const APIs = {
 
   ///////////////////////////////////COTIZACIONES////////////////////////////////////////////////////
 
-  getCustomers: async (companyId: number, customPath?: string) => {
-    const path = customPath || `customers?companyId=${companyId}`;
+  getCustomers: async (companyId: number, branchId?: number, customPath?: string) => {
+    const path = customPath || `customers?companyId=${companyId}${branchId ? `&branchId=${branchId}` : ''}`;
     return ConfigurationAPIs.get(path);
   },
 
@@ -564,16 +564,67 @@ const APIs = {
   },
 
   getSuppliers: async (
-    data: { id_usuario: number; is_flete?: boolean },
+    data: { id_usuario: number; is_flete?: boolean; companyId?: number },
     customPath?: string,
   ) => {
     const params = new URLSearchParams();
     params.set('id_usuario', String(data.id_usuario));
     if (data.is_flete !== undefined) params.set('is_flete', String(data.is_flete));
+    if (data.companyId) params.set('companyId', String(data.companyId));
 
     const query = params.toString();
     const path = customPath || `suppliers/get${query ? `?${query}` : ''}`;
     return ConfigurationAPIs.get(path);
+  },
+
+  // Lotes y caducidades
+  getExpirations: async (params: { companyId: number; branchId?: number; storeId?: number; status?: string; search?: string; page?: number; pageSize?: number }) => {
+    const search = new URLSearchParams({ companyId: String(params.companyId) })
+    if (params.branchId && params.branchId > 0) search.set('branchId', String(params.branchId))
+    if (params.storeId && params.storeId > 0) search.set('storeId', String(params.storeId))
+    if (params.status) search.set('status', params.status)
+    if (params.search?.trim()) search.set('search', params.search.trim())
+    if (params.page) search.set('page', String(params.page))
+    if (params.pageSize) search.set('pageSize', String(params.pageSize))
+    return ConfigurationAPIs.get(`lots/expirations?${search.toString()}`)
+  },
+  writeOffLot: async (id: string, data: { quantity?: number; reason: string }) => ConfigurationAPIs.post(`lots/${id}/write-off`, data),
+
+  // Contabilidad (catálogo de cuentas, periodos, pólizas/asientos, balanza)
+  getAccounts: async (companyId: number) => ConfigurationAPIs.get(`accounting/accounts?companyId=${companyId}`),
+  createAccount: async (data: any) => ConfigurationAPIs.post('accounting/accounts', data),
+  updateAccount: async (id: string, data: any) => ConfigurationAPIs.patch(`accounting/accounts/${id}`, data),
+  getAccountingPeriods: async (companyId: number) => ConfigurationAPIs.get(`accounting/periods?companyId=${companyId}`),
+  closeAccountingPeriod: async (data: { companyId: number; year: number; month: number }) => ConfigurationAPIs.post('accounting/periods/close', data),
+  reopenAccountingPeriod: async (data: { companyId: number; year: number; month: number }) => ConfigurationAPIs.post('accounting/periods/reopen', data),
+  getJournalEntries: async (companyId: number, range?: { from?: string; to?: string }) => {
+    const search = new URLSearchParams({ companyId: String(companyId) });
+    if (range?.from) search.set('from', range.from);
+    if (range?.to) search.set('to', range.to);
+    return ConfigurationAPIs.get(`accounting/entries?${search.toString()}`);
+  },
+  getJournalEntry: async (id: string) => ConfigurationAPIs.get(`accounting/entries/${id}`),
+  postJournalEntry: async (data: any) => ConfigurationAPIs.post('accounting/entries', data),
+  reverseJournalEntry: async (id: string, data: { reason: string; entryDate?: string }) => ConfigurationAPIs.post(`accounting/entries/${id}/reverse`, data),
+  getTrialBalance: async (companyId: number, from: string, to: string) =>
+    ConfigurationAPIs.get(`accounting/trial-balance?companyId=${companyId}&from=${from}&to=${to}`),
+
+  // Catálogo de proveedores
+  getSuppliersCatalog: async (companyId: number, customPath?: string) => {
+    const path = customPath || `suppliers?companyId=${companyId}`;
+    return ConfigurationAPIs.get(path);
+  },
+  createSupplier: async (data: any, customPath?: string) => {
+    const path = customPath || 'suppliers/create';
+    return ConfigurationAPIs.post(path, data);
+  },
+  updateSupplier: async (id: number, data: any, customPath?: string) => {
+    const path = customPath || `suppliers/${id}`;
+    return ConfigurationAPIs.patch(path, data);
+  },
+  deleteSupplier: async (id: number, customPath?: string) => {
+    const path = customPath || `suppliers/${id}`;
+    return ConfigurationAPIs.delete(path);
   },
 
   ///////////////////////////////////REQUISICIONES////////////////////////////////////////////////////
@@ -775,6 +826,10 @@ const APIs = {
     branchId?: number;
     storeId?: number;
     status?: string;
+    /** Con page el servidor entrega solo esa página: { data, summary, pagination } */
+    page?: number;
+    pageSize?: number;
+    search?: string;
   }) => {
     const params = new URLSearchParams();
     if (filters?.companyId != null && filters.companyId > 0) {
@@ -789,6 +844,9 @@ const APIs = {
     if (filters?.status) {
       params.set('status', filters.status);
     }
+    if (filters?.page) params.set('page', String(filters.page));
+    if (filters?.pageSize) params.set('pageSize', String(filters.pageSize));
+    if (filters?.search?.trim()) params.set('search', filters.search.trim());
     const query = params.toString();
     return ConfigurationAPIs.get(`inventory${query ? `?${query}` : ''}`);
   },
@@ -1281,9 +1339,14 @@ const APIs = {
   ///////////////////////////////////////////////////////// Items (Artículos y Servicios) ////////////////////////////////////////////////////////
   getItemList: async (
     token: string,
-    filters?: { companyId?: number; branchId?: number; customPath?: string },
+    filters?: { companyId?: number; branchId?: number; customPath?: string; page?: number; pageSize?: number; search?: string; type?: 'ARTICLE' | 'SERVICE' },
   ) => {
     const params = new URLSearchParams()
+    // Con `page` el servidor responde { data, pagination } con solo esa página; sin `page` devuelve todo el catálogo
+    if (filters?.page) params.set('page', String(filters.page))
+    if (filters?.pageSize) params.set('pageSize', String(filters.pageSize))
+    if (filters?.search?.trim()) params.set('search', filters.search.trim())
+    if (filters?.type) params.set('type', filters.type)
     if (filters?.companyId != null && filters.companyId > 0) {
       params.set('companyId', String(filters.companyId))
     }

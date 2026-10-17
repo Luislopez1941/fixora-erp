@@ -7,6 +7,7 @@ import StockOut from "../../../components/sidebar/sections/store/store/StockOut"
 import WarehouseTransfer from "../../../components/sidebar/sections/store/store/WarehouseTransfer";
 import Tickets from "../../../components/sidebar/sections/store/tickets/Tickets";
 import Orders from "../../../components/sidebar/sections/store/orders/Orders";
+import ModuleScreen from '../../../core/modules/ModuleScreen';
 
 const RouteStore: React.FC = () => {
   return (
@@ -17,6 +18,8 @@ const RouteStore: React.FC = () => {
       <Route path={`/${PrivateRoutes.TRANSFERS}`} element={<WarehouseTransfer />} />
       <Route path={`/${PrivateRoutes.TICKETS}`} element={<Tickets />} />
       <Route path={`/${PrivateRoutes.ORDERS}`} element={<Orders />} />
+      {/* Pantallas nuevas de la taxonomía de módulos (aún sin ruta propia): se resuelven en core/modules/ModuleScreen */}
+      <Route path='*' element={<ModuleScreen />} />
     </Routes>
   );
 };

@@ -5,6 +5,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
 import APIs from '../../../../../../services/APIs'
 import Swal from 'sweetalert2'
+import { MODULE_LABELS, SUBMODULE_LABELS } from '../../../../../../core/modules/taxonomy.generated'
+import { groupSubmodules, orderModules, HIDDEN_PERMISSION_MODULES, PERMISSION_MODULE_ALIAS } from '../../../../../../core/permissions/permissionTree'
+import type { ModuleGroup, SubmoduleGroup } from '../../../../../../core/permissions/permissionTree'
 
 interface Props {
   role?: any | null
@@ -40,6 +43,7 @@ const moduleLabels: Record<string, string> = {
   delivery: 'Entregas',
   inventory: 'Almacén',
   general: 'General',
+  accounting: 'Contabilidad',
 }
 
 const submoduleLabels: Record<string, string> = {
@@ -78,6 +82,7 @@ const submoduleLabels: Record<string, string> = {
   familias: 'Familias',
   containers: 'Categorías',
   units: 'Unidades',
+  suppliers: 'Proveedores',
   services: 'Servicios',
   articles: 'Artículos',
   prices: 'Rangos de precio',
@@ -91,33 +96,15 @@ const submoduleLabels: Record<string, string> = {
   staff: 'Personal',
 }
 
-type PermissionItem = {
-  id: number
-  name: string
-  description: string
-  assigned?: boolean
-  actionLabel?: string
-}
-
-type SubmoduleGroup = {
-  key: string
-  label: string
-  permissions: PermissionItem[]
-}
-
-type ModuleGroup = {
-  key: string
-  label: string
-  permissions: PermissionItem[]
-  submodules: SubmoduleGroup[]
-}
-
 // Construye la estructura jerárquica a partir de una lista plana de permisos (modo creación)
 function buildModulesFromPermissions(perms: any[]): ModuleGroup[] {
   const modulesMap = new Map<string, ModuleGroup>()
 
   for (const perm of perms) {
     const parts = perm.name.split('.')
+    if (HIDDEN_PERMISSION_MODULES.includes(parts[0])) continue
+    const rawModule = parts[0]
+    parts[0] = PERMISSION_MODULE_ALIAS[parts[0]] ?? parts[0]
     const actionKey = parts.length >= 2 ? parts[parts.length - 1] : ''
     const actionLabel = actionLabels[actionKey] || actionKey
 
@@ -128,7 +115,7 @@ function buildModulesFromPermissions(perms: any[]): ModuleGroup[] {
       if (!modulesMap.has(moduleKey)) {
         modulesMap.set(moduleKey, {
           key: moduleKey,
-          label: moduleLabels[moduleKey] || moduleKey,
+          label: moduleLabels[moduleKey] || MODULE_LABELS[moduleKey] || moduleKey,
           permissions: [],
           submodules: [],
         })
@@ -139,7 +126,7 @@ function buildModulesFromPermissions(perms: any[]): ModuleGroup[] {
       if (!sub) {
         sub = {
           key: subKey,
-          label: submoduleLabels[subKey] || subKey,
+          label: submoduleLabels[subKey] || SUBMODULE_LABELS[`${rawModule}.${subKey}`] || subKey,
           permissions: [],
         }
         mod.submodules.push(sub)
@@ -150,7 +137,7 @@ function buildModulesFromPermissions(perms: any[]): ModuleGroup[] {
       if (!modulesMap.has(moduleKey)) {
         modulesMap.set(moduleKey, {
           key: moduleKey,
-          label: moduleLabels[moduleKey] || moduleKey,
+          label: moduleLabels[moduleKey] || MODULE_LABELS[moduleKey] || moduleKey,
           permissions: [],
           submodules: [],
         })
@@ -159,7 +146,7 @@ function buildModulesFromPermissions(perms: any[]): ModuleGroup[] {
     }
   }
 
-  return Array.from(modulesMap.values()).sort((a, b) => a.label.localeCompare(b.label))
+  return orderModules(Array.from(modulesMap.values()))
 }
 
 const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
@@ -173,6 +160,7 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
   const [selectedPermissionIds, setSelectedPermissionIds] = useState<Set<number>>(new Set())
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
   const [expandedSubmodules, setExpandedSubmodules] = useState<Set<string>>(new Set())
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [saving, setSaving] = useState(false)
   const [touched, setTouched] = useState(false)
 
@@ -188,7 +176,7 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
         const res: any = await APIs.getRolePermissions(role.id)
         const data = res?.data
         if (data?.modules) {
-          setModules(data.modules)
+          setModules(orderModules(data.modules))
           // Pre-seleccionar los asignados
           const assigned = new Set<number>()
           for (const mod of data.modules) {
@@ -228,8 +216,30 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
     })
   }
 
+  // Marca o quita varios permisos de golpe; al quitar "Ver" de una pantalla también se quitan sus demás acciones
+  const setMany = (viewIds: number[], on: boolean, subs: SubmoduleGroup[]) => {
+    setSelectedPermissionIds((prev) => {
+      const next = new Set(prev)
+      for (const id of viewIds) {
+        if (on) next.add(id)
+        else next.delete(id)
+      }
+      if (!on) for (const sub of subs) for (const p of sub.permissions) next.delete(p.id)
+      return next
+    })
+  }
+
   const toggleModule = (key: string) => {
     setExpandedModules((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const toggleGroup = (key: string) => {
+    setExpandedGroups((prev) => {
       const next = new Set(prev)
       if (next.has(key)) next.delete(key)
       else next.add(key)
@@ -375,69 +385,94 @@ const ModalRoles: React.FC<Props> = ({ role, onSaved }) => {
                           )
                         })}
 
-                        {/* Submódulos como dropdowns */}
-                        {mod.submodules.map((sub) => {
-                          const subExpanded = expandedSubmodules.has(`${mod.key}.${sub.key}`)
-                          const subViewPerm = sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))
-                          const subOtherPerms = sub.permissions.filter((p) => p.id !== subViewPerm?.id)
-                          const subViewChecked = subViewPerm ? selectedPermissionIds.has(subViewPerm.id) : false
-
-                          const subDisabled = !viewChecked // bloqueado si el módulo padre no tiene Ver
-
+                        {/* Submódulos (pantallas) agrupados por su grupo del menú, cada uno con su desplegable de acciones */}
+                        {groupSubmodules(mod.submodules).map(({ group, subs }) => {
+                          const viewIds = subs.map((sub) => sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))?.id).filter((id): id is number => id != null)
+                          const allOn = viewIds.length > 0 && viewIds.every((id) => selectedPermissionIds.has(id))
+                          const onCount = viewIds.filter((id) => selectedPermissionIds.has(id)).length
+                          const groupKey = `${mod.key}.${group}`
+                          const groupOpen = !group || expandedGroups.has(groupKey)
                           return (
-                            <div key={sub.key} className={`roles_modal__submodule ${subDisabled ? 'submodule-disabled' : ''}`}>
-                              <div className='roles_modal__submodule-header'>
-                                <label className={`roles_modal__submodule-view ${subViewChecked ? 'checked' : ''}`} title='Acceso al submódulo'>
-                                  <input
-                                    type='checkbox'
-                                    checked={subViewChecked}
-                                    disabled={subDisabled}
-                                    onChange={() => {
-                                      if (subViewPerm) {
-                                        togglePermission(subViewPerm.id)
-                                        // Si desmarca "Ver", quitar los demás del submódulo
-                                        if (subViewChecked) {
-                                          for (const p of subOtherPerms) {
-                                            if (selectedPermissionIds.has(p.id)) {
-                                              togglePermission(p.id)
-                                            }
-                                          }
-                                        }
-                                      }
-                                    }}
-                                  />
-                                </label>
-                                <button
-                                  type='button'
-                                  className='roles_modal__submodule-toggle'
-                                  disabled={subDisabled}
-                                  onClick={() => toggleSubmodule(`${mod.key}.${sub.key}`)}
-                                >
-                                  <span className='roles_modal__submodule-name'>{sub.label}</span>
-                                  <span className={`roles_modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
-                                    <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
-                                  </span>
-                                </button>
-                              </div>
-                              {subExpanded && (
-                                <div className='roles_modal__submodule-body'>
-                                  {subOtherPerms.map((perm) => {
-                                    const checked = selectedPermissionIds.has(perm.id)
-                                    return (
-                                      <label key={perm.id} className={`roles_modal__perm-row ${checked ? 'checked' : ''} ${!subViewChecked ? 'disabled' : ''}`}>
-                                        <input
-                                          type='checkbox'
-                                          checked={checked}
-                                          disabled={!subViewChecked}
-                                          onChange={() => togglePermission(perm.id)}
-                                        />
-                                        <span className='roles_modal__perm-action'>{perm.actionLabel || perm.name}</span>
-                                        <span className='roles_modal__perm-desc'>{perm.description}</span>
-                                      </label>
-                                    )
-                                  })}
+                            <div key={group || 'sin-grupo'} className='roles_modal__group'>
+                              {group && (
+                                <div className='roles_modal__group-header'>
+                                  <button type='button' className='roles_modal__group-toggle' onClick={() => toggleGroup(groupKey)} aria-expanded={groupOpen}>
+                                    <span className={`roles_modal__group-arrow ${groupOpen ? 'open' : ''}`}>
+                                      <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
+                                    </span>
+                                    <span className='roles_modal__group-name'>{group}</span>
+                                    <span className='roles_modal__group-count'>{onCount}/{subs.length}</span>
+                                  </button>
+                                  <button type='button' className='roles_modal__group-all' disabled={!viewChecked} onClick={() => setMany(viewIds, !allOn, subs)}>
+                                    {allOn ? 'Quitar todas' : 'Dar acceso a todas'}
+                                  </button>
                                 </div>
                               )}
+                              {groupOpen && <div className='roles_modal__group-body'>{subs.map((sub) => {
+                              const subExpanded = expandedSubmodules.has(`${mod.key}.${sub.key}`)
+                              const subViewPerm = sub.permissions.find((p) => p.actionLabel === 'Ver' || p.name.endsWith('.view'))
+                              const subOtherPerms = sub.permissions.filter((p) => p.id !== subViewPerm?.id)
+                              const subViewChecked = subViewPerm ? selectedPermissionIds.has(subViewPerm.id) : false
+
+                              const subDisabled = !viewChecked // bloqueado si el módulo padre no tiene Ver
+
+                              return (
+                                <div key={sub.key} className={`roles_modal__submodule ${subDisabled ? 'submodule-disabled' : ''}`}>
+                                  <div className='roles_modal__submodule-header'>
+                                    <label className={`roles_modal__submodule-view ${subViewChecked ? 'checked' : ''}`} title='Acceso al submódulo'>
+                                      <input
+                                        type='checkbox'
+                                        checked={subViewChecked}
+                                        disabled={subDisabled}
+                                        onChange={() => {
+                                          if (subViewPerm) {
+                                            togglePermission(subViewPerm.id)
+                                            // Si desmarca "Ver", quitar los demás del submódulo
+                                            if (subViewChecked) {
+                                              for (const p of subOtherPerms) {
+                                                if (selectedPermissionIds.has(p.id)) {
+                                                  togglePermission(p.id)
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                    <button
+                                      type='button'
+                                      className='roles_modal__submodule-toggle'
+                                      disabled={subDisabled}
+                                      onClick={() => toggleSubmodule(`${mod.key}.${sub.key}`)}
+                                    >
+                                      <span className='roles_modal__submodule-name'>{sub.label}</span>
+                                      <span className={`roles_modal__submodule-arrow ${subExpanded ? 'open' : ''}`}>
+                                        <svg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'><path d='M9 18l6-6-6-6'/></svg>
+                                      </span>
+                                    </button>
+                                  </div>
+                                  {subExpanded && (
+                                    <div className='roles_modal__submodule-body'>
+                                      {subOtherPerms.map((perm) => {
+                                        const checked = selectedPermissionIds.has(perm.id)
+                                        return (
+                                          <label key={perm.id} className={`roles_modal__perm-row ${checked ? 'checked' : ''} ${!subViewChecked ? 'disabled' : ''}`}>
+                                            <input
+                                              type='checkbox'
+                                              checked={checked}
+                                              disabled={!subViewChecked}
+                                              onChange={() => togglePermission(perm.id)}
+                                            />
+                                            <span className='roles_modal__perm-action'>{perm.actionLabel || perm.name}</span>
+                                            <span className='roles_modal__perm-desc'>{perm.description}</span>
+                                          </label>
+                                        )
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                              })}</div>}
                             </div>
                           )
                         })}

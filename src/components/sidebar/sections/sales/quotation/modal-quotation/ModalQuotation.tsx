@@ -210,7 +210,7 @@ const ModalQuotation: React.FC = () => {
     (async () => {
       try {
         const [custResponse, unitsResponse]: any[] = await Promise.all([
-          APIs.getCustomers(selectedCompany),
+          APIs.getCustomers(selectedCompany, selectedBranch || undefined),
           APIs.getUnits({ companyId: selectedCompany, branchId: selectedBranch || undefined }),
         ]);
         if (cancelled) return;

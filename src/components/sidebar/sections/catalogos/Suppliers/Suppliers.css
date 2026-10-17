@@ -1,129 +1,67 @@
-.areas__container {
-    padding: 20px;
+/* Proveedores: lo demás sale de Requisition.css (.reqs__*) y Quotation.css (.quote-name); aquí lo propio de esta pantalla */
+
+/* ── Resumen ── */
+.sup__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
 }
 
-
-
-.areas__container > .row__one {
-    display: flex;
-    justify-content: center;
+.sup__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
 }
 
-
-
-
-
-
-
-.table__areas {
-    margin-top: 20px;
-    border-radius: 10px;
-    text-align: justify;
-    overflow: hidden;
-    width: 100%;
-    color: var(--text-color);
-
+.sup__stat span {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
-
-.table__areas .table__head {
-    display: flex;
-    width: 100%;
-    background-color: #1f2124;
-    color: #f5f6f7;
-    border-radius: 5px 5px 0 0;
+.sup__stat strong {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-color);
 }
 
-.table__areas .table__head .thead {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(4, 1fr) 100px 100px;
-    padding: 10px;
-    font-weight: 600;
+.sup__stat small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
 }
 
-.table__areas .table__body {
-    height: 100%;
-    overflow: auto;
-    transition-delay: 0.0s;
-
-    &::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-        background-color: #1F319D;
-        border-radius: 5px;
-        height: 100px;
-    }
-
-    &::-webkit-scrollbar-track {
-        /* Para modificar el background */
-    }
+/* ── Tabla: 7 columnas ── */
+.reqs__row.sup__row {
+  grid-template-columns:
+    minmax(180px, 1.8fr) minmax(130px, 1.4fr) minmax(80px, 0.7fr) minmax(80px, 0.7fr)
+    minmax(80px, 0.7fr) minmax(90px, 0.8fr) 150px;
 }
 
-
-
-.table__areas .tbody__container .tbody-desk {
-    border-bottom: 2px solid #1f2124;
+.sup__contact {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.table__areas .tbody__container .tbody-response {
-    border-bottom: 2px solid #1f2124;
+.sup__contact small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 0.74rem;
 }
 
-.table__areas .tbody__container .tbody-desk {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr) 50px;
-    padding: 10px;
-}
+@media screen and (max-width: 700px) {
+  .sup__stats {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 
-
-.table__areas .table__body .tbody-desk .td {
-    display: flex;
-}
-
-.table__areas .table__body .tbody-desk:hover {
-    background-color: var(--secundary-color);
-    color: #fff;
-}
-
-
-.table__areas .table__body .tbody-response {
-    display: none;
-    padding: 15px;
-    border: 2px solid #1f2124;
-    border-radius: 10px;
-}
-
-
-
-
-@media screen and (max-width: 768px) {
-
-
-
-
-    .table__areas .table__body {
-        border: none;
-
-    }
-
-    .table__areas .table__head {
-        display: none;
-    }
-
-
-
-    .table__areas .table__body .tbody-response {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-        margin: 15px 0;
-    }
-
-
-    .table__areas .table__body .tbody-desk {
-        display: none;
-    }
+  .sup__stat {
+    padding: 8px 10px;
+  }
 }

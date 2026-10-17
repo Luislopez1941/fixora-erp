@@ -1,0 +1,319 @@
+/* Caducidades (Lotes y series): todas las clases cuelgan de .expirations (notación padre__hijo). Colores con variables del tema. */
+.expirations {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.expirations__container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.expirations__header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.expirations__title h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.expirations__title p {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.expirations__filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.expirations__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.expirations__search-icon {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.expirations__search .inputs__general.expirations__search-input {
+  margin-top: 0;
+  width: 260px;
+  padding-left: 38px;
+}
+
+select.expirations__select {
+  width: auto;
+  margin-top: 0;
+  min-width: 150px;
+}
+
+/* Tarjetas de resumen: cada una es un filtro */
+.expirations__cards {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.expirations__card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.expirations__card small {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.expirations__card strong {
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.expirations__card:hover {
+  border-color: var(--secondary-color);
+}
+
+.expirations__card.is-active {
+  border-color: var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 10%, var(--card-bg));
+}
+
+.expirations__card--expired strong { color: #d64545; }
+.expirations__card--critical strong { color: #e8742a; }
+.expirations__card--soon strong { color: #c98a0a; }
+.expirations__card--watch strong { color: #8a8f1c; }
+.expirations__card--ok strong { color: #1c8a4e; }
+
+/* Lista (scroll solo de la tabla) */
+.expirations__list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.expirations__row {
+  display: grid;
+  grid-template-columns: minmax(170px, 1.1fr) minmax(110px, 0.8fr) minmax(220px, 2fr) minmax(120px, 0.9fr) minmax(120px, 0.8fr) 130px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s ease;
+}
+
+.expirations__row:last-child {
+  border-bottom: none;
+}
+
+.expirations__row:not(.expirations__row--head):hover {
+  background: rgba(7, 42, 87, 0.06);
+}
+
+.expirations__row--head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  background: linear-gradient(rgba(7, 42, 87, 0.05), rgba(7, 42, 87, 0.05)), var(--card-bg);
+}
+
+.expirations__cell {
+  min-width: 0;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.expirations__cell--muted {
+  color: var(--text-muted);
+}
+
+.expirations__cell--name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.expirations__code {
+  flex: none;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.expirations__name {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.expirations__name strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expirations__name small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.expirations__date {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.expirations__badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: rgba(7, 42, 87, 0.08);
+}
+
+.expirations__badge--expired { background: rgba(214, 69, 69, 0.16); color: #c23a3a; }
+.expirations__badge--critical { background: rgba(232, 116, 42, 0.18); color: #c9601a; }
+.expirations__badge--soon { background: rgba(240, 180, 40, 0.2); color: #a87100; }
+.expirations__badge--watch { background: rgba(160, 170, 40, 0.18); color: #78811a; }
+.expirations__badge--ok { background: rgba(34, 160, 90, 0.16); color: #1c8a4e; }
+
+.expirations__qty {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.expirations__qty small {
+  display: block;
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.expirations__col-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.expirations__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.expirations__action .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.expirations__action:hover {
+  color: #d64545;
+  border-color: #d64545;
+  background: color-mix(in srgb, #d64545 8%, transparent);
+}
+
+.expirations__state {
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.expirations__state .material-symbols-rounded {
+  font-size: 38px;
+  opacity: 0.6;
+}
+
+.expirations__state p {
+  margin: 6px 0 2px;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+@media screen and (max-width: 900px) {
+  .expirations__container {
+    padding: 14px;
+  }
+  .expirations__row--head {
+    display: none;
+  }
+  .expirations__row {
+    grid-template-columns: 1fr auto;
+    gap: 6px 12px;
+  }
+  .expirations__cell--name,
+  .expirations__col-actions {
+    grid-column: 1 / -1;
+  }
+  .expirations__search .inputs__general.expirations__search-input {
+    width: 100%;
+  }
+  .expirations__search {
+    flex: 1 1 100%;
+  }
+}

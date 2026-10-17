@@ -12,7 +12,14 @@ import './Customers.css';
 
 const money = (value: number) => Number(value ?? 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
 
-export const customerName = (c: any) => c?.businessName || [c?.firstName, c?.lastName].filter(Boolean).join(' ') || `Cliente ${c?.id}`;
+export const customerName = (c: any) =>
+  (c?.customerType === 'MORAL' ? c?.businessName : '') ||
+  [c?.firstName, c?.lastName].filter(Boolean).join(' ') ||
+  c?.businessName ||
+  `Cliente ${c?.id}`;
+
+const TYPE_LABEL: Record<string, string> = { GENERAL: 'Persona física', FISICA: 'Persona física', MORAL: 'Persona moral' };
+const customerSubtitle = (c: any) => (c?.taxId ? `${TYPE_LABEL[c.customerType] ?? ''} · ${c.taxId}`.replace(/^ · /, '') : TYPE_LABEL[c?.customerType] ?? 'Persona física');
 
 const FILTERS = [
   { id: 'ALL', label: 'Todos' },
@@ -30,6 +37,8 @@ const Customers: React.FC = () => {
 
   const [companies, setCompanies] = useState<any[]>([]);
   const [companyId, setCompanyId] = useState(0);
+  const [branches, setBranches] = useState<any[]>([]);
+  const [branchId, setBranchId] = useState(0); // 0 = todas las sucursales
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
@@ -52,6 +61,22 @@ const Customers: React.FC = () => {
     })();
   }, [userState?.id, userState?.activeCompanyId]);
 
+  // Sucursales de la empresa elegida: sirven para filtrar la lista y para asignar el cliente
+  useEffect(() => {
+    setBranchId(0);
+    setBranches([]);
+    if (!companyId) return;
+    let alive = true;
+    APIs.getBranchOffices(companyId, userState?.id || 1)
+      .then((response: any) => {
+        if (alive) setBranches(Array.isArray(response) ? response : response?.data || []);
+      })
+      .catch(() => alive && setBranches([]));
+    return () => {
+      alive = false;
+    };
+  }, [companyId, userState?.id]);
+
   const fetchCustomers = useCallback(async () => {
     if (!companyId) {
       setCustomers([]);
@@ -59,7 +84,7 @@ const Customers: React.FC = () => {
     }
     setLoading(true);
     try {
-      const response: any = await APIs.getCustomers(companyId);
+      const response: any = await APIs.getCustomers(companyId, branchId || undefined);
       setCustomers(Array.isArray(response) ? response : response?.data || []);
     } catch (error) {
       console.error('Error al cargar clientes:', error);
@@ -67,7 +92,7 @@ const Customers: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [companyId]);
+  }, [companyId, branchId]);
 
   useEffect(() => {
     fetchCustomers();
@@ -149,6 +174,14 @@ const Customers: React.FC = () => {
               <select className='inputs__general reqs__filter' aria-label='Empresa' value={companyId} onChange={(e) => setCompanyId(Number(e.target.value))}>
                 {companies.map((c: any) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            )}
+            {branches.length > 0 && (
+              <select className='inputs__general reqs__filter' aria-label='Sucursal' value={branchId} onChange={(e) => setBranchId(Number(e.target.value))}>
+                <option value={0}>Todas las sucursales</option>
+                {branches.map((br: any) => (
+                  <option key={br.id} value={br.id}>{br.name}</option>
                 ))}
               </select>
             )}
@@ -242,7 +275,7 @@ const Customers: React.FC = () => {
                     <span className='reqs__row-icon material-symbols-rounded' aria-hidden>person</span>
                     <div className='quote-name'>
                       <strong>{customerName(customer)}</strong>
-                      <small>{customer.taxId || 'Sin RFC'}</small>
+                      <small>{customerSubtitle(customer)}{branches.length > 0 ? ` · ${customer.branch?.name ?? 'Todas las sucursales'}` : ''}</small>
                     </div>
                   </div>
                   <div className='reqs__cell cust__contact' data-label='Contacto'>
@@ -316,6 +349,8 @@ const Customers: React.FC = () => {
         customer={editing}
         companies={companies}
         companyId={companyId}
+        branches={branches}
+        defaultBranchId={branchId}
         onClose={() => setModalOpen(false)}
         onSaved={() => {
           setModalOpen(false);

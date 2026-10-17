@@ -8,6 +8,7 @@ import CashShifts from "../../../components/sidebar/sections/cash/CashShifts";
 import CashRegisters from "../../../components/sidebar/sections/cash/CashRegisters";
 import CashSchedules from "../../../components/sidebar/sections/cash/CashSchedules";
 import CashConfig from "../../../components/sidebar/sections/cash/CashConfig";
+import ModuleScreen from '../../../core/modules/ModuleScreen';
 
 const RouteCash: React.FC = () => {
   return (
@@ -19,6 +20,8 @@ const RouteCash: React.FC = () => {
       <Route path={PrivateRoutes.CASH_REGISTERS} element={<CashRegisters />} />
       <Route path={PrivateRoutes.CASH_SCHEDULES} element={<CashSchedules />} />
       <Route path={PrivateRoutes.CASH_CONFIG} element={<CashConfig />} />
+      {/* Pantallas nuevas de la taxonomía de módulos (aún sin ruta propia): se resuelven en core/modules/ModuleScreen */}
+      <Route path='*' element={<ModuleScreen />} />
     </Routes>
   );
 };

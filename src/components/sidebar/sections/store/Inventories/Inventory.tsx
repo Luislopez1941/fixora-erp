@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux'
 import './Inventory.css'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import APIs from '../../../../../services/APIs'
 import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
+import Pagination from '../../../../general/pagination/Pagination'
+
+const PAGE_SIZE = 30
 
 type StockStatus = 'disponible' | 'stock_bajo' | 'agotado' | 'sin_rastreo'
 
@@ -36,6 +39,10 @@ const Inventory: React.FC = () => {
   const userState = useSelector((state: any) => state.user)
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const requestRef = useRef(0)
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   const persistBranchId = useCallback((id: number) => {
@@ -44,6 +51,18 @@ const Inventory: React.FC = () => {
     localStorage.setItem('categories-picker-branch-id', String(id))
   }, [])
 
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 400)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Al buscar o cambiar de filtro/sucursal se vuelve a la primera página
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch, statusFilter, branchId, companyId])
+
+  // Cada página, búsqueda o filtro es una petición: el servidor entrega solo los 30 de esa página y el resumen de todo el inventario.
+  // Una respuesta vieja nunca pisa a una nueva.
   const fetchInventory = useCallback(async () => {
     // Empresa del selector o, si no hay ninguna vinculada, la activa de la sesión
     const effectiveCompanyId =
@@ -51,41 +70,41 @@ const Inventory: React.FC = () => {
     if (!effectiveCompanyId) {
       setItems([])
       setSummary(null)
+      setTotal(0)
       setLoading(false)
       return
     }
 
+    const requestId = ++requestRef.current
     setLoading(true)
     try {
       const response: any = await APIs.getInventory({
         companyId: effectiveCompanyId,
         branchId: branchId > 0 ? branchId : undefined,
         status: statusFilter !== 'all' ? statusFilter : undefined,
+        page,
+        pageSize: PAGE_SIZE,
+        search: debouncedSearch,
       })
+      if (requestId !== requestRef.current) return
       setItems(Array.isArray(response?.data) ? response.data : [])
       setSummary(response?.summary ?? null)
+      setTotal(response?.pagination?.total ?? 0)
+      setExpandedId(null)
     } catch (error) {
+      if (requestId !== requestRef.current) return
       console.error('Error al cargar inventario:', error)
       setItems([])
       setSummary(null)
+      setTotal(0)
     } finally {
-      setLoading(false)
+      if (requestId === requestRef.current) setLoading(false)
     }
-  }, [branchId, companyId, statusFilter, userState?.activeCompanyId])
+  }, [branchId, companyId, statusFilter, userState?.activeCompanyId, page, debouncedSearch])
 
   useEffect(() => {
     fetchInventory()
   }, [fetchInventory])
-
-  const filteredItems = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return items
-    return items.filter((item) => {
-      const name = String(item.name ?? '').toLowerCase()
-      const code = String(item.code ?? '').toLowerCase()
-      return name.includes(q) || code.includes(q)
-    })
-  }, [items, search])
 
   const toggleExpand = (id: number) => {
     setExpandedId((prev) => (prev === id ? null : id))
@@ -154,12 +173,12 @@ const Inventory: React.FC = () => {
 
           {loading ? (
             <TableSkeleton rowClassName='inventory-list__row' cols={[{ pill: true, width: '64px' }, { width: '65%' }, { width: '35%' }, { pill: true, width: '72px' }, { width: '50%' }]} />
-          ) : filteredItems.length === 0 ? (
+          ) : items.length === 0 ? (
             <div className='inventory-list__state'>
-              <p>{search.trim() ? 'No se encontraron artículos con ese criterio' : 'No hay artículos para mostrar'}</p>
+              <p>{debouncedSearch.trim() ? 'No se encontraron artículos con ese criterio' : 'No hay artículos para mostrar'}</p>
             </div>
           ) : (
-            filteredItems.map((item) => {
+            items.map((item) => {
               const status = (item.status ?? 'sin_rastreo') as StockStatus
               const canExpand = item.hasVariations || (item.generalStock ?? 0) > 0
               const isExpanded = expandedId === item.itemId
@@ -229,6 +248,10 @@ const Inventory: React.FC = () => {
             })
           )}
         </div>
+
+        {total > 0 && (
+          <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPage={setPage} noun='artículos' />
+        )}
       </div>
     </div>
   )

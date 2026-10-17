@@ -83,6 +83,7 @@ export const PrivateRoutes = {
   SERVICES: 'services',
   ARTICLES: 'articles',
   PAYMENT_METHODS: 'payment-methods',
+  SUPPLIERS: 'suppliers',
 
   INCOME: 'income',
   CUSTOMERS: 'customers',

@@ -1,0 +1,79 @@
+/* Contabilidad (Finanzas): estilos compartidos por las pantallas de Contabilidad general y Cierres contables.
+   Todas las clases cuelgan de .acc (notación padre__hijo) y usan las variables del tema (claro y oscuro). */
+.acc { width: 100%; min-width: 0; }
+.acc__container { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+
+.acc__header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--panel-border); }
+.acc__title h1 { margin: 0; font-size: 1.25rem; font-weight: 700; color: var(--text-color); }
+.acc__title p { margin: 2px 0 0; font-size: 0.85rem; color: var(--text-muted); }
+
+.acc__filters { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px 14px; }
+.acc__field { display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+.acc__field label { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.acc__field--grow { flex: 1; min-width: 220px; }
+
+.acc__btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border: 1px solid var(--panel-border); border-radius: 10px; background: transparent; color: var(--text-color); font-family: inherit; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.15s ease; }
+.acc__btn .material-symbols-rounded { font-size: 18px; }
+.acc__btn:hover:not(:disabled) { border-color: var(--secondary-color); color: var(--secondary-color); }
+.acc__btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.acc__btn--primary { background: var(--secondary-color); border-color: var(--secondary-color); color: #fff; }
+.acc__btn--primary:hover:not(:disabled) { color: #fff; filter: brightness(1.06); }
+.acc__btn--danger:hover:not(:disabled) { border-color: #d64545; color: #d64545; }
+.acc__btn--sm { padding: 5px 10px; font-size: 0.78rem; }
+
+.acc__cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.acc__card { padding: 14px 16px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--card-bg); }
+.acc__card small { display: block; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.acc__card strong { display: block; margin-top: 4px; font-size: 1.15rem; color: var(--text-color); }
+
+.acc__table-wrap { border: 1px solid var(--panel-border); border-radius: 12px; background: var(--card-bg); overflow-x: auto; }
+.acc__table { width: 100%; border-collapse: collapse; font-size: 0.86rem; color: var(--text-color); }
+.acc__table th { padding: 9px 14px; text-align: left; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); background: rgba(7, 42, 87, 0.05); white-space: nowrap; }
+.acc__table td { padding: 9px 14px; border-top: 1px solid var(--panel-border); vertical-align: middle; }
+.acc__table tbody tr:hover { background: rgba(7, 42, 87, 0.04); }
+.acc__table .is-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.acc__table .is-muted { color: var(--text-muted); }
+.acc__table tfoot td { font-weight: 700; background: rgba(7, 42, 87, 0.05); }
+.acc__table tr.is-group td { font-weight: 700; }
+.acc__table tr.is-inactive td { opacity: 0.5; }
+.acc__row-actions { display: flex; justify-content: flex-end; gap: 6px; }
+
+.acc__badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.74rem; font-weight: 600; background: rgba(7, 42, 87, 0.08); color: var(--text-color); }
+.acc__badge--ok { background: rgba(34, 160, 90, 0.16); color: #1c8a4e; }
+.acc__badge--warn { background: rgba(240, 160, 40, 0.18); color: #b87400; }
+.acc__badge--bad { background: rgba(214, 69, 69, 0.16); color: #c23a3a; }
+
+.acc__empty { padding: 36px 16px; text-align: center; color: var(--text-muted); font-size: 0.9rem; }
+.acc__loading { padding: 28px 16px; text-align: center; color: var(--text-muted); }
+
+.acc__panel { padding: 18px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--card-bg); display: flex; flex-direction: column; gap: 14px; }
+.acc__panel h2 { margin: 0; font-size: 1rem; color: var(--text-color); }
+.acc__hint { margin: 0; font-size: 0.82rem; color: var(--text-muted); }
+.acc__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 16px; }
+
+.acc__balance { display: flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; }
+.acc__balance--ok { color: #1c8a4e; }
+.acc__balance--bad { color: #c23a3a; }
+
+.acc__months { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.acc__month { padding: 10px; border: 1px solid var(--panel-border); border-radius: 10px; text-align: center; font-size: 0.8rem; color: var(--text-color); }
+.acc__month strong { display: block; margin-bottom: 4px; }
+.acc__month--closed { background: rgba(34, 160, 90, 0.1); border-color: rgba(34, 160, 90, 0.4); }
+.acc__month--open { background: rgba(240, 160, 40, 0.08); border-color: rgba(240, 160, 40, 0.4); }
+.acc__month--none { opacity: 0.55; }
+
+.acc__year { display: flex; flex-direction: column; gap: 10px; padding: 16px; border: 1px solid var(--panel-border); border-radius: 12px; background: var(--card-bg); }
+.acc__year-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.acc__year-head h3 { margin: 0; font-size: 1.02rem; color: var(--text-color); }
+
+.acc__lines input, .acc__lines select { width: 100%; min-width: 0; }
+.acc__lines td { padding: 6px 8px; }
+
+.acc__entry-lines { margin: 0; padding: 0 14px 10px 44px; }
+
+.acc__tree-name { display: flex; align-items: center; gap: 6px; }
+
+@media (max-width: 768px) {
+  .acc__container { padding: 14px; }
+  .acc__field { min-width: 100%; }
+}
