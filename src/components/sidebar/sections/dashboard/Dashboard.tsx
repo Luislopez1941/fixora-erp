@@ -7,6 +7,8 @@ import 'react-date-range/dist/styles.css'
 import 'react-date-range/dist/theme/default.css'
 import '../catalogos/categories/Categories.css'
 import './Dashboard.css'
+import { useNavigate } from 'react-router-dom'
+import { EXPIRATIONS_PATH, useExpirationAlerts } from '../../../../modules/store/lotes-y-series/caducidades/useExpirationAlerts'
 import {
   AreaChart,
   Area,
@@ -104,6 +106,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate()
+  const expiryAlerts = useExpirationAlerts()
   const [branchId, setBranchId] = useState(() => readCategoryBranchId())
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -205,7 +209,8 @@ const Dashboard: React.FC = () => {
       const [summaryRes, gananciaRes, salesRes]: any[] = await Promise.all([
         APIs.getDashboard({ companyId, branchId: branchFilter }),
         APIs.getDashboardGanancia({ companyId, branchId: branchFilter }),
-        APIs.getSales({ companyId, branchId: branchFilter }),
+        // Solo se muestran las últimas 10: no se descargan todas las ventas
+        APIs.getSales({ companyId, branchId: branchFilter, limit: 10 }),
       ])
 
       const summary = summaryRes?.data ?? {}
@@ -430,6 +435,19 @@ const Dashboard: React.FC = () => {
             />
           </div>
         </header>
+
+        {expiryAlerts && (expiryAlerts.expired.lots > 0 || expiryAlerts.critical.lots > 0) && (
+          <button type="button" className="dashboard-expiry-alert" onClick={() => navigate(EXPIRATIONS_PATH)}>
+            <span className="material-symbols-rounded" aria-hidden>event_busy</span>
+            <span className="dashboard-expiry-alert__text">
+              {expiryAlerts.expired.lots > 0 && (
+                <strong>{expiryAlerts.expired.lots} lote(s) vencido(s) con existencia — dalos de baja para no venderlos.</strong>
+              )}
+              {expiryAlerts.critical.lots > 0 && <span>{expiryAlerts.critical.lots} lote(s) vencen en los próximos 7 días.</span>}
+            </span>
+            <span className="dashboard-expiry-alert__cta">Ver caducidades</span>
+          </button>
+        )}
 
         {error && <p className="dashboard__error">{error}</p>}
 

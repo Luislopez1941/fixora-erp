@@ -5,6 +5,7 @@ import './Modal.css'
 import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import { setArticles, updateArticles } from '../../../../../redux/state/Articles'
+import { loadArticleDetail } from './articleDetail'
 import APIs from '../../../../../services/APIs'
 import { readCategoryBranchId } from '../../../../../constants/category'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
@@ -136,21 +137,15 @@ const Articles: React.FC = () => {
     return () => window.removeEventListener('articles:changed', refresh)
   }, [fetchArticles])
 
-  const updateModalArticles = async (item: any) => {
+  // El modal se abre al instante con un "Cargando…" encima y se llena cuando llega el detalle completo del artículo
+  const updateModalArticles = (item: any) => {
     if (!token || item?.id == null) {
       dispatch(updateArticles(item))
       setModal('articles-modal-update')
       return
     }
-
-    try {
-      const full: any = await APIs.getItemById(item.id, token)
-      const data = full?.data ?? full ?? item
-      dispatch(updateArticles(data))
-    } catch {
-      dispatch(updateArticles(item))
-    }
     setModal('articles-modal-update')
+    loadArticleDetail(item, dispatch)
   }
 
   const handleDelete = async (item: any) => {

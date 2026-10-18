@@ -12,18 +12,19 @@ interface PosConfigForm {
   allowManualDiscount: boolean
   askPaymentMethod: boolean
   allowNegativeStock: boolean
+  allowExpiredSale: boolean
 }
 
-type FieldKey = 'allowManualDiscount' | 'askPaymentMethod' | 'allowNegativeStock'
+type FieldKey = 'allowManualDiscount' | 'askPaymentMethod' | 'allowNegativeStock' | 'allowExpiredSale'
 type Sources = Partial<Record<FieldKey, 'default' | 'company' | 'branch'>>
 
-const DEFAULTS: PosConfigForm = { template: null, allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: false }
+const DEFAULTS: PosConfigForm = { template: null, allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: false, allowExpiredSale: false }
 
 // Cada giro prellena los interruptores; después se pueden ajustar uno por uno
 const TEMPLATES: { key: string; label: string; values: Omit<PosConfigForm, 'template'> }[] = [
-  { key: 'STORE', label: 'Tienda / zapatería', values: { allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: false } },
-  { key: 'BAKERY', label: 'Panadería', values: { allowManualDiscount: false, askPaymentMethod: false, allowNegativeStock: false } },
-  { key: 'RESTAURANT', label: 'Cocina / restaurante', values: { allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: true } },
+  { key: 'STORE', label: 'Tienda / zapatería', values: { allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: false, allowExpiredSale: false } },
+  { key: 'BAKERY', label: 'Panadería', values: { allowManualDiscount: false, askPaymentMethod: false, allowNegativeStock: false, allowExpiredSale: false } },
+  { key: 'RESTAURANT', label: 'Cocina / restaurante', values: { allowManualDiscount: true, askPaymentMethod: true, allowNegativeStock: true, allowExpiredSale: false } },
 ]
 
 const PosConfig = () => {
@@ -61,6 +62,7 @@ const PosConfig = () => {
           allowManualDiscount: d.allowManualDiscount ?? true,
           askPaymentMethod: d.askPaymentMethod ?? true,
           allowNegativeStock: d.allowNegativeStock ?? false,
+          allowExpiredSale: d.allowExpiredSale ?? false,
         }
         setForm(loaded)
         setSaved(loaded)
@@ -89,7 +91,7 @@ const PosConfig = () => {
       setIsSaving(true)
       // Solo se envía lo que cambió: en una sucursal, lo demás sigue heredándose de la empresa
       const payload: Record<string, unknown> = {}
-      ;(['allowManualDiscount', 'askPaymentMethod', 'allowNegativeStock'] as FieldKey[]).forEach((k) => {
+      ;(['allowManualDiscount', 'askPaymentMethod', 'allowNegativeStock', 'allowExpiredSale'] as FieldKey[]).forEach((k) => {
         if (scope === 'branch' && inheritFields.includes(k)) payload[k] = null
         else if (scope === 'company' || form[k] !== saved[k]) payload[k] = form[k]
       })
@@ -249,6 +251,18 @@ const PosConfig = () => {
                   checked={form.allowNegativeStock}
                   onChange={(checked) => setForm({ ...form, allowNegativeStock: checked })}
                   ariaLabel='Vender sin existencias'
+                />
+              </div>
+              <div className='pos-config__row'>
+                <div className='pos-config__row-text'>
+                  <strong>Vender productos caducados</strong>
+                  <span>Apagado, la venta se rechaza si solo quedan piezas vencidas de un artículo con lotes (hay que darlas de baja en Caducidades).</span>
+                  {originLabel('allowExpiredSale')}
+                </div>
+                <IOSSwitch
+                  checked={form.allowExpiredSale}
+                  onChange={(checked) => setForm({ ...form, allowExpiredSale: checked })}
+                  ariaLabel='Vender productos caducados'
                 />
               </div>
             </>

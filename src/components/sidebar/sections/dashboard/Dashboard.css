@@ -1211,3 +1211,46 @@
     font-size: 1.55rem;
   }
 }
+
+/* Aviso de caducidades (lotes vencidos o por vencer en 7 días) */
+.dashboard-expiry-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, #d64545 40%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, #d64545 8%, var(--card-bg));
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dashboard-expiry-alert > .material-symbols-rounded {
+  color: #d64545;
+  font-size: 24px;
+}
+
+.dashboard-expiry-alert__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.dashboard-expiry-alert__cta {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #d64545;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .dashboard-expiry-alert {
+    flex-wrap: wrap;
+  }
+}

@@ -4,6 +4,7 @@ import { MODULES } from './modules.config'
 import type { ModuleManifest } from './module.types'
 import { fetchBranchActiveModules } from './kernel.service'
 import APIs from '../../services/APIs'
+import { cachedRequest } from '../../services/requestCache'
 
 /** Lee userKind desde localStorage por si Redux aún no lo tiene al montar. */
 function getUserKindFromStorage(): string | undefined {
@@ -134,7 +135,7 @@ export function useModules() {
           setTotalBranches(0)
           return
         }
-        const response: any = await APIs.getUserById(userId)
+        const response: any = await cachedRequest(`user:${userId}`, 30_000, () => APIs.getUserById(userId))
         if (response?.status === 'success' && response?.data?.userCompanies) {
           let count = 0
           const ids: number[] = []

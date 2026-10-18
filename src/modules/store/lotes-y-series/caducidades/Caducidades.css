@@ -139,7 +139,7 @@ select.expirations__select {
 
 .expirations__row {
   display: grid;
-  grid-template-columns: minmax(170px, 1.1fr) minmax(110px, 0.8fr) minmax(220px, 2fr) minmax(120px, 0.9fr) minmax(120px, 0.8fr) 130px;
+  grid-template-columns: minmax(170px, 1.1fr) minmax(110px, 0.8fr) minmax(220px, 2fr) minmax(120px, 0.9fr) minmax(120px, 0.8fr) 220px;
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
@@ -250,6 +250,8 @@ select.expirations__select {
 .expirations__col-actions {
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .expirations__action {
@@ -276,6 +278,12 @@ select.expirations__select {
   color: #d64545;
   border-color: #d64545;
   background: color-mix(in srgb, #d64545 8%, transparent);
+}
+
+.expirations__action--ghost:hover {
+  color: var(--primary-color, #2563eb);
+  border-color: var(--primary-color, #2563eb);
+  background: color-mix(in srgb, var(--primary-color, #2563eb) 8%, transparent);
 }
 
 .expirations__state {

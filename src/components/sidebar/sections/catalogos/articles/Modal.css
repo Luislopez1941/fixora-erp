@@ -93,7 +93,7 @@
 }
 
 .articles-modal__body {
-  padding: 20px 24px 24px;
+  padding: 14px 16px 16px;
   flex: 1;
   overflow-y: auto;
   min-height: 0;
@@ -330,16 +330,6 @@
   filter: brightness(1.04);
 }
 
-.articles-modal__content .article-modal__images-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 38px;
-  padding: 0 10px;
-  font-size: 0.88rem;
-}
 
 .articles-modal__content .catalog-modal__images-count {
   color: var(--modal-text-muted);
@@ -375,7 +365,7 @@
   justify-content: flex-end;
   align-items: center;
   gap: 12px;
-  padding: 20px 24px;
+  padding: 12px 16px;
   border-top: 1px solid var(--modal-overlay-border);
   background-color: var(--modal-bg);
   flex-shrink: 0;
@@ -616,7 +606,10 @@
   color: var(--modal-text-muted);
   font-size: 0.82rem;
 }
- center;
+
+.popup__articles__modal .cat-modal-select__trigger {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   width: 100%;
   min-height: 38px;
@@ -790,16 +783,6 @@
   filter: brightness(1.04);
 }
 
-.popup__articles__modal .article-modal__images-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 38px;
-  padding: 0 10px;
-  font-size: 0.88rem;
-}
 
 .popup__articles__modal .catalog-modal__images-count {
   color: var(--modal-text-muted);
@@ -1135,4 +1118,295 @@
 
 .articles-modal__content .articles-modal__title {
   font-size: 1rem;
+}
+
+/* Carga del detalle: el modal se abre al instante y esto cubre el formulario (skeleton de la tabla) hasta que llega */
+.articles-modal__loading {
+  position: absolute;
+  inset: 0;
+  top: 72px; /* debajo del encabezado del modal, para que siga visible el botón de cerrar */
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: var(--modal-bg);
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.articles-modal__loading strong {
+  font-size: 1rem;
+  text-align: center;
+  padding: 0 16px;
+}
+
+.articles-modal__loading > span:not(.material-symbols-rounded) {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0 16px;
+}
+
+.articles-modal__loading-error {
+  font-size: 36px;
+  color: #d64545;
+}
+
+.articles-modal__loading-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.articles-modal__loading-skeleton {
+  align-self: stretch;
+  height: 100%;
+  padding: 14px 16px;
+  overflow: hidden;
+}
+
+.articles-modal__loading-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+/* Silueta del formulario mientras carga (reutiliza el brillo .table-skeleton__shimmer de la tabla) */
+.article-skeleton {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  animation: article-skeleton-in 0.35s ease both;
+}
+
+.article-skeleton__media {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.article-skeleton__image {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+}
+
+.article-skeleton__thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.article-skeleton__thumb {
+  aspect-ratio: 1;
+  border-radius: 8px;
+}
+
+.article-skeleton__fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+  align-content: start;
+}
+
+.article-skeleton__field,
+.article-skeleton__switches {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  animation: article-skeleton-in 0.4s ease forwards;
+}
+
+.article-skeleton__label {
+  height: 10px;
+  border-radius: 6px;
+}
+
+.article-skeleton__input {
+  height: 38px;
+  border-radius: 10px;
+}
+
+.article-skeleton__switches {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+}
+
+.article-skeleton__switch {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 150px;
+}
+
+.article-skeleton__toggle {
+  flex-shrink: 0;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+/* Brillo con un toque del color de la marca, más suave que el de la tabla */
+.article-skeleton .table-skeleton__shimmer {
+  background: color-mix(in srgb, var(--primary-color, #072a57) 7%, color-mix(in srgb, var(--text-color) 8%, transparent));
+}
+
+.article-skeleton .table-skeleton__shimmer::after {
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in srgb, var(--primary-color, #072a57) 16%, transparent) 50%,
+    transparent 80%
+  );
+  animation-duration: 1.6s;
+}
+
+.articles-modal__body--reveal {
+  animation: article-skeleton-in 0.4s ease both;
+}
+
+@keyframes article-skeleton-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .article-skeleton,
+  .articles-modal__body--reveal,
+  .article-skeleton__field,
+  .article-skeleton__switches {
+    animation: none;
+    opacity: 1;
+  }
+  .article-skeleton .table-skeleton__shimmer::after {
+    animation: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .article-skeleton {
+    grid-template-columns: 1fr;
+  }
+  .article-skeleton__media {
+    flex-direction: row;
+  }
+  .article-skeleton__image {
+    width: 96px;
+  }
+  .article-skeleton__thumbs {
+    display: none;
+  }
+  .article-skeleton__fields {
+    grid-template-columns: 1fr;
+  }
+  .article-skeleton__switches {
+    flex-direction: column;
+  }
+}
+
+/* Pestaña Información: galería a la izquierda (misma silueta que el skeleton) y los campos a la derecha */
+.article-info-layout {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.article-info-layout__main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+@media (max-width: 700px) {
+  .article-info-layout {
+    grid-template-columns: 1fr;
+  }
+  .article-info-layout .article-gallery {
+    max-width: 260px;
+    margin: 0 auto;
+  }
+}
+
+/* ── Secciones del formulario: tarjetas compactas, sin encabezado ── */
+.article-section {
+  border: 1px solid var(--panel-border, var(--modal-overlay-border));
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+
+
+
+
+.article-section__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.article-section__grid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.article-section__full {
+  grid-column: 1 / -1;
+}
+
+.article-section__switches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
+
+/* Interruptores compactos en una línea: switch a la izquierda y el texto al lado, sin cajas, varios por fila */
+.article-section__switches .catalog-modal__switch-row {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 0;
+  padding: 4px 0;
+  margin: 0;
+  border: none;
+  background: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.article-section--actions .article-modal__actions-grid {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .article-section__grid,
+  .article-section__grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* La galería acompaña al bajar por las secciones (en escritorio) */
+@media (min-width: 761px) {
+  .article-info-layout > .article-gallery {
+    position: sticky;
+    top: 0;
+  }
 }

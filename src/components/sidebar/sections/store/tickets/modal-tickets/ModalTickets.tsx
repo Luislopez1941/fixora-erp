@@ -197,6 +197,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
               units: c.units ?? [],
               lotCode: c.lotCode ?? '',
               expiryDate: c.expiryDate ?? '',
+              tracksExpiry: c.tracksExpiry === true,
             })),
           );
           resetFinder();
@@ -349,6 +350,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
           units,
           lotCode: '',
           expiryDate: '',
+          tracksExpiry: product.tracksExpiry === true,
           totalStock: product.totalStock ?? 0,
           generalStock: product.generalStock ?? 0,
           stockStatus: product.stockStatus ?? null,
@@ -437,6 +439,18 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
         text: invalidConcept.usesSizes && !invalidConcept.itemVariationId
           ? 'Selecciona color y talla en cada artículo que usa variaciones.'
           : 'Revisa cantidad, unidad y almacén de cada artículo.',
+        confirmButtonColor: '#3085d6',
+      })
+      return
+    }
+
+    // Artículos que controlan caducidad: sin fecha, el lote no sabría cuándo vence (el servidor también lo valida)
+    const missingExpiry = concepts.find((c: any) => c.tracksExpiry && !c.expiryDate)
+    if (missingExpiry) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Falta la caducidad',
+        text: `"${missingExpiry.name}" controla caducidad: captura la fecha de caducidad de esa línea.`,
         confirmButtonColor: '#3085d6',
       })
       return
@@ -766,7 +780,7 @@ const ModalTickets: React.FC<{ onSaved?: () => void; selectedTicket?: any | null
                         />
                       </div>
 
-                      <div className='tickets-lines__cell' data-label='Caduca'>
+                      <div className={`tickets-lines__cell${item.tracksExpiry && !item.expiryDate ? ' tickets-lines__cell--required' : ''}`} data-label={item.tracksExpiry ? 'Caduca *' : 'Caduca'} title={item.tracksExpiry ? 'Este artículo controla caducidad: la fecha es obligatoria' : undefined}>
                         <DateField
                           className='tickets-lines__input tickets-lines__input--left'
                           value={item.expiryDate ?? ''}

@@ -577,6 +577,22 @@ const APIs = {
     return ConfigurationAPIs.get(path);
   },
 
+  // Reportes: ventas (todo agregado en el servidor)
+  getSalesReportSummary: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`reports/sales/summary?${search.toString()}`)
+  },
+  getSalesReportList: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`reports/sales/list?${search.toString()}`)
+  },
+
   // Lotes y caducidades
   getExpirations: async (params: { companyId: number; branchId?: number; storeId?: number; status?: string; search?: string; page?: number; pageSize?: number }) => {
     const search = new URLSearchParams({ companyId: String(params.companyId) })
@@ -589,6 +605,10 @@ const APIs = {
     return ConfigurationAPIs.get(`lots/expirations?${search.toString()}`)
   },
   writeOffLot: async (id: string, data: { quantity?: number; reason: string }) => ConfigurationAPIs.post(`lots/${id}/write-off`, data),
+  getLotConsumptions: async (id: string) => ConfigurationAPIs.get(`lots/${id}/consumptions`),
+  getExpirationAlerts: async (companyId: number, branchId?: number) =>
+    ConfigurationAPIs.get(`lots/expirations/alerts?companyId=${companyId}${branchId && branchId > 0 ? `&branchId=${branchId}` : ''}`),
+  getLotsBySource: async (sourceType: string, sourceId: number) => ConfigurationAPIs.get(`lots/by-source/${sourceType}/${sourceId}`),
 
   // Contabilidad (catálogo de cuentas, periodos, pólizas/asientos, balanza)
   getAccounts: async (companyId: number) => ConfigurationAPIs.get(`accounting/accounts?companyId=${companyId}`),
@@ -769,10 +789,15 @@ const APIs = {
       source?: string;
       deliveryType?: string;
       customerOrderStatus?: string;
+      /** Solo las N ventas más recientes */
+      limit?: number;
     },
     customPath?: string,
   ) => {
     const params = new URLSearchParams();
+    if (data.limit != null && data.limit > 0) {
+      params.set('limit', String(data.limit));
+    }
     if (data.companyId != null && data.companyId > 0) {
       params.set('companyId', String(data.companyId));
     }

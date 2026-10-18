@@ -686,3 +686,10 @@
     opacity: 0.8;
     cursor: progress;
 }
+
+/* Artículo que controla caducidad y aún no tiene fecha: el campo se marca como obligatorio */
+.tickets-lines__cell--required input,
+.tickets-lines__cell--required button {
+    border-color: #d64545 !important;
+    box-shadow: 0 0 0 1px color-mix(in srgb, #d64545 35%, transparent);
+}

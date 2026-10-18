@@ -928,8 +928,9 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         lines: consolidatedLines.map((line) => ({
           itemId: line.productId,
           quantity: line.quantity,
-          unitPrice: line.unitPrice,
-          storeId: line.storeId,
+          unitPrice: Number.isFinite(Number(line.unitPrice)) ? Number(line.unitPrice) : undefined,
+          // Sin almacén asignado en la sucursal se omite: el servidor usa el almacén del artículo o el de la sucursal
+          storeId: Number(line.storeId) > 0 ? Number(line.storeId) : undefined,
           itemVariationId: line.itemVariationId ?? undefined,
           priceRangeId: line.priceRangeId ?? undefined,
           code: line.code,

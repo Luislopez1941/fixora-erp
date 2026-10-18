@@ -1,4 +1,5 @@
 import ConfigurationAPIs from '../../services/configurationAPIs'
+import { cachedRequest, invalidateRequests } from '../../services/requestCache'
 
 /** Forma de un módulo reportado por el backend (/kernel/modules). */
 export interface BackendModule {
@@ -26,8 +27,9 @@ export async function fetchBackendModules(): Promise<BackendModule[]> {
  */
 export async function fetchBranchActiveModules(branchId: number): Promise<string[] | null> {
   try {
-    const res = await ConfigurationAPIs.get<{ moduleIds: string[] | null }>(
-      `branch/${branchId}/active-modules`
+    // Sidebar, menú y demás usan el mismo hook: una sola petición por sucursal (se invalida al activar/desactivar módulos)
+    const res = await cachedRequest(`branch-modules:${branchId}`, 30_000, () =>
+      ConfigurationAPIs.get<{ moduleIds: string[] | null }>(`branch/${branchId}/active-modules`)
     )
     // null = sin módulos configurados → tratar como [] (ninguno activo)
     return res.moduleIds ?? []
@@ -67,4 +69,5 @@ export async function toggleModuleStore(
   enabled:   boolean,
 ): Promise<void> {
   await ConfigurationAPIs.put(`branch/${branchId}/module-store/${moduleId}`, { enabled })
+  invalidateRequests('branch-modules:')
 }

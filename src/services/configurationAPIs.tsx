@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosResponse, AxiosRequestConfig } from 'axios';
+import { invalidateRequests } from './requestCache'
 
 class ApiService {
   private axiosInstance: AxiosInstance;
@@ -27,6 +28,9 @@ class ApiService {
     // y el sidebar ocultaba todos los módulos). Con esto, cualquier llamada que no
     // mande su propio header ya sale autenticada por default.
     this.axiosInstance.interceptors.request.use((config) => {
+      // Cualquier escritura (crear/editar/borrar) puede cambiar empresas, sucursales, módulos o permisos: se vacía el
+      // caché corto de lecturas compartidas para que la siguiente lectura traiga lo nuevo.
+      if (config.method && config.method.toLowerCase() !== 'get') invalidateRequests()
       if (!config.headers?.Authorization) {
         const token = localStorage.getItem('token-fixora');
         if (token) {

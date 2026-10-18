@@ -30,6 +30,7 @@ import { PrivateRoutes } from '../../models/routes';
 import Header from '../../components/header/Header';
 import Profile from '../profile/Profile';
 import './RootPage.css'
+import { cachedRequest } from '../../services/requestCache'
 
 // /auth/cobranza/... -> /auth/cuentas-por-cobrar/... (conserva la ruta interna y los parámetros de búsqueda)
 const LegacyCobranzaRedirect: React.FC = () => {
@@ -53,7 +54,7 @@ const RootPage: React.FC = () => {
 
     const loadPermissions = async () => {
       try {
-        const res: any = await APIs.getUserEffectivePermissions(userId)
+        const res: any = await cachedRequest(`perms:${userId}`, 30_000, () => APIs.getUserEffectivePermissions(userId))
         const perms = res?.data ?? res?.permissions ?? []
         const permissionNames = Array.isArray(perms)
           ? perms.map((p: any) => (typeof p === 'string' ? p : p.name)).filter(Boolean)

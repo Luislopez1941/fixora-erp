@@ -46,6 +46,18 @@ const expiryBadge = (days: number): { label: string; tone: Status } => {
 
 const qty = (n: number) => Number(n).toLocaleString('es-MX', { maximumFractionDigits: 4 })
 
+const escapeHtml = (value: unknown) =>
+  String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+
+const SOURCE_LABEL: Record<string, string> = { Sale: 'Venta', StockTransfer: 'Traspaso', StockEntry: 'Entrada' }
+
+/** Nombre legible del documento que se llevó piezas del lote (venta con su folio, traspaso…). */
+const sourceText = (row: any) => {
+  if (row.sourceType === 'Sale') return `Venta ${row.saleSerie ? `${row.saleSerie}-` : ''}${row.saleFolio ?? `#${row.sourceId}`}`
+  const label = SOURCE_LABEL[row.sourceType] ?? row.sourceType ?? 'Salida'
+  return row.sourceId ? `${label} #${row.sourceId}` : label
+}
+
 /** Caducidades: lotes con existencia ordenados por fecha de caducidad, con resumen por corte y baja por caducidad (merma). */
 const Caducidades: React.FC = () => {
   const can = useCan()
@@ -168,6 +180,38 @@ const Caducidades: React.FC = () => {
     }
   }
 
+  // Rastro del lote: en qué ventas/traspasos salió y cuánto se devolvió
+  const showConsumptions = async (lot: any) => {
+    Swal.fire({ title: `Lote ${lot.lotCode}`, didOpen: () => Swal.showLoading(), allowOutsideClick: false })
+    try {
+      const res: any = await APIs.getLotConsumptions(lot.id)
+      const list: any[] = res?.data?.consumptions ?? []
+      const body = list.length
+        ? `<table style="width:100%;font-size:.85rem;border-collapse:collapse;text-align:left">
+            <thead><tr><th style="padding:6px">Fecha</th><th style="padding:6px">Documento</th><th style="padding:6px;text-align:right">Salió</th><th style="padding:6px;text-align:right">Devuelto</th></tr></thead>
+            <tbody>${list
+              .map(
+                (r) => `<tr style="border-top:1px solid #e5e7eb">
+                  <td style="padding:6px">${escapeHtml(dateText(r.createdAt))}</td>
+                  <td style="padding:6px">${escapeHtml(sourceText(r))}</td>
+                  <td style="padding:6px;text-align:right">${escapeHtml(qty(r.quantity))}</td>
+                  <td style="padding:6px;text-align:right">${r.returnedQuantity ? escapeHtml(qty(r.returnedQuantity)) : '—'}</td>
+                </tr>`,
+              )
+              .join('')}</tbody>
+          </table>`
+        : '<p style="font-size:.9rem;margin:0">Todavía no ha salido ninguna pieza de este lote (o salió antes de que se guardara el rastro).</p>'
+      Swal.fire({
+        title: `Lote ${escapeHtml(lot.lotCode)}`,
+        html: `<p style="margin:0 0 12px;font-size:.9rem">${escapeHtml(lot.itemName)}<br/><small>Caduca ${escapeHtml(dateText(lot.expiryDate))} · quedan ${escapeHtml(qty(lot.remainingQuantity))} de ${escapeHtml(qty(lot.initialQuantity))}</small></p>${body}`,
+        width: 640,
+        confirmButtonText: 'Cerrar',
+      })
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'No se pudo cargar el rastro del lote', text: errorText(e, 'Intenta de nuevo.') })
+    }
+  }
+
   return (
     <div className='expirations'>
       <div className='expirations__container'>
@@ -266,6 +310,10 @@ const Caducidades: React.FC = () => {
                     <small>de {qty(lot.initialQuantity)} recibidos</small>
                   </div>
                   <div className='expirations__cell expirations__col-actions'>
+                    <button type='button' className='expirations__action expirations__action--ghost' onClick={() => showConsumptions(lot)} title='Ventas y traspasos que se llevaron piezas de este lote'>
+                      <span className='material-symbols-rounded' aria-hidden>receipt_long</span>
+                      Salidas
+                    </button>
                     {canWriteOff && (
                       <button type='button' className='expirations__action' onClick={() => writeOff(lot)} title='Sacar del almacén lo que caducó'>
                         <span className='material-symbols-rounded' aria-hidden>delete_sweep</span>

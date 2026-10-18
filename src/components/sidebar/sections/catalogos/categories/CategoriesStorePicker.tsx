@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import APIs from '../../../../../services/APIs'
 import '../../../../general/skeleton/TableSkeleton.css'
 import './CategoriesStorePicker.css'
+import { cachedRequest } from '../../../../../services/requestCache'
 
 const LS_COMPANY = 'categories-picker-company-id'
 const LS_BRANCH = 'categories-picker-branch-id'
@@ -77,7 +78,8 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
     let cancelled = false
     ;(async () => {
       try {
-        const res: any = await APIs.getCompaniesByUser(userId)
+        // Varios selectores en pantalla (y StrictMode) piden lo mismo: una sola petición compartida
+        const res: any = await cachedRequest(`companies-by-user:${userId}`, 30_000, () => APIs.getCompaniesByUser(userId))
         const list = Array.isArray(res?.data) ? res.data : []
         if (cancelled) return
         setCompanies(list)
@@ -113,7 +115,7 @@ const CategoriesStorePicker: React.FC<CategoriesStorePickerProps> = ({
     let cancelled = false
     ;(async () => {
       try {
-        const res: any = await APIs.getBranch({ userId, companyId }, undefined, authToken)
+        const res: any = await cachedRequest(`branches:${userId}:${companyId}`, 30_000, () => APIs.getBranch({ userId, companyId }, undefined, authToken))
         const raw = Array.isArray(res?.data) ? res.data : []
         const list = [{ id: 0, name: 'Sin sucursal' }, ...raw]
         if (cancelled) return

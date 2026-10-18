@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { resetUser } from '../../redux/state/UserFixora'
 import logoFixora from '../../assets/logo-fixora.png'
+import { EXPIRATIONS_PATH, alertCount, useExpirationAlerts } from '../../modules/store/lotes-y-series/caducidades/useExpirationAlerts'
 import './Header.css'
 
 const ROUTE_LABELS: Record<string, string> = {
@@ -122,6 +123,9 @@ const Header: React.FC = () => {
   const notifRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const dispatch = useDispatch()
+  const expiryAlerts = useExpirationAlerts()
+  const notifCount = alertCount(expiryAlerts)
+  const units = (n: number) => Number(n).toLocaleString('es-MX', { maximumFractionDigits: 2 })
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -185,18 +189,42 @@ const Header: React.FC = () => {
               aria-expanded={notifOpen}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" className="icon icon-tabler icons-tabler-filled icon-tabler-bell"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M14.235 19c.865 0 1.322 1.024 .745 1.668a3.992 3.992 0 0 1 -2.98 1.332a3.992 3.992 0 0 1 -2.98 -1.332c-.552 -.616 -.158 -1.579 .634 -1.661l.11 -.006h4.471z" /><path d="M12 2c1.358 0 2.506 .903 2.875 2.141l.046 .171l.008 .043a8.013 8.013 0 0 1 4.024 6.069l.028 .287l.019 .289v2.931l.021 .136a3 3 0 0 0 1.143 1.847l.167 .117l.162 .099c.86 .487 .56 1.766 -.377 1.864l-.116 .006h-16c-1.028 0 -1.387 -1.364 -.493 -1.87a3 3 0 0 0 1.472 -2.063l.021 -.143l.001 -2.97a8 8 0 0 1 3.821 -6.454l.248 -.146l.01 -.043a3.003 3.003 0 0 1 2.562 -2.29l.182 -.017l.176 -.004z" /></svg>
+              {notifCount > 0 && <span className='bell__badge' aria-label={`${notifCount} avisos`}>{notifCount > 99 ? '99+' : notifCount}</span>}
             </button>
             {notifOpen && (
               <div className='bell__dropdown'>
                 <div className='bell__dropdown-header'>
                   <span>Notificaciones</span>
-                  <span className='bell__dropdown-count'>0</span>
+                  <span className='bell__dropdown-count'>{notifCount}</span>
                 </div>
                 <div className='bell__dropdown-divider' />
-                <div className='bell__dropdown-empty'>
-                  <span className='material-symbols-rounded'>notifications_off</span>
-                  <span>Sin notificaciones</span>
-                </div>
+                {notifCount > 0 && expiryAlerts ? (
+                  <>
+                    {expiryAlerts.expired.lots > 0 && (
+                      <button type='button' className='bell__item bell__item--danger' onClick={() => { navigate(EXPIRATIONS_PATH); setNotifOpen(false) }}>
+                        <span className='material-symbols-rounded'>event_busy</span>
+                        <span>
+                          <strong>{expiryAlerts.expired.lots} lote(s) vencido(s)</strong>
+                          <small>{units(expiryAlerts.expired.units)} piezas en almacén · dalas de baja</small>
+                        </span>
+                      </button>
+                    )}
+                    {expiryAlerts.critical.lots > 0 && (
+                      <button type='button' className='bell__item bell__item--warning' onClick={() => { navigate(EXPIRATIONS_PATH); setNotifOpen(false) }}>
+                        <span className='material-symbols-rounded'>schedule</span>
+                        <span>
+                          <strong>{expiryAlerts.critical.lots} lote(s) vencen en 7 días</strong>
+                          <small>{units(expiryAlerts.critical.units)} piezas · véndelas primero</small>
+                        </span>
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className='bell__dropdown-empty'>
+                    <span className='material-symbols-rounded'>notifications_off</span>
+                    <span>Sin notificaciones</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -16,6 +16,9 @@ import PriceRangesManager from './PriceRangesManager'
 import VariationsModal from './VariationsModal'
 import WarehousesModal, { ArticleWarehouse } from './WarehousesModal'
 import StockModal from './StockModal'
+import ArticleGallery from './ArticleGallery'
+import { cancelArticleDetail, loadArticleDetail } from './articleDetail'
+import '../../../../general/skeleton/TableSkeleton.css'
 import TempPriceRangesModal from './TempPriceRangesModal'
 import '../shared/IOSSwitch.css'
 import '../shared/ImagePickerModal.css'
@@ -66,6 +69,8 @@ const Modal = () => {
   const [directPrice, setDirectPrice] = useState('')
   const [isBreakdown, setIsBreakdown] = useState(false)
   const [trackInventory, setTrackInventory] = useState(true)
+  // Controla caducidad: cada entrada de almacén de este artículo exige fecha de caducidad
+  const [tracksExpiry, setTracksExpiry] = useState(false)
   const [productionAreas, setProductionAreas] = useState<any[]>([])
   const [productionRouteAreaIds, setProductionRouteAreaIds] = useState<number[]>([])
   const [routeAreaPicker, setRouteAreaPicker] = useState('')
@@ -85,6 +90,7 @@ const Modal = () => {
 
   const closeModal = () => {
     if (isSaving) return
+    cancelArticleDetail() // una respuesta que llegue después de cerrar ya no toca nada
     dispatch(modal(''))
     dispatch(updateArticles('reset'))
     setImagePickerOpen(false)
@@ -120,6 +126,7 @@ const Modal = () => {
       setDirectPrice('')
       setIsBreakdown(false)
       setTrackInventory(true)
+      setTracksExpiry(false)
       setProductionRouteAreaIds([])
       setRouteAreaPicker('')
       setImages([])
@@ -175,6 +182,7 @@ const Modal = () => {
       setDirectPrice(String(u.price ?? ''))
       setIsBreakdown(Boolean(u.isBreakdown))
       setTrackInventory(u.trackInventory !== false)
+      setTracksExpiry(Boolean(u.tracksExpiry))
       const routeIds = [...(u.productionRoutes ?? [])]
         .sort((a: any, b: any) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0))
         .map((route: any) => Number(route.areaId))
@@ -370,8 +378,25 @@ const Modal = () => {
 
 
 
+  // Mientras llega el detalle del artículo (Articles.tsx abre el modal al instante con __loading) se muestra "Cargando…"
+  const loadingDetail = modalState === 'articles-modal-update' && articlesUpdate?.__loading === true
+  const loadError: string | null = modalState === 'articles-modal-update' ? articlesUpdate?.__loadError ?? null : null
+  // Al llegar el detalle, el formulario aparece con un fundido suave en lugar de "saltar" desde el skeleton
+  const [reveal, setReveal] = useState(false)
+  const wasLoading = React.useRef(false)
+  useEffect(() => {
+    if (wasLoading.current && !loadingDetail && !loadError) {
+      setReveal(true)
+      const timer = setTimeout(() => setReveal(false), 450)
+      wasLoading.current = false
+      return () => clearTimeout(timer)
+    }
+    wasLoading.current = loadingDetail
+  }, [loadingDetail, loadError])
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (modalState === 'articles-modal-update' && (articlesUpdate?.__loading === true || articlesUpdate?.__loadError)) return // aún no llega el detalle
     if (!token) {
       Swal.fire({
         icon: 'warning',
@@ -429,6 +454,7 @@ const Modal = () => {
       includesIVA,
       discountPercent: Math.min(100, Math.max(0, Number(discountPercent) || 0)),
       trackInventory,
+      tracksExpiry: trackInventory ? tracksExpiry : false,
       images,
       companyId,
       // El artículo es de la empresa; aquí solo se indica en qué sucursales se ofrece
@@ -507,6 +533,61 @@ const Modal = () => {
             </button>
             <p className='articles-modal__title'>{isCreate ? 'Nuevo artículo' : 'Editar artículo'}</p>
           </div>
+          {(loadingDetail || loadError) && (
+            <div className='articles-modal__loading' role='status' aria-live='polite'>
+              {loadError ? (
+                <>
+                  <span className='material-symbols-rounded articles-modal__loading-error' aria-hidden>error</span>
+                  {articlesUpdate?.name ? <strong>{articlesUpdate.name}</strong> : null}
+                  <span>{loadError}</span>
+                  <div className='articles-modal__loading-actions'>
+                    <button type='button' className='btn__general-purple' onClick={() => loadArticleDetail(articlesUpdate, dispatch)}>
+                      Reintentar
+                    </button>
+                    <button type='button' className='btn__general-secondary' onClick={() => closeModal()}>
+                      Cerrar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className='articles-modal__loading-skeleton'>
+                  {articlesUpdate?.name ? (
+                    <p className='articles-modal__loading-title'>
+                      {articlesUpdate.code ? `${articlesUpdate.code} · ` : ''}{articlesUpdate.name}
+                    </p>
+                  ) : null}
+                  {/* Silueta del formulario con el mismo brillo de la tabla: imagen, campos (etiqueta + caja) e interruptores.
+                      Cada bloque aparece en cascada para que la carga se sienta fluida. */}
+                  <div className='article-skeleton' aria-hidden>
+                    <div className='article-skeleton__media'>
+                      <span className='table-skeleton__shimmer article-skeleton__image' />
+                      <span className='article-skeleton__thumbs'>
+                        {[0, 1, 2].map((i) => (
+                          <span key={i} className='table-skeleton__shimmer article-skeleton__thumb' />
+                        ))}
+                      </span>
+                    </div>
+                    <div className='article-skeleton__fields'>
+                      {[92, 70, 85, 60, 78, 66].map((width, i) => (
+                        <div className='article-skeleton__field' key={i} style={{ animationDelay: `${i * 70}ms` }}>
+                          <span className='table-skeleton__shimmer article-skeleton__label' style={{ width: `${Math.round(width / 2.4)}%` }} />
+                          <span className='table-skeleton__shimmer article-skeleton__input' />
+                        </div>
+                      ))}
+                      <div className='article-skeleton__switches' style={{ animationDelay: '440ms' }}>
+                        {[0, 1, 2].map((i) => (
+                          <span className='article-skeleton__switch' key={i}>
+                            <span className='table-skeleton__shimmer article-skeleton__label' style={{ width: '55%' }} />
+                            <span className='table-skeleton__shimmer article-skeleton__toggle' />
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className='articles-modal-tabs' role='tablist'>
             <button type='button' role='tab' aria-selected={tab === 'info'} className={`articles-modal-tab ${tab === 'info' ? 'articles-modal-tab--active' : ''}`} onClick={() => setTab('info')}>
               Información
@@ -515,7 +596,7 @@ const Modal = () => {
               Empresa y sucursales
             </button>
           </div>
-          <form className='articles-modal__body' onSubmit={handleSubmit} id='articles-form'>
+          <form className={`articles-modal__body${reveal ? ' articles-modal__body--reveal' : ''}`} onSubmit={handleSubmit} id='articles-form'>
             <div className='articles-modal__container'>
               <div className='articles-modal__tabpane' hidden={tab !== 'company'}>
               <div className='articles-modal__field articles-modal__field--full article-modal__stores'>
@@ -539,9 +620,12 @@ const Modal = () => {
               </div>
               </div>
               <div className='articles-modal__tabpane' hidden={tab !== 'info'}>
-
-              <div className='articles-modal__row articles-modal__row--main'>
-                <div className='articles-modal__field'>
+              <div className='article-info-layout'>
+                <ArticleGallery images={images} onChange={setImages} onAdd={() => setImagePickerOpen(true)} />
+                <div className='article-info-layout__main'>
+<section className='article-section'>
+  <div className='article-section__grid'>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Código</label>
                   <input
                     className='inputs__general'
@@ -551,7 +635,7 @@ const Modal = () => {
                     placeholder='Código del artículo'
                   />
                 </div>
-                <div className='articles-modal__field'>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Nombre</label>
                   <input
                     className='inputs__general'
@@ -561,7 +645,21 @@ const Modal = () => {
                     placeholder='Nombre del artículo'
                   />
                 </div>
-                <div className='articles-modal__field'>
+<div className='articles-modal__field article-section__full'>
+                <label className='articles-modal__label'>Descripción</label>
+                <textarea
+                  className='inputs__general'
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder='Descripción del artículo'
+                  rows={3}
+                />
+              </div>
+  </div>
+</section>
+<section className='article-section'>
+  <div className='article-section__grid article-section__grid--3'>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Familia</label>
                   <select
                     className='inputs__general'
@@ -576,7 +674,7 @@ const Modal = () => {
                     ))}
                   </select>
                 </div>
-                <div className='articles-modal__field'>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Categoría</label>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <select
@@ -610,7 +708,7 @@ const Modal = () => {
                     </button>
                   </div>
                 </div>
-                <div className='articles-modal__field'>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Unidad</label>
                   <select
                     className='inputs__general'
@@ -632,7 +730,22 @@ const Modal = () => {
                     ))}
                   </select>
                 </div>
-                <div className='articles-modal__field'>
+  </div>
+</section>
+<section className='article-section'>
+  <div className='article-section__grid'>
+<div className='articles-modal__field'>
+                  <label className='articles-modal__label'>Precio</label>
+                  <input
+                    className='inputs__general'
+                    type='number'
+                    value={directPrice}
+                    onChange={(e) => setDirectPrice(e.target.value)}
+                    placeholder='0.00'
+                    step='0.01'
+                  />
+                </div>
+<div className='articles-modal__field'>
                   <label className='articles-modal__label'>Descuento (%)</label>
                   <input
                     className='inputs__general'
@@ -645,80 +758,47 @@ const Modal = () => {
                     placeholder='0'
                   />
                 </div>
-                <div className='articles-modal__field'>
-                  <label className='articles-modal__label'>Imágenes</label>
-                  <button
-                    type='button'
-                    className='btn__general-purple article-modal__images-trigger'
-                    onClick={() => setImagePickerOpen(true)}
-                  >
-                    <span className='material-symbols-rounded' aria-hidden>
-                      add_photo_alternate
-                    </span>
-                    <span>{images.length > 0 ? `Imágenes (${images.length})` : 'Imágenes'}</span>
-                  </button>
-                </div>
-              </div>
-              <div className='articles-modal__row'>
-                <div className='articles-modal__field'>
-                  <label className='articles-modal__label'>Precio</label>
-                  <input
-                    className='inputs__general'
-                    type='number'
-                    value={directPrice}
-                    onChange={(e) => setDirectPrice(e.target.value)}
-                    placeholder='0.00'
-                    step='0.01'
-                  />
-                </div>
-                <div className='articles-modal__field'>
-                  <label className='articles-modal__label'>Uso de Rangos</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '40px' }}>
-                    <IOSSwitch
-                      checked={tempPriceRanges.length > 0}
-                      onChange={(checked) => {
-                        if (!checked) setTempPriceRanges([]);
-                      }}
-                    />
-                    <span style={{ fontSize: '0.8rem', color: 'var(--modal-text-muted)' }}>
-                      Usar rangos de precios en lugar de precio directo
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className='articles-modal__field articles-modal__field--full'>
-                <label className='articles-modal__label'>Descripción</label>
-                <textarea
-                  className='inputs__general'
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder='Descripción del artículo'
-                  rows={3}
-                />
-              </div>
-              <div className='catalog-modal__options-section'>
-                <p className='catalog-modal__section-title'>Configuraciones Adicionales</p>
-                <div className='catalog-modal__switches'>
-                  <div className='catalog-modal__switch-row'>
+  </div>
+  <div className='catalog-modal__switches article-section__switches'>
+<div className='catalog-modal__switch-row'>
+  <span>Usar rangos de precios</span>
+  <IOSSwitch
+    checked={tempPriceRanges.length > 0}
+    onChange={(checked) => {
+      if (!checked) setTempPriceRanges([]);
+    }}
+    ariaLabel='Usar rangos de precios en lugar de precio directo'
+  />
+</div>
+<div className='catalog-modal__switch-row'>
                     <span>Incluye IVA</span>
                     <IOSSwitch checked={includesIVA} onChange={setIncludesIVA} ariaLabel='Incluye IVA' />
                   </div>
-                  <div className='catalog-modal__switch-row'>
+<div className='catalog-modal__switch-row'>
                     <span>Desglose de IVA</span>
                     <IOSSwitch checked={isBreakdown} onChange={setIsBreakdown} ariaLabel='Desglose de IVA' />
                   </div>
-                  <div className='catalog-modal__switch-row'>
+  </div>
+</section>
+<section className='article-section'>
+  <div className='catalog-modal__switches article-section__switches'>
+<div className='catalog-modal__switch-row'>
                     <span>Rastrear inventario</span>
                     <IOSSwitch checked={trackInventory} onChange={setTrackInventory} ariaLabel='Rastrear inventario' />
                   </div>
-                </div>
-                {!trackInventory ? (
+{trackInventory ? (
+                    <div className='catalog-modal__switch-row' title='Las entradas de almacén exigirán lote/caducidad y la venta no tomará piezas vencidas'>
+                      <span>Controla caducidad</span>
+                      <IOSSwitch checked={tracksExpiry} onChange={setTracksExpiry} ariaLabel='Controla caducidad' />
+                    </div>
+                  ) : null}
+  </div>
+{!trackInventory ? (
                   <p className='article-modal__bajo-pedido-hint'>
                     Artículo bajo pedido: configura la ruta de producción abajo.
                   </p>
                 ) : null}
-              </div>
-              {!trackInventory ? (
+{!trackInventory ? (
                 <div className='articles-modal__field articles-modal__field--full article-modal__production-route'>
                   <div className='article-modal__route-head'>
                     <div>
@@ -793,8 +873,9 @@ const Modal = () => {
                   )}
                 </div>
               ) : null}
-              <div className='articles-modal__field articles-modal__field--full'>
-                <div className='article-modal__actions-grid'>
+</section>
+<section className='article-section article-section--actions'>
+<div className='article-modal__actions-grid'>
                   <button
                     type='button'
                     className='btn__general-purple article-modal__action-btn'
@@ -836,6 +917,8 @@ const Modal = () => {
                     <span>Stock</span>
                   </button>
                 </div>
+</section>
+</div>
               </div>
               </div>
             </div>
@@ -852,7 +935,7 @@ const Modal = () => {
               className='btn__general-purple'
               type='submit'
               form='articles-form'
-              disabled={isSaving}
+              disabled={isSaving || loadingDetail || !!loadError}
             >
               {isSaving
                 ? isCreate ? 'Creando...' : 'Actualizando...'

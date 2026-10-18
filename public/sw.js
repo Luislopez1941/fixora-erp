@@ -1,5 +1,6 @@
 // Service Worker para PWA
-const CACHE_NAME = 'fixora-v1';
+// v2: la v1 guardaba también las respuestas de la API; al cambiar el nombre se borra ese caché viejo
+const CACHE_NAME = 'fixora-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -39,6 +40,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   // Solo procesar peticiones http/https y únicamente el método GET para evitar errores de Cache API
   if (!event.request.url.startsWith('http') || event.request.method !== 'GET') {
+    return;
+  }
+  // La API (otro dominio, p. ej. api.fixora.rest) no pasa por el Service Worker: el navegador la pide directo. Antes cada
+  // respuesta de datos se copiaba al caché (lento, crece sin límite y, como el caché no distingue el token, podía mostrar
+  // datos de otro usuario sin red). Solo se cachean los archivos de la propia app.
+  if (new URL(event.request.url).origin !== self.location.origin) {
     return;
   }
 

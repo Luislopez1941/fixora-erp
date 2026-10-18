@@ -284,6 +284,77 @@
     background: var(--panel-border);
 }
 
+/* Avisos (caducidades) */
+.bell__trigger {
+    position: relative;
+}
+
+.bell__badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: #d64545;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 17px;
+    text-align: center;
+    box-shadow: 0 0 0 2px var(--card-bg);
+}
+
+.bell__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.bell__item + .bell__item {
+    border-top: 1px solid var(--panel-border);
+}
+
+.bell__item:hover {
+    background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+}
+
+.bell__item > span:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bell__item strong {
+    font-size: 0.85rem;
+}
+
+.bell__item small {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.bell__item .material-symbols-rounded {
+    font-size: 22px;
+}
+
+.bell__item--danger .material-symbols-rounded {
+    color: #d64545;
+}
+
+.bell__item--warning .material-symbols-rounded {
+    color: #d98a1c;
+}
+
 /* ====== BOTÓN TOGGLE TEMA ====== */
 .theme-toggle {
     width: 34px;

@@ -1,0 +1,525 @@
+/* Reporte de ventas: todas las clases cuelgan de .sales-report (notación padre__hijo). Colores con variables del tema. */
+.sales-report {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.sales-report__container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px 28px;
+  box-sizing: border-box;
+}
+
+.sales-report__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.sales-report__title h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.sales-report__title p {
+  margin: 2px 0 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.sales-report__header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sales-report__export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sales-report__export .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* Filtros */
+.sales-report__filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.sales-report__ranges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sales-report__chip {
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sales-report__chip:hover {
+  border-color: var(--primary-color, #072a57);
+}
+
+.sales-report__chip.is-active {
+  background: var(--primary-color, #072a57);
+  border-color: var(--primary-color, #072a57);
+  color: #fff;
+}
+
+.sales-report__dates {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.sales-report__dates > * {
+  width: 150px;
+}
+
+.sales-report__dates > span {
+  width: auto;
+}
+
+select.sales-report__select {
+  width: auto;
+  min-width: 150px;
+  margin-top: 0;
+}
+
+.sales-report__error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #d64545 40%, transparent);
+  background: color-mix(in srgb, #d64545 8%, transparent);
+  color: var(--text-color);
+  font-size: 0.85rem;
+}
+
+.sales-report__error .material-symbols-rounded {
+  color: #d64545;
+}
+
+.sales-report__error button {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: #d64545;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Indicadores */
+.sales-report__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.sales-report__kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--primary-color, #072a57);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+/* El primer indicador (ventas) resalta con el color secundario, igual que en el PDF */
+.sales-report__kpi:first-child {
+  border-left-color: var(--secondary-color, #fc7400);
+}
+
+.sales-report__kpi:first-child strong {
+  color: var(--secondary-color, #fc7400);
+}
+
+.sales-report__kpi small {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sales-report__kpi strong {
+  font-size: 1.15rem;
+  color: var(--text-color);
+}
+
+.sales-report__kpi-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.sales-report__kpi--warn strong {
+  color: #c27812;
+}
+
+.sales-report__kpi--danger strong {
+  color: #d64545;
+}
+
+.sales-report__kpi-skel {
+  height: 20px;
+  width: 70%;
+  border-radius: 6px;
+}
+
+/* Tarjetas de gráficas */
+.sales-report__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sales-report__card {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+.sales-report__card--wide {
+  grid-column: span 2;
+}
+
+.sales-report__card h2 {
+  margin: 0 0 10px;
+  padding-left: 8px;
+  border-left: 3px solid var(--secondary-color, #fc7400);
+  line-height: 1.2;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.sales-report__card h2 small {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.sales-report__chart-skel {
+  height: 200px;
+  border-radius: 10px;
+}
+
+.sales-report__empty-small {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.sales-report__pie {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sales-report__legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.sales-report__legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sales-report__legend li > span {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.sales-report__legend em {
+  font-style: normal;
+  color: var(--text-color);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-report__legend strong {
+  color: var(--text-color);
+}
+
+.sales-report__barlist {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sales-report__barlist li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sales-report__barlist-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.sales-report__barlist-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-report__barlist-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  overflow: hidden;
+}
+
+.sales-report__barlist-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color, #072a57);
+  transition: width 0.4s ease;
+}
+
+.sales-report__barlist small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Tabla de detalle */
+.sales-report__table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.sales-report__table-head h2 {
+  margin: 0;
+}
+
+.sales-report__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sales-report__search .material-symbols-rounded {
+  position: absolute;
+  left: 10px;
+  font-size: 20px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.sales-report__search .inputs__general {
+  margin-top: 0;
+  width: 240px;
+  padding-left: 38px;
+}
+
+.sales-report__row {
+  display: grid;
+  grid-template-columns: minmax(110px, 0.9fr) minmax(150px, 1.1fr) minmax(150px, 1.4fr) minmax(110px, 1fr) minmax(110px, 1fr) 70px minmax(110px, 0.9fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 6px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.84rem;
+  color: var(--text-color);
+}
+
+.sales-report__row--head {
+  padding-top: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sales-report__row--head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.sales-report__row--head button.is-num {
+  justify-content: flex-end;
+}
+
+.sales-report__row--head .material-symbols-rounded {
+  font-size: 15px;
+}
+
+.sales-report__row .is-num {
+  text-align: right;
+  justify-self: end;
+}
+
+.sales-report__row > div.is-num {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.sales-report__folio {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+}
+
+.sales-report__badge {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: color-mix(in srgb, #d64545 14%, transparent);
+  color: #d64545;
+}
+
+.sales-report__returned {
+  font-size: 0.7rem;
+  color: #c27812;
+}
+
+.sales-report__ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-report__state {
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.sales-report__state .material-symbols-rounded {
+  font-size: 36px;
+  opacity: 0.6;
+}
+
+@media (max-width: 1100px) {
+  .sales-report__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .sales-report__container {
+    padding: 16px;
+  }
+  .sales-report__grid {
+    grid-template-columns: 1fr;
+  }
+  .sales-report__card--wide {
+    grid-column: auto;
+  }
+  .sales-report__dates > * {
+    width: 100%;
+  }
+  .sales-report__dates {
+    width: 100%;
+  }
+  select.sales-report__select,
+  .sales-report__search,
+  .sales-report__search .inputs__general {
+    width: 100%;
+  }
+  /* En celular cada venta es una tarjeta con etiqueta: valor */
+  .sales-report__row--head {
+    display: none;
+  }
+  .sales-report__row {
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+  }
+  .sales-report__row > div::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.68rem;
+    color: var(--text-muted);
+  }
+  .sales-report__row .is-num {
+    justify-self: start;
+    text-align: left;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sales-report__barlist-track span {
+    transition: none;
+  }
+}
+
+.sales-report__spin {
+  animation: sales-report-spin 0.9s linear infinite;
+}
+
+@keyframes sales-report-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
