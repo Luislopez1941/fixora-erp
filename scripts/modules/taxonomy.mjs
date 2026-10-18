@@ -42,7 +42,7 @@ export const MODULES = [
     requiredPermission: 'sales.view',
     description: 'Punto de venta, gestión comercial, descuentos, cobros, devoluciones y configuración de ventas.',
     groups: [
-      { label: 'Punto de venta', screens: [live('Terminal POS', 'sales/sales-sheet', 'sales.sheet.view'), 'Nueva venta', 'Suspender y recuperar venta', 'Devoluciones rápidas'] },
+      { label: 'Punto de venta', screens: [live('Terminal POS', 'sales/sales-sheet', 'sales.sheet.view'), 'Suspender y recuperar venta', 'Devoluciones rápidas'] },
       { label: 'Gestión comercial', screens: [live('Cotizaciones', 'sales/quotation', 'sales.quote.view'), 'Pedidos de clientes', live('Órdenes de venta', 'sales/salesorder', 'sales.order.view'), 'Historial de ventas', 'Detalle de venta'] },
       { label: 'Descuentos y promociones', screens: ['Promociones', 'Cupones', 'Reglas de descuento', 'Autorizaciones', 'Precios especiales'] },
       { label: 'Cobros', screens: ['Registrar cobro', 'Pagos mixtos', 'Pagos parciales', 'Reembolsos', 'Métodos de cobro'] },
@@ -289,6 +289,7 @@ export const MODULES = [
  * Accesos directos: entradas de una sola pantalla que apuntan a algo que ya existe en otro módulo (no son módulos de licencia).
  * Aparecen en el menú si la licencia incluye alguno de `includedIn`.
  */
+// "Nueva venta" se quitó: era el mismo flujo que Terminal POS (la ficha de venta).
 // Sin accesos directos: "Ficha de venta" era el mismo destino que Ventas › Punto de venta › Terminal POS y se quitó por repetida.
 export const SHORTCUTS = [];
 

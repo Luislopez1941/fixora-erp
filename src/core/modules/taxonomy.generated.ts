@@ -108,15 +108,6 @@ export const TAXONOMY: TaxModule[] = [
             "own": false
           },
           {
-            "key": "punto-de-venta-nueva-venta",
-            "label": "Nueva venta",
-            "live": false,
-            "path": "sales/punto-de-venta/nueva-venta",
-            "permission": "sales.punto-de-venta-nueva-venta.view",
-            "own": false,
-            "folder": "src/modules/sales/punto-de-venta/nueva-venta"
-          },
-          {
             "key": "punto-de-venta-suspender-y-recuperar-venta",
             "label": "Suspender y recuperar venta",
             "live": false,
@@ -4779,7 +4770,6 @@ export const SUBMODULE_LABELS: Record<string, string> = {
   "dashboard.pendientes": "Pendientes",
   "dashboard.actividad-reciente": "Actividad reciente",
   "dashboard.favoritos": "Favoritos",
-  "sales.punto-de-venta-nueva-venta": "Punto de venta › Nueva venta",
   "sales.punto-de-venta-suspender-y-recuperar-venta": "Punto de venta › Suspender y recuperar venta",
   "sales.punto-de-venta-devoluciones-rapidas": "Punto de venta › Devoluciones rápidas",
   "sales.gestion-comercial-pedidos-de-clientes": "Gestión comercial › Pedidos de clientes",
