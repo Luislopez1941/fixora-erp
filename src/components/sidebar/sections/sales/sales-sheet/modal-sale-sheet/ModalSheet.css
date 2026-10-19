@@ -790,12 +790,16 @@
   flex-shrink: 0;
 }
 
-/* El resumen de cobro conserva su alto natural arriba (no se estira con el cuerpo) */
+/* El resumen de cobro conserva su alto natural arriba (no se estira con el cuerpo), pero nunca más alto que el
+   cuerpo: la fila mide exactamente el alto disponible y cada columna hace scroll propio. Sin esto, la columna de cobro
+   crecía más que la ventana y su parte de abajo (total, aviso de turno, botón Cobrar) quedaba cortada. */
 .modal-sale-sheet-body.modal-sale-pos {
   align-items: start;
+  grid-template-rows: minmax(0, 1fr);
 }
 
-.modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main {
+.modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main,
+.modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__side {
   max-height: 100%;
 }
 
@@ -887,12 +891,29 @@
   }
 }
 
+/* Escritorio: total, aviso de turno y botón Cobrar quedan fijos al fondo de la columna de cobro (siempre visibles);
+   solo lo de arriba (formas de pago, datos de la venta) se desplaza si no cabe */
+@media (min-width: 1001px) {
+  .modal-sale-pos__side {
+    padding-bottom: 0;
+  }
+
+  .modal-sale-pos__side .modal-sale-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    padding-bottom: 18px;
+    background: color-mix(in srgb, var(--primary-color) 4%, var(--surface));
+  }
+}
+
 /* ===== Una sola columna (tablet y celular): todo en flujo normal, el cuerpo hace scroll vertical =====
    Va al final para ganarle a las reglas de escritorio de arriba. Antes, la columna de captura conservaba su
    `max-height: 100%`: su contenido se salía de esa altura y "Forma de pago" se dibujaba ENCIMA de la tabla. */
 @media (max-width: 1000px) {
   .modal-sale-sheet-body.modal-sale-pos {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
     grid-auto-rows: auto;
     align-content: start;
     overflow-y: auto;
@@ -900,7 +921,7 @@
   }
 
   .modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main,
-  .modal-sale-pos__side {
+  .modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__side {
     max-height: none;
     min-height: auto;
     overflow: visible;
