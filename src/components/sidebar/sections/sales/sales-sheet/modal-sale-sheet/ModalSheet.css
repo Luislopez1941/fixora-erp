@@ -576,6 +576,16 @@
 }
 
 .modal-sale-pay-option {
+  /* Nombres largos ("Transferencia electrónica") se parten dentro del botón en lugar de salirse */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  text-align: center;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
   padding: 10px 12px;
   border: 1px solid var(--panel-border);
   border-radius: 10px;
@@ -797,4 +807,92 @@
 
 .modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main {
   max-height: 100%;
+}
+
+/* ===== Celular: la ficha ocupa toda la pantalla y nada se sale del ancho ===== */
+@media (max-width: 600px) {
+  .modal-sale-sheet {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-width: 100vw !important;
+    border-radius: 0 !important;
+  }
+
+  .modal-sale-sheet-header {
+    padding: 8px 10px 8px 14px;
+  }
+
+  .modal-sale-sheet-body.modal-sale-pos {
+    padding: 10px;
+    gap: 12px;
+    overflow-x: hidden;
+  }
+
+  .modal-sale-pos__main,
+  .modal-sale-pos__side {
+    min-width: 0;
+  }
+
+  .modal-sale-pos__side {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .modal-sale-pos__side *,
+  .modal-sale-pos__side *::before,
+  .modal-sale-pos__side *::after {
+    box-sizing: border-box;
+  }
+
+  .modal-sale-meta-grid,
+  .modal-sale-search-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .modal-sale-section {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  /* Formas de pago: dos por fila, sin desbordar */
+  .modal-sale-pay-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .modal-sale-pay-option {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Totales: sin anchos mínimos fijos; el total grande se ajusta */
+  .modal-sale-totals,
+  .modal-sale-total-row,
+  .modal-sale-total-main {
+    min-width: 0;
+  }
+
+  .modal-sale-total-value {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .modal-sale-pos__side .modal-sale-total-main {
+    padding: 12px;
+  }
+
+  .modal-sale-pos__side .modal-sale-total-main .value {
+    font-size: 1.5rem;
+  }
+
+  .modal-sale-footer-actions {
+    width: 100%;
+  }
+
+  .modal-sale-footer-actions > button {
+    width: 100%;
+    min-height: 44px;
+  }
 }
