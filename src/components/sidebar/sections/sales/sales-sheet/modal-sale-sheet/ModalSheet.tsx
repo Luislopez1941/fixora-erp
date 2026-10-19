@@ -1233,16 +1233,16 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                       className={`modal-sale-row ${tableLayoutClass}`}
                       key={line.key}
                     >
-                      <div className='modal-sale-cell'>
+                      <div className='modal-sale-cell modal-sale-cell--code'>
                         {line.image && <img src={line.image} alt='' className='modal-sale-item-thumb' />}
                         <span className='modal-sale-price-tag'>{line.code || '—'}</span>
                       </div>
-                      <div className='modal-sale-cell'>
+                      <div className='modal-sale-cell modal-sale-cell--name'>
                         <strong>{line.name}</strong>
                       </div>
                       {hasSizedLines && (
                         <>
-                          <div className='modal-sale-cell'>
+                          <div className='modal-sale-cell modal-sale-cell--opt' data-label='Color'>
                             <select
                               className='modal-sale-row-select'
                               value={line.selectedColor ?? ''}
@@ -1254,7 +1254,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                               ))}
                             </select>
                           </div>
-                          <div className='modal-sale-cell'>
+                          <div className='modal-sale-cell modal-sale-cell--opt' data-label='Talla'>
                             <select
                               className='modal-sale-row-select'
                               value={line.selectedSize ?? ''}
@@ -1277,7 +1277,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                         </>
                       )}
                       {hasRangeLines && (
-                        <div className='modal-sale-cell'>
+                        <div className='modal-sale-cell modal-sale-cell--opt modal-sale-cell--wide' data-label='Rango de precio'>
                           <select
                             className='modal-sale-row-select'
                             value={line.priceRangeId ?? ''}
@@ -1292,10 +1292,19 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                           </select>
                         </div>
                       )}
-                      <div className='modal-sale-cell'>
+                      <div className='modal-sale-cell modal-sale-cell--area' data-label='Área de producción'>
                         {renderAreaCell(line)}
                       </div>
-                      <div className='modal-sale-cell'>
+                      <div className='modal-sale-cell modal-sale-cell--qty' data-label='Cantidad'>
+                        {/* − / + solo se muestran en celular (CSS); usan el mismo updateQuantity que el campo */}
+                        <button
+                          type='button'
+                          className='modal-sale-qty-step'
+                          aria-label={`Quitar uno de ${line.name}`}
+                          onClick={() => updateQuantity(line.key, String(Math.max(0, (Number(line.quantity) || 0) - 1)))}
+                        >
+                          <span className='material-symbols-rounded'>remove</span>
+                        </button>
                         <input
                           className='modal-sale-row-input'
                           type='number'
@@ -1303,8 +1312,16 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                           value={line.quantity === 0 ? '' : line.quantity}
                           onChange={(e) => updateQuantity(line.key, e.target.value)}
                         />
+                        <button
+                          type='button'
+                          className='modal-sale-qty-step'
+                          aria-label={`Agregar uno de ${line.name}`}
+                          onClick={() => updateQuantity(line.key, String((Number(line.quantity) || 0) + 1))}
+                        >
+                          <span className='material-symbols-rounded'>add</span>
+                        </button>
                       </div>
-                      <div className='modal-sale-cell' style={{ justifyContent: 'flex-end' }}>
+                      <div className='modal-sale-cell modal-sale-cell--price' data-label='Precio unitario' style={{ justifyContent: 'flex-end' }}>
                         {isOwner ? (
                           <input
                             className='modal-sale-row-input'
@@ -1318,10 +1335,10 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                           <span className="modal-sale-price-tag">{formatMoney(line.unitPrice)}</span>
                         )}
                       </div>
-                      <div className='modal-sale-cell' style={{ justifyContent: 'flex-end' }}>
+                      <div className='modal-sale-cell modal-sale-cell--total' data-label='Importe' style={{ justifyContent: 'flex-end' }}>
                         <strong>{formatMoney(line.unitPrice * line.quantity)}</strong>
                       </div>
-                      <div className='modal-sale-cell' style={{ justifyContent: 'center' }}>
+                      <div className='modal-sale-cell modal-sale-cell--remove' style={{ justifyContent: 'center' }}>
                         <button
                           type='button'
                           className='modal-sale-remove-btn'
@@ -1334,6 +1351,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                   ))
                 ) : (
                   <div className='sales-sheet-table__empty' style={{ padding: '32px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    <span className='material-symbols-rounded sales-sheet-table__empty-icon' aria-hidden>shopping_cart</span>
                     Busca y agrega artículos para iniciar la venta.
                   </div>
                 )}

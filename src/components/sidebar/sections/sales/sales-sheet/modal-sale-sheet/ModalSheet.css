@@ -965,3 +965,205 @@
     font-size: 15px;
   }
 }
+
+/* Botones − / + de cantidad e ícono del estado vacío: solo en celular (abajo) */
+.modal-sale-qty-step,
+.sales-sheet-table__empty-icon {
+  display: none;
+}
+
+/* ===== Celular: ficha de borde a borde y artículos como tarjetas ===== */
+@media (max-width: 600px) {
+  .overlay__sales-sheet_modal {
+    padding: 0;
+  }
+
+  .modal-sale-sheet {
+    box-shadow: none !important;
+  }
+
+  .modal-sale-sheet-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  /* La "tabla" deja de serlo: sin encabezado, sin scroll lateral, cada artículo es una tarjeta */
+  .modal-sale-table-wrap {
+    overflow: visible;
+    border: none;
+    background: transparent;
+    border-radius: 0;
+  }
+
+  .modal-sale-thead {
+    display: none;
+  }
+
+  .modal-sale-tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .modal-sale-row,
+  .modal-sale-row.sales-sheet-table--ranged,
+  .modal-sale-row.sales-sheet-table--sized,
+  .modal-sale-row.sales-sheet-table--full {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 12px;
+    border: 1px solid var(--panel-border);
+    border-left: 3px solid var(--primary-color);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .modal-sale-row:last-child {
+    border-bottom: 1px solid var(--panel-border);
+  }
+
+  .modal-sale-row > .modal-sale-cell {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  /* Código (y foto) arriba a la izquierda, quitar arriba a la derecha */
+  .modal-sale-row > .modal-sale-cell--code {
+    grid-column: 1;
+    order: 0;
+  }
+
+  .modal-sale-row > .modal-sale-cell--remove {
+    grid-column: 2;
+    order: 1;
+    justify-content: flex-end !important;
+  }
+
+  .modal-sale-row > .modal-sale-cell--name {
+    order: 2;
+    font-size: 0.95rem;
+    line-height: 1.25;
+  }
+
+  .modal-sale-row > .modal-sale-cell--opt {
+    grid-column: span 1;
+    order: 3;
+  }
+
+  .modal-sale-row > .modal-sale-cell--wide {
+    grid-column: 1 / -1;
+  }
+
+  .modal-sale-row > .modal-sale-cell--area {
+    order: 4;
+  }
+
+  .modal-sale-row > .modal-sale-cell--qty {
+    grid-column: 1;
+    order: 5;
+  }
+
+  .modal-sale-row > .modal-sale-cell--price {
+    grid-column: 2;
+    order: 6;
+    justify-content: flex-start !important;
+  }
+
+  .modal-sale-row > .modal-sale-cell--total {
+    order: 7;
+    justify-content: space-between !important;
+    padding-top: 8px;
+    border-top: 1px dashed var(--panel-border);
+    font-size: 1rem;
+  }
+
+  .modal-sale-row > .modal-sale-cell--total strong {
+    color: var(--primary-color);
+  }
+
+  /* Etiqueta de cada dato encima del valor */
+  .modal-sale-row > .modal-sale-cell[data-label] {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 4px;
+  }
+
+  .modal-sale-row > .modal-sale-cell[data-label]::before {
+    content: attr(data-label);
+    flex-basis: 100%;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .modal-sale-row > .modal-sale-cell--total[data-label]::before {
+    flex-basis: auto;
+  }
+
+  .modal-sale-row .modal-sale-row-select,
+  .modal-sale-row .modal-sale-cell--area select {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  /* Cantidad: − [ 2 ] + cómodos al dedo */
+  .modal-sale-cell--qty {
+    flex-wrap: wrap;
+  }
+
+  .modal-sale-qty-step {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+
+  .modal-sale-qty-step:active {
+    background: var(--primary-color);
+    color: #fff;
+  }
+
+  .modal-sale-cell--qty .modal-sale-row-input {
+    width: 56px;
+    height: 44px;
+    font-size: 1rem;
+  }
+
+  .modal-sale-cell--price .modal-sale-row-input {
+    height: 44px;
+    width: 100% !important;
+  }
+
+  .modal-sale-remove-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Estado vacío: bloque limpio */
+  .sales-sheet-table__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    border: 1px dashed var(--panel-border);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--primary-color) 3%, transparent);
+  }
+
+  .sales-sheet-table__empty-icon {
+    display: block;
+    font-size: 34px;
+    color: var(--primary-color);
+    opacity: 0.6;
+  }
+}
