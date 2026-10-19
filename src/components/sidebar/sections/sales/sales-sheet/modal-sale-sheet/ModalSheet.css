@@ -557,17 +557,7 @@
   padding: 10px 16px;
 }
 
-@media (max-width: 1000px) {
-  .modal-sale-sheet-body.modal-sale-pos {
-    grid-template-columns: 1fr;
-    overflow-y: auto;
-  }
 
-  .modal-sale-pos__main,
-  .modal-sale-pos__side {
-    overflow: visible;
-  }
-}
 
 .modal-sale-pay-options {
   display: grid;
@@ -894,5 +884,84 @@
   .modal-sale-footer-actions > button {
     width: 100%;
     min-height: 44px;
+  }
+}
+
+/* ===== Una sola columna (tablet y celular): todo en flujo normal, el cuerpo hace scroll vertical =====
+   Va al final para ganarle a las reglas de escritorio de arriba. Antes, la columna de captura conservaba su
+   `max-height: 100%`: su contenido se salía de esa altura y "Forma de pago" se dibujaba ENCIMA de la tabla. */
+@media (max-width: 1000px) {
+  .modal-sale-sheet-body.modal-sale-pos {
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: auto;
+    align-content: start;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main,
+  .modal-sale-pos__side {
+    max-height: none;
+    min-height: auto;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  /* La tabla de artículos se desliza de lado dentro de su caja, sin empujar la página */
+  .modal-sale-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ancho mínimo según las columnas de cada variante de tabla, para que "Artículo" nunca quede en cero */
+  .modal-sale-thead,
+  .modal-sale-row {
+    min-width: 780px;
+  }
+
+  .modal-sale-thead.sales-sheet-table--ranged,
+  .modal-sale-row.sales-sheet-table--ranged {
+    min-width: 920px;
+  }
+
+  .modal-sale-thead.sales-sheet-table--sized,
+  .modal-sale-row.sales-sheet-table--sized {
+    min-width: 1010px;
+  }
+
+  .modal-sale-thead.sales-sheet-table--full,
+  .modal-sale-row.sales-sheet-table--full {
+    min-width: 1150px;
+  }
+
+  /* "Área predeterminada" baja a su propia línea en lugar de apretarse junto al título */
+  .modal-sale-section-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+  }
+
+  .modal-sale-section-title > div {
+    margin-left: 0 !important;
+    gap: 8px !important;
+    flex-wrap: wrap;
+  }
+
+  .modal-sale-section-title select {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Barra de turno / caja / horario compacta */
+  .modal-sale-statusbar {
+    padding: 6px 12px;
+    gap: 2px 12px;
+    font-size: 0.72rem;
+  }
+
+  .modal-sale-statusbar__item .material-symbols-rounded {
+    font-size: 15px;
   }
 }
