@@ -6,6 +6,7 @@ import IOSSwitch from '../../catalogos/shared/IOSSwitch'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import ReturnRulesPanel from './ReturnRulesPanel'
 import './PosConfig.css'
+import { showToast } from '../../../../../utils/toast'
 
 interface PosConfigForm {
   template: string | null
@@ -104,7 +105,7 @@ const PosConfig = () => {
         setSources(res?.data?.sources ?? {})
         setHasOverride(!!res?.data?.hasBranchOverride)
       }
-      Swal.fire({ icon: 'success', title: 'Configuración guardada', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 })
+      showToast({ type: 'success', title: 'Configuración guardada', text: scope === 'branch' ? 'Excepción de la sucursal actualizada.' : 'Aplica a toda la empresa.' })
     } catch (err: any) {
       Swal.fire({ icon: 'error', title: 'Error al guardar', text: err?.response?.data?.message || err?.message })
     } finally {

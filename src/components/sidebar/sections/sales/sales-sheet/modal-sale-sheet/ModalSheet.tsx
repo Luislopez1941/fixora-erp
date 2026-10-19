@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { modal } from '../../../../../../redux/state/modals'
 import APIs from '../../../../../../services/APIs'
 import Swal from 'sweetalert2'
+import { showToast } from '../../../../../../utils/toast'
 import {
   calculateSaleTotals,
   getUrgencySurchargeLabel,
@@ -952,15 +953,20 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
       // La ficha de cobro se usa todo el día: tras cobrar se limpia y queda abierta para el
       // siguiente cliente, con un aviso breve que no estorba.
-      Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
+      const sale = data?.data ?? data
+      const folio = sale?.folio != null ? `${sale?.series?.name ?? sale?.serie ?? 'VENT'}-${sale.folio}` : null
+      const methodName = posConfig.askPaymentMethod && paymentMethodId
+        ? paymentMethods.find((m: any) => String(m.id) === paymentMethodId)?.name
+        : 'Efectivo'
+      showToast({
+        type: 'success',
         title: 'Venta registrada',
-        text: data?.message ?? 'La venta se guardó correctamente.',
-        showConfirmButton: false,
-        timer: 2500,
-        timerProgressBar: true,
+        text: 'La ficha quedó lista para el siguiente cliente.',
+        details: [
+          ...(folio ? [{ label: 'Folio', value: folio }] : []),
+          { label: 'Total', value: formatMoney(submitTotals.total), strong: true },
+          ...(methodName ? [{ label: 'Pago', value: methodName }] : []),
+        ],
       })
 
       chargeKeyRef.current = null
