@@ -925,6 +925,10 @@
     max-height: none;
     min-height: auto;
     overflow: visible;
+  }
+
+  /* Solo la columna de captura pierde su margen derecho (era para la barra de scroll); la de cobro conserva su relleno */
+  .modal-sale-sheet-body.modal-sale-pos .modal-sale-pos__main {
     padding-right: 0;
   }
 
@@ -1186,5 +1190,39 @@
     font-size: 34px;
     color: var(--primary-color);
     opacity: 0.6;
+  }
+}
+
+/* ===== Aire en la columna de cobro: relleno parejo a ambos lados y separación entre bloques ===== */
+.modal-sale-pos__side,
+.modal-sale-pos__side * {
+  box-sizing: border-box;
+}
+
+.modal-sale-pos__side {
+  scrollbar-gutter: stable;
+}
+
+.modal-sale-pos__side .modal-sale-pay-options {
+  gap: 10px;
+}
+
+.modal-sale-pos__side .modal-sale-totals {
+  gap: 10px;
+}
+
+.modal-sale-pos__side .modal-sale-total-row {
+  min-height: 28px;
+}
+
+.modal-sale-pos__side .modal-sale-noshift {
+  margin: 4px 0 0;
+  padding: 10px 12px;
+}
+
+@media (max-width: 600px) {
+  .modal-sale-pos__side {
+    padding: 16px;
+    scrollbar-gutter: auto;
   }
 }
