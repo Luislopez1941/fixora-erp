@@ -1,0 +1,79 @@
+/* Ejemplos para empezar una plantilla */
+.template-presets {
+  text-align: left;
+}
+
+.template-presets__title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.template-presets__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.template-presets__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 16px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.template-presets__card:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
+}
+
+.template-presets__card .material-symbols-rounded {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 9%, transparent);
+  color: var(--primary-color);
+  font-size: 22px;
+}
+
+.template-presets__card strong {
+  font-size: 0.9rem;
+}
+
+.template-presets__card small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.template-presets__card.is-blank {
+  border-style: dashed;
+}
+
+.template-presets__card.is-blank .material-symbols-rounded {
+  background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+  color: var(--secondary-color);
+}
+
+[data-theme='dark'] .template-presets__card .material-symbols-rounded,
+:root:not([data-theme]) .template-presets__card .material-symbols-rounded {
+  color: var(--text-color);
+}
+
+@media (max-width: 560px) {
+  .template-presets__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

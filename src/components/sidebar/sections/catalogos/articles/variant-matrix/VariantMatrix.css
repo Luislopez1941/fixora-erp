@@ -1,0 +1,216 @@
+/* Variantes dentro del modal del artículo: opciones por característica, resumen y tabla (se genera sola) */
+.variant-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  text-align: left;
+}
+
+.variant-matrix__axes {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.variant-matrix__axis {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 8px 14px;
+  align-items: start;
+}
+
+.variant-matrix__axis-name {
+  padding-top: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.variant-matrix__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.variant-matrix__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.variant-matrix__chip i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+}
+
+.variant-matrix__chip.is-on {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.variant-matrix__chip-adjust {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.variant-matrix__chip.is-on .variant-matrix__chip-adjust {
+  color: #ffd0a8;
+}
+
+.variant-matrix__free {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.variant-matrix__text {
+  min-width: 150px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.82rem;
+}
+
+.variant-matrix__unit {
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.variant-matrix__add {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.variant-matrix__adjust {
+  grid-column: 2;
+}
+
+.variant-matrix__adjust-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.variant-matrix__adjust-open .material-symbols-rounded {
+  font-size: 1rem;
+}
+
+/* Barra de resumen (cuántas variantes y rango de precio) */
+.variant-matrix__summary {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.variant-matrix__summary .variants-counter {
+  border-bottom: none;
+}
+
+.variant-matrix__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.variant-matrix__tools button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.variant-matrix__table {
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.variant-matrix__head {
+  display: grid;
+  grid-template-columns: 48px minmax(150px, 1.3fr) minmax(120px, 1fr) minmax(130px, 1fr) 120px 40px;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--card-bg));
+}
+
+.variant-matrix__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.variant-matrix__error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #d64545;
+}
+
+@media (max-width: 760px) {
+  .variant-matrix__axis {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-matrix__axis-name {
+    padding-top: 0;
+  }
+
+  .variant-matrix__adjust {
+    grid-column: 1;
+  }
+
+  .variant-matrix__table {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    border: none;
+  }
+
+  .variant-matrix__head {
+    display: none;
+  }
+}

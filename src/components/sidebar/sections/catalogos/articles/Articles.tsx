@@ -12,6 +12,7 @@ import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePic
 import Swal from 'sweetalert2'
 import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
 import Pagination from '../../../../general/pagination/Pagination'
+import { Link } from 'react-router-dom'
 
 const readCompanyId = (): number | null => {
   const id = Number(localStorage.getItem('categories-picker-company-id'))
@@ -207,9 +208,15 @@ const Articles: React.FC = () => {
               />
             </div>
           </div>
-          <button className='btn__general-primary' type='button' onClick={() => setModal('articles-modal')}>
-            Nuevo artículo
-          </button>
+          <div className='articles-page__toolbar-actions'>
+            {/* Plantillas de variantes (Talla + Color, Sabor + Presentación…) que se asignan a los artículos */}
+            <Link className='btn__general-secondary articles-page__templates-link' to='/auth/catalogos/productos-y-servicios/variantes'>
+              <span className='material-symbols-rounded' aria-hidden>dashboard_customize</span> Plantillas
+            </Link>
+            <button className='btn__general-primary' type='button' onClick={() => setModal('articles-modal')}>
+              Nuevo artículo
+            </button>
+          </div>
         </div>
 
         {/* La tabla siempre se ve; el skeleton va dentro */}

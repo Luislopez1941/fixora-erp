@@ -1,0 +1,83 @@
+/* Datos del artículo (no crean variantes): inputs simples en rejilla */
+.item-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.item-fields__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.item-fields__field--wide {
+  grid-column: 1 / -1;
+}
+
+.item-fields__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.item-fields__input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.item-fields__input input {
+  width: 100%;
+  margin: 0 !important;
+}
+
+.item-fields__input em {
+  position: absolute;
+  right: 12px;
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.item-fields__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.item-fields__chips button {
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.item-fields__chips button.is-on {
+  border-color: var(--secondary-color);
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+@media (max-width: 560px) {
+  .item-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+.item-fields__tag {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--secondary-color) 14%, transparent);
+  color: var(--secondary-color);
+  font-size: 0.68rem;
+  font-weight: 700;
+}

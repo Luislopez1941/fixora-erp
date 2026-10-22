@@ -1,0 +1,466 @@
+/* Tarjeta de una característica: aireada, un solo borde, controles compactos */
+.axis-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  background: var(--card-bg);
+  text-align: left;
+}
+
+.axis-card.is-data,
+.axis-card.is-price {
+  border-color: color-mix(in srgb, var(--secondary-color) 35%, var(--panel-border));
+  background: color-mix(in srgb, var(--secondary-color) 3%, var(--card-bg));
+}
+
+.axis-card__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.axis-card__num {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--secondary-color);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.axis-card.is-data .axis-card__num,
+.axis-card.is-price .axis-card__num {
+  background: color-mix(in srgb, var(--secondary-color) 16%, transparent);
+  color: var(--secondary-color);
+}
+
+.axis-card__num .material-symbols-rounded {
+  font-size: 1.05rem;
+}
+
+.axis-card__name {
+  flex: 1;
+  min-width: 0;
+  height: 42px;
+  margin: 0 !important;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.axis-card__remove {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.axis-card__remove:hover:not(:disabled) {
+  background: color-mix(in srgb, #d64545 10%, transparent);
+  color: #d64545;
+}
+
+.axis-card__remove:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Sugerencias de nombre */
+.axis-card__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.axis-card__suggest button {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.axis-card__suggest button:hover {
+  background: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  color: var(--text-color);
+}
+
+.axis-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+/* Control segmentado: ¿para qué sirve? */
+.axis-card__seg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  padding: 3px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+}
+
+.axis-card__seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.axis-card__seg .material-symbols-rounded {
+  font-size: 1.05rem;
+}
+
+.axis-card__seg button:hover:not(:disabled):not(.is-active) {
+  background: color-mix(in srgb, var(--card-bg) 70%, transparent);
+  color: var(--text-color);
+}
+
+.axis-card__seg button.is-active {
+  background: var(--card-bg);
+  color: var(--primary-color);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.axis-card.is-data .axis-card__seg button.is-active,
+.axis-card.is-price .axis-card__seg button.is-active {
+  color: var(--secondary-color);
+}
+
+[data-theme='dark'] .axis-card__seg button.is-active {
+  color: var(--text-color);
+}
+
+.axis-card__seg button:disabled {
+  opacity: 0.4;
+  background: none;
+  cursor: not-allowed;
+}
+
+.axis-card__help {
+  margin-top: -8px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* Aviso: está en la fórmula y también crea variantes */
+.axis-card__warn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.axis-card__warn .material-symbols-rounded {
+  font-size: 1rem;
+  color: var(--secondary-color);
+}
+
+.axis-card__warn button {
+  padding: 2px 10px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--secondary-color) 14%, transparent);
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Tipo de valor: fichas compactas */
+.axis-card__types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.axis-card__types button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.axis-card__types .material-symbols-rounded {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+}
+
+.axis-card__types button:hover:not(:disabled):not(.is-active) {
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+  color: var(--text-color);
+}
+
+.axis-card__types button.is-active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.axis-card__types button.is-active .material-symbols-rounded {
+  color: #fff;
+}
+
+.axis-card__types button:disabled {
+  opacity: 0.4;
+  background: var(--card-bg);
+  color: var(--text-color);
+  cursor: not-allowed;
+}
+
+/* Unidad de la medida (lista compacta) */
+.axis-card__unit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.axis-card__unit select {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font: inherit;
+  font-weight: 700;
+}
+
+/* Valores */
+.axis-card__values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--text-muted) 7%, transparent);
+}
+
+.axis-card__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 4px 0 12px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.axis-card__chip button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.axis-card__chip button:hover {
+  background: color-mix(in srgb, #d64545 10%, transparent);
+  color: #d64545;
+}
+
+.axis-card__chip .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.axis-card__adjust {
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.axis-card__swatch {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: -4px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  cursor: pointer;
+}
+
+.axis-card__swatch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.axis-card__add {
+  flex: 1;
+  min-width: 160px;
+  height: 32px;
+  padding: 0 8px;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.axis-card__error {
+  margin-top: -8px;
+  font-size: 0.75rem;
+  color: #d64545;
+}
+
+/* Más opciones (ajuste de precio, rango, enteros) */
+.axis-card__more {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.axis-card__more-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.axis-card__more-toggle:hover {
+  color: var(--primary-color);
+}
+
+.axis-card__more-toggle .material-symbols-rounded {
+  font-size: 1.05rem;
+}
+
+.axis-card__more-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--panel-border);
+}
+
+.axis-card__link {
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.axis-card__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.axis-card__check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-color);
+}
+
+.axis-card__range-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 360px;
+}
+
+.axis-card__range-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.axis-card__range-fields .inputs__general {
+  height: 38px;
+  margin: 0 !important;
+}
+
+@media (max-width: 560px) {
+  .axis-card {
+    padding: 14px;
+  }
+
+  .axis-card__seg {
+    display: flex;
+    width: 100%;
+  }
+
+  .axis-card__seg button {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 8px;
+  }
+}

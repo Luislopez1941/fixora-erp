@@ -1,0 +1,137 @@
+/* Ajuste de precio por valor (XL +$20) */
+.price-adjust {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--secondary-color) 6%, var(--card-bg));
+  border: 1px solid color-mix(in srgb, var(--secondary-color) 25%, var(--panel-border));
+}
+
+.price-adjust__help {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.price-adjust__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 6px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.price-adjust__list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.price-adjust__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 44px;
+  overflow: hidden;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.price-adjust__value i {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+}
+
+.price-adjust__field {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--card-bg);
+}
+
+.price-adjust__field:focus-within {
+  border-color: var(--primary-color);
+}
+
+.price-adjust__field input {
+  width: 64px;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.price-adjust__sign {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.price-adjust__mode {
+  display: inline-flex;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.price-adjust__mode button {
+  width: 28px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  background: var(--card-bg);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.price-adjust__mode button.is-active {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.price-adjust__preview {
+  min-width: 56px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-align: right;
+}
+
+[data-theme='dark'] .price-adjust__preview {
+  color: var(--text-color);
+}
+
+/* Que el campo y el $ / % no se aplasten en pantallas angostas */
+.price-adjust__field,
+.price-adjust__mode {
+  flex-shrink: 0;
+}
+
+@media (max-width: 560px) {
+  .price-adjust__field input {
+    width: 52px;
+  }
+
+  .price-adjust__preview {
+    min-width: 44px;
+  }
+}

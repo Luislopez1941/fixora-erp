@@ -1,0 +1,32 @@
+/* Plantillas de variantes: rejilla de tarjetas (1 columna en celular) */
+.variantes__bar {
+  justify-content: flex-end;
+}
+
+.variantes__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  transition: opacity 0.15s;
+}
+
+.variantes__grid.is-loading {
+  opacity: 0.6;
+}
+
+.variantes__skeleton {
+  display: block;
+  height: 170px;
+  border-radius: 14px;
+}
+
+@media (max-width: 760px) {
+  .variantes__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .variantes__bar > button {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,37 @@
+/* Selector Artículo / Servicio del modal */
+.item-type {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+}
+
+.item-type__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.item-type__option .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.item-type__option.is-on {
+  background: #072a57;
+  color: #fff;
+}
+
+.item-type__option:not(.is-on):hover {
+  color: #fc7400;
+}

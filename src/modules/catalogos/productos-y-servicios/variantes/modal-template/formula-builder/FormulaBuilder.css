@@ -1,0 +1,394 @@
+/* Fórmula del precio: cerrada = una línea; abierta = fórmula arriba, resultado y un teclado compacto */
+.formula {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+/* Cerrada */
+.formula--closed {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.formula__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.formula__summary b {
+  color: var(--text-color);
+}
+
+.formula__summary .material-symbols-rounded {
+  font-size: 1.1rem;
+  color: var(--secondary-color);
+}
+
+.formula__edit,
+.formula__done {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formula__edit .material-symbols-rounded {
+  font-size: 1rem;
+}
+
+.formula__done {
+  align-self: flex-end;
+}
+
+[data-theme='dark'] .formula__edit,
+[data-theme='dark'] .formula__done {
+  color: var(--text-color);
+}
+
+/* La fórmula, grande y limpia */
+.formula__box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 10px 12px 14px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--card-bg));
+}
+
+.formula__box.is-bad {
+  box-shadow: inset 0 0 0 2px #d64545;
+}
+
+.formula__line {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 36px;
+  cursor: text;
+}
+
+.formula__line:focus {
+  outline: none;
+}
+
+.formula__caret {
+  width: 2px;
+  height: 24px;
+  border-radius: 2px;
+  background: var(--secondary-color);
+  animation: formula-blink 1s steps(2, start) infinite;
+}
+
+@keyframes formula-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.formula__empty {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.formula__icons {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.formula__icons button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.formula__icons button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+}
+
+.formula__icons button:disabled {
+  opacity: 0.35;
+  background: none;
+  cursor: not-allowed;
+}
+
+.formula__icons .material-symbols-rounded {
+  font-size: 1.15rem;
+}
+
+/* Fichas (dentro de la fórmula y en el teclado) */
+.formula__chip,
+.formula__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 32px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formula__chip.is-axis,
+.formula__key.is-axis {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.formula__chip.is-base,
+.formula__key.is-base {
+  background: var(--secondary-color);
+  color: #fff;
+}
+
+.formula__key.is-base.is-soft {
+  background: color-mix(in srgb, var(--secondary-color) 15%, transparent);
+  color: var(--secondary-color);
+}
+
+.formula__chip.is-num {
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-color);
+}
+
+.formula__chip.is-fn,
+.formula__key.is-fn {
+  background: color-mix(in srgb, var(--primary-color) 12%, transparent);
+  color: var(--primary-color);
+}
+
+.formula__chip.is-op {
+  padding: 0 2px;
+  background: none;
+  color: var(--text-color);
+  font-size: 1.1rem;
+}
+
+.formula__key.is-op {
+  justify-content: center;
+  min-width: 40px;
+  padding: 0;
+  background: color-mix(in srgb, var(--text-muted) 10%, transparent);
+  color: var(--text-color);
+  font-size: 1.05rem;
+}
+
+.formula__key.is-more {
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.formula__key.is-more .material-symbols-rounded {
+  font-size: 1.05rem;
+}
+
+.formula__key.is-more.is-on {
+  color: var(--primary-color);
+}
+
+[data-theme='dark'] .formula__chip.is-fn,
+[data-theme='dark'] .formula__key.is-fn {
+  color: var(--text-color);
+}
+
+/* Resultado de ejemplo en una línea */
+.formula__try {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.formula__result {
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.formula__result b {
+  color: var(--secondary-color);
+  font-size: 1.15rem;
+}
+
+.formula__try label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.formula__try input {
+  width: 56px;
+  height: 26px;
+  padding: 0 6px;
+  border: none;
+  border-bottom: 1px dashed var(--text-muted);
+  background: none;
+  color: var(--text-color);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+}
+
+.formula__try input:focus {
+  outline: none;
+  border-bottom-color: var(--primary-color);
+}
+
+.formula__try small {
+  font-size: 0.72rem;
+}
+
+/* Teclado */
+.formula__pad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.formula__num {
+  width: 92px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-color);
+  font: inherit;
+  font-size: 0.84rem;
+}
+
+.formula__num:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.formula__presets {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.formula__presets button {
+  padding: 3px 10px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--secondary-color);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.formula__presets button:hover {
+  background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+  color: var(--secondary-color);
+}
+
+/* Escribir a mano */
+.formula__text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formula__text input {
+  margin: 0 !important;
+  font-weight: 600;
+}
+
+.formula__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.formula__suggest button {
+  padding: 4px 10px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.formula__text-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.formula__error {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #d64545;
+}
+
+.formula__note {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .formula__box {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .formula__icons {
+    flex-direction: column;
+  }
+
+  .formula__key.is-op {
+    min-width: 36px;
+  }
+}

@@ -1,0 +1,156 @@
+/* Plantilla de variantes dentro del modal del artículo: select arriba y tarjetas debajo */
+.variant-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.variant-section__pick {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.variant-section__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.variant-section__select {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.variant-section__select .inputs__general {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  margin: 0 !important;
+}
+
+.variant-section__skeleton {
+  display: block;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.variant-section__manage {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--secondary-color);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.variant-section__manage .material-symbols-rounded {
+  font-size: 15px;
+}
+
+.variant-section__summary {
+  margin: -6px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.variant-section__summary em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--secondary-color);
+}
+
+.variant-section__error {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #d64545;
+}
+
+/* Tarjetas: un solo borde, aire */
+.variant-section__card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 18px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--card-bg);
+}
+
+.variant-section__card h4 {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--primary-color);
+}
+
+[data-theme='dark'] .variant-section__card h4 {
+  color: var(--text-color);
+}
+
+.variant-section__card .price-mode {
+  margin-top: 0;
+}
+
+/* Precio de venta calculado (sin variantes) */
+.variant-section__sale {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--secondary-color) 7%, var(--card-bg));
+}
+
+.variant-section__sale label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.variant-section__sale input {
+  width: 160px;
+  margin: 0 !important;
+}
+
+.variant-section__sale p {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.variant-section__sale p .material-symbols-rounded {
+  font-size: 1.05rem;
+  color: var(--secondary-color);
+}
+
+.variant-section__sale p b {
+  color: var(--secondary-color);
+  font-size: 1.05rem;
+}
+
+.variant-section__sale p.is-bad {
+  color: #d64545;
+}
+
+@media (max-width: 560px) {
+  .variant-section__pick {
+    grid-template-columns: 1fr;
+  }
+
+  .variant-section__card {
+    padding: 14px;
+  }
+}

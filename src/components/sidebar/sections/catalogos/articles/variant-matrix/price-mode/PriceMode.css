@@ -1,0 +1,67 @@
+/* Modo de precio del artículo: según la plantilla o manual */
+.price-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.price-mode__q {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.price-mode__options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.price-mode__options button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+}
+
+.price-mode__options button > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.price-mode__options strong {
+  font-size: 0.85rem;
+}
+
+.price-mode__options small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.price-mode__options .material-symbols-rounded {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.price-mode__options button:hover:not(.is-active) {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--card-bg));
+  color: var(--text-color);
+}
+
+.price-mode__options button.is-active {
+  border-color: var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 10%, var(--card-bg));
+}
+
+.price-mode__options button.is-active .material-symbols-rounded {
+  color: var(--secondary-color);
+}

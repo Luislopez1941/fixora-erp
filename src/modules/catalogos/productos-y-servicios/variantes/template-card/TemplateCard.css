@@ -1,0 +1,214 @@
+/* Tarjeta de plantilla de variantes */
+.template-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--surface, var(--card-bg));
+  text-align: left;
+  transition: opacity 0.15s;
+}
+
+.template-card.is-inactive {
+  opacity: 0.6;
+}
+
+.template-card.is-busy {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.template-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.template-card__head > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.template-card__head strong {
+  font-size: 1rem;
+  color: var(--primary-color);
+}
+
+[data-theme='dark'] .template-card__head strong,
+:root:not([data-theme]) .template-card__head strong {
+  color: var(--text-color);
+}
+
+.template-card__head small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.template-card__tags {
+  display: flex;
+  gap: 4px;
+}
+
+.template-card__tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--secondary-color) 14%, transparent);
+  color: #b25400;
+  font-size: 0.66rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.template-card__tag.is-off {
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  color: var(--text-muted);
+}
+
+.template-card__axes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.template-card__axes li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.template-card__axis {
+  display: flex;
+  flex-direction: column;
+}
+
+.template-card__axis b {
+  font-size: 0.84rem;
+  color: var(--text-color);
+}
+
+.template-card__axis small,
+.template-card__values small {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.template-card__values {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.template-card__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+  font-size: 0.74rem;
+  color: var(--text-color);
+}
+
+.template-card__value i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+}
+
+.template-card__rule {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #b25400;
+}
+
+.template-card__rule .material-symbols-rounded {
+  font-size: 17px;
+}
+
+.template-card__simple {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.template-card__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.template-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 38px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: none;
+  color: var(--primary-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.template-card__actions button:first-child {
+  flex: 1;
+}
+
+.template-card__actions button .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.template-card__actions button.is-danger {
+  color: #d64545;
+}
+
+.template-card__actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+[data-theme='dark'] .template-card__actions button,
+:root:not([data-theme]) .template-card__actions button {
+  color: var(--text-color);
+}
+
+/* Datos que no crean variantes (marca, material…) */
+.template-card__fields {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.template-card__fields .material-symbols-rounded {
+  font-size: 17px;
+  color: var(--secondary-color);
+}
+
+.template-card__fields b {
+  color: var(--text-color);
+  font-weight: 600;
+}

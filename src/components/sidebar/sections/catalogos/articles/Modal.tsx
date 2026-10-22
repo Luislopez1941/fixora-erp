@@ -9,11 +9,14 @@ import { readCategoryBranchId } from '../../../../../constants/category'
 import BranchAvailabilityPicker from '../shared/BranchAvailabilityPicker'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import Swal from 'sweetalert2'
-import { Variation } from '../VariationsManager'
 import IOSSwitch from '../shared/IOSSwitch'
 import ImagePickerModal from '../shared/ImagePickerModal'
 import PriceRangesManager from './PriceRangesManager'
-import VariationsModal from './VariationsModal'
+import VariantTemplateSection from './variant-template-section/VariantTemplateSection'
+import ItemComponents, { ComponentRow, componentsFromItem, componentsToPayload } from './item-components/ItemComponents'
+import ItemType, { ItemTypeValue } from './item-type/ItemType'
+import { Attributes } from './variant-matrix/item-fields/ItemFields'
+import { VariantRow, rowsFromItem, rowsToPayload } from './variant-matrix/variantRows'
 import WarehousesModal, { ArticleWarehouse } from './WarehousesModal'
 import StockModal from './StockModal'
 import ArticleGallery from './ArticleGallery'
@@ -42,7 +45,12 @@ const readCompanyId = (): number | null => {
 const PRODUCTION_AREAS_PATH = `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.PRODUCTION}/${PrivateRoutes.PRODUCTION_AREAS}`
 const CATALOG_AREAS_PATH = `/${PrivateRoutes.PRIVATE}/${PrivateRoutes.CATALOGOS}/${PrivateRoutes.CATALOGOS_AREAS_TYPES}`
 
-const Modal = () => {
+interface ModalProps {
+  /** Al crear: artículo (pantalla Artículos) o servicio (pantalla Servicios) */
+  defaultType?: ItemTypeValue
+}
+
+const Modal: React.FC<ModalProps> = ({ defaultType = 'ARTICLE' }) => {
   const dispatch = useDispatch()
   const modalState = useSelector((state: any) => state.modals)
   const articlesUpdate = useSelector((state: any) => state.articles.articlesUpdate)
@@ -63,7 +71,15 @@ const Modal = () => {
   const [unitId, setUnitId] = useState<number | null>(null)
   const [availableCategories, setAvailableCategories] = useState<any[]>([])
   const [availableUnits, setAvailableUnits] = useState<any[]>([])
-  const [variations, setVariations] = useState<Variation[]>([])
+  const [variations, setVariations] = useState<VariantRow[]>([])
+  // Ficha del artículo: datos de la plantilla que no crean variantes (marca, material…)
+  const [attributes, setAttributes] = useState<Attributes>({})
+  // Precio según la plantilla o manual (null = artículo nuevo: lo decide la plantilla)
+  const [priceMode, setPriceMode] = useState<'TEMPLATE' | 'MANUAL' | null>(null)
+  // Sin variantes con fórmula (vidrio a la medida): el precio de venta lo calcula la plantilla y no se escribe a mano
+  const [priceLocked, setPriceLocked] = useState(false)
+  // Plantilla de variantes del artículo (null = artículo simple)
+  const [variantTemplateId, setVariantTemplateId] = useState<number | null>(null)
   const [includesIVA, setIncludesIVA] = useState(false)
   const [discountPercent, setDiscountPercent] = useState('0')
   const [directPrice, setDirectPrice] = useState('')
@@ -79,11 +95,16 @@ const Modal = () => {
   const [priceRangesOpen, setPriceRangesOpen] = useState(false)
   const [currentItemId, setCurrentItemId] = useState<number | null>(null)
   const [tempPriceRanges, setTempPriceRanges] = useState<Array<{minQuantity: number, maxQuantity: number | null, price: number}>>([])
-  const [variationsModalOpen, setVariationsModalOpen] = useState(false)
   const [warehousesModalOpen, setWarehousesModalOpen] = useState(false)
   const [stockModalOpen, setStockModalOpen] = useState(false)
   const [warehouses, setWarehouses] = useState<ArticleWarehouse[]>([])
   const [isSaving, setIsSaving] = useState(false)
+  const [itemType, setItemType] = useState<ItemTypeValue>(defaultType)
+  // Insumos (maquila): lo que se descuenta del almacén al vender
+  const [components, setComponents] = useState<ComponentRow[]>([])
+  const [materialAdjust, setMaterialAdjust] = useState('')
+  const isService = itemType === 'SERVICE'
+  const noun = isService ? 'servicio' : 'artículo'
 
   const token = localStorage.getItem('token-fixora')
   const isCreate = modalState === 'articles-modal'
@@ -121,6 +142,10 @@ const Modal = () => {
       setUnitId(null)
       setWarehouses([])
       setVariations([])
+      setAttributes({})
+      setPriceMode(null)
+      setPriceLocked(false)
+      setVariantTemplateId(null)
       setIncludesIVA(false)
       setDiscountPercent('0')
       setDirectPrice('')
@@ -136,8 +161,11 @@ const Modal = () => {
       setStockModalOpen(false)
       setEnabledBranchIds(null)
       setTab('info')
+      setItemType(defaultType)
+      setComponents([])
+      setMaterialAdjust('')
     }
-  }, [modalState])
+  }, [modalState, defaultType])
 
   useEffect(() => {
     if (modalState === 'articles-modal-update') {
@@ -170,12 +198,15 @@ const Modal = () => {
         .filter((store: ArticleWarehouse) => !Number.isNaN(store.id) && store.id > 0)
       setWarehouses(linkedStores)
 
-      const vars = Array.isArray(u.itemVariations)
-        ? u.itemVariations
-        : Array.isArray(u.variations)
+      const vars = Array.isArray(u.variations) && u.variations.length
         ? u.variations
+        : Array.isArray(u.itemVariations)
+        ? u.itemVariations
         : []
-      setVariations(vars)
+      setVariations(rowsFromItem(vars))
+      setVariantTemplateId(u.variantTemplate?.id ?? u.variantTemplateId ?? null)
+      setAttributes(u.attributes && typeof u.attributes === 'object' && !Array.isArray(u.attributes) ? u.attributes : {})
+      setPriceMode(u.priceMode === 'TEMPLATE' || u.priceMode === 'MANUAL' ? u.priceMode : null)
 
       setIncludesIVA(Boolean(u.includesIVA))
       setDiscountPercent(String(Number(u.discountPercent ?? 0) || 0))
@@ -193,6 +224,9 @@ const Modal = () => {
       setCompanyId(u.companyId != null ? Number(u.companyId) : readCompanyId())
       const enabled = (u.branchItems ?? []).filter((b: any) => b.enabled).map((b: any) => Number(b.branchId))
       setEnabledBranchIds(enabled.length > 0 ? enabled : null)
+      setItemType(u.type === 'SERVICE' ? 'SERVICE' : 'ARTICLE')
+      setComponents(componentsFromItem(u.components))
+      setMaterialAdjust(u.customerMaterialAdjust != null ? String(Number(u.customerMaterialAdjust)) : '')
     }
   }, [modalState, articlesUpdate])
 
@@ -234,9 +268,9 @@ const Modal = () => {
         list = res.data.categories
       }
 
-      // Filter to keep only families that are specifically for ARTICLES or are "BOTH" (null)
+      // Familias de artículos, de servicios o de ambos (null): al dibujar se muestran las del tipo elegido
       const filteredList = list.filter(
-        (fam) => fam.allowedItemType === 'ARTICLE' || fam.allowedItemType === null,
+        (fam) => fam.allowedItemType === 'ARTICLE' || fam.allowedItemType === 'SERVICE' || fam.allowedItemType == null,
       )
 
       setAvailableFamilies(filteredList)
@@ -427,34 +461,35 @@ const Modal = () => {
       return
     }
 
-    const groupedVariations = variations.reduce((acc: any[], variation: any) => {
-      const existing = acc.find(v => v.color === variation.color)
-      if (existing) {
-        if (!existing.sizes.includes(variation.size)) {
-          existing.sizes.push(variation.size)
-        }
-      } else {
-        acc.push({
-          color: variation.color,
-          colorHex: variation.colorHex,
-          sizes: [variation.size],
-          sku: variation.sku,
-          images: variation.images
-        })
-      }
-      return acc
-    }, [])
+    const badComponent = components.find((c) => !(Number(String(c.quantity).replace(',', '.')) > 0))
+    if (badComponent) {
+      Swal.fire({ icon: 'warning', title: 'Insumos', text: `Escribe la cantidad de "${badComponent.name}".`, confirmButtonColor: '#586ae9' })
+      return
+    }
+    const adjustNumber = materialAdjust.trim() === '' ? null : Number(materialAdjust.replace(',', '.'))
+    if (adjustNumber != null && !Number.isFinite(adjustNumber)) {
+      Swal.fire({ icon: 'warning', title: 'Insumos', text: 'El ajuste de precio debe ser un número (por ejemplo -40).', confirmButtonColor: '#586ae9' })
+      return
+    }
+    // Un servicio no lleva existencias propias: lo que se descuenta son sus insumos
+    const tracks = isService ? false : trackInventory
 
     const body: Record<string, unknown> = {
       name: name.trim(),
       description: description.trim(),
       code: code.trim(),
-      type: 'ARTICLE',
-      variations: groupedVariations,
+      type: itemType,
+      // Combinaciones con opciones de la plantilla (las filas viejas sin opciones se mandan como color / talla)
+      variations: rowsToPayload(variations),
+      ...(variantTemplateId != null || variations.length === 0 ? { variantTemplateId } : {}),
+      attributes,
+      ...(priceMode ? { priceMode } : {}),
       includesIVA,
       discountPercent: Math.min(100, Math.max(0, Number(discountPercent) || 0)),
-      trackInventory,
-      tracksExpiry: trackInventory ? tracksExpiry : false,
+      trackInventory: tracks,
+      tracksExpiry: tracks ? tracksExpiry : false,
+      components: componentsToPayload(components),
+      customerMaterialAdjust: components.some((c) => c.customerCanProvide) ? adjustNumber : null,
       images,
       companyId,
       // El artículo es de la empresa; aquí solo se indica en qué sucursales se ofrece
@@ -483,9 +518,9 @@ const Modal = () => {
       // La ruta de producción es del módulo de Producción: solo se toca cuando hay algo que guardar o
       // limpiar. Un artículo normal de inventario (sin ruta) no debe requerir ese módulo.
       const hadRoute = !isCreate && Array.isArray(articlesUpdate?.productionRoutes) && articlesUpdate.productionRoutes.length > 0
-      if (itemId && !trackInventory && (productionRouteAreaIds.length > 0 || hadRoute)) {
+      if (itemId && !tracks && (productionRouteAreaIds.length > 0 || hadRoute)) {
         await APIs.setItemProductionRoute(itemId, productionRouteAreaIds, token)
-      } else if (itemId && trackInventory && hadRoute) {
+      } else if (itemId && tracks && hadRoute) {
         await APIs.setItemProductionRoute(itemId, [], token)
       }
 
@@ -498,7 +533,7 @@ const Modal = () => {
       Swal.fire({
         icon: 'success',
         title: isCreate ? '¡Creado!' : '¡Actualizado!',
-        text: `El artículo "${name.trim()}" se ${isCreate ? 'creó' : 'actualizó'} correctamente.`,
+        text: `El ${noun} "${name.trim()}" se ${isCreate ? 'creó' : 'actualizó'} correctamente.`,
         confirmButtonColor: '#586ae9',
       })
     } catch (err: any) {
@@ -507,7 +542,7 @@ const Modal = () => {
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: err?.response?.data?.message ?? err?.message ?? 'No se pudo guardar el artículo',
+        text: err?.response?.data?.message ?? err?.message ?? `No se pudo guardar el ${noun}`,
         confirmButtonColor: '#586ae9',
       })
     }
@@ -531,7 +566,7 @@ const Modal = () => {
             >
               <span className='material-symbols-rounded'>close</span>
             </button>
-            <p className='articles-modal__title'>{isCreate ? 'Nuevo artículo' : 'Editar artículo'}</p>
+            <p className='articles-modal__title'>{isCreate ? `Nuevo ${noun}` : `Editar ${noun}`}</p>
           </div>
           {(loadingDetail || loadError) && (
             <div className='articles-modal__loading' role='status' aria-live='polite'>
@@ -624,6 +659,9 @@ const Modal = () => {
                 <ArticleGallery images={images} onChange={setImages} onAdd={() => setImagePickerOpen(true)} />
                 <div className='article-info-layout__main'>
 <section className='article-section'>
+  <div className='article-section__type'>
+    <ItemType value={itemType} onChange={setItemType} />
+  </div>
   <div className='article-section__grid'>
 <div className='articles-modal__field'>
                   <label className='articles-modal__label'>Código</label>
@@ -632,7 +670,7 @@ const Modal = () => {
                     type='text'
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
-                    placeholder='Código del artículo'
+                    placeholder={`Código del ${noun}`}
                   />
                 </div>
 <div className='articles-modal__field'>
@@ -642,7 +680,7 @@ const Modal = () => {
                     type='text'
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder='Nombre del artículo'
+                    placeholder={isService ? 'Ej. Vaso sublimado' : 'Nombre del artículo'}
                   />
                 </div>
 <div className='articles-modal__field article-section__full'>
@@ -651,7 +689,7 @@ const Modal = () => {
                   className='inputs__general'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder='Descripción del artículo'
+                  placeholder={`Descripción del ${noun}`}
                   rows={3}
                 />
               </div>
@@ -667,7 +705,7 @@ const Modal = () => {
                     onChange={(e) => setFamilyId(e.target.value ? Number(e.target.value) : null)}
                   >
                     <option value="">Sin familia</option>
-                    {availableFamilies.map((fam) => (
+                    {availableFamilies.filter((fam) => fam.allowedItemType == null || fam.allowedItemType === itemType).map((fam) => (
                       <option key={fam.id} value={fam.id}>
                         {fam.title}
                       </option>
@@ -735,11 +773,13 @@ const Modal = () => {
 <section className='article-section'>
   <div className='article-section__grid'>
 <div className='articles-modal__field'>
-                  <label className='articles-modal__label'>Precio</label>
+                  <label className='articles-modal__label'>{priceLocked ? 'Precio (lo calcula la plantilla)' : 'Precio'}</label>
                   <input
                     className='inputs__general'
                     type='number'
                     value={directPrice}
+                    readOnly={priceLocked}
+                    title={priceLocked ? 'Se calcula con las medidas y el precio base de la plantilla' : undefined}
                     onChange={(e) => setDirectPrice(e.target.value)}
                     placeholder='0.00'
                     step='0.01'
@@ -781,6 +821,40 @@ const Modal = () => {
   </div>
 </section>
 <section className='article-section'>
+  <VariantTemplateSection
+    companyId={companyId}
+    categoryId={categoryId}
+    templateId={variantTemplateId}
+    onTemplate={setVariantTemplateId}
+    rows={variations}
+    onRows={setVariations}
+    attributes={attributes}
+    onAttributes={setAttributes}
+    priceMode={priceMode}
+    onPriceMode={setPriceMode}
+    basePrice={directPrice}
+    baseSku={code}
+    onSalePrice={(price) => {
+      setPriceLocked(price != null)
+      if (price != null) setDirectPrice(String(price))
+    }}
+  />
+</section>
+{isService || !trackInventory || components.length > 0 ? (
+<section className='article-section'>
+  <ItemComponents
+    companyId={companyId}
+    itemId={currentItemId}
+    rows={components}
+    onRows={setComponents}
+    adjust={materialAdjust}
+    onAdjust={setMaterialAdjust}
+    price={directPrice.trim() !== '' && Number.isFinite(Number(directPrice)) ? Number(directPrice) : null}
+  />
+</section>
+) : null}
+{!isService ? (
+<section className='article-section'>
   <div className='catalog-modal__switches article-section__switches'>
 <div className='catalog-modal__switch-row'>
                     <span>Rastrear inventario</span>
@@ -795,7 +869,7 @@ const Modal = () => {
   </div>
 {!trackInventory ? (
                   <p className='article-modal__bajo-pedido-hint'>
-                    Artículo bajo pedido: configura la ruta de producción abajo.
+                    Artículo bajo pedido: configura la ruta de producción abajo y, arriba, los insumos que consume.
                   </p>
                 ) : null}
 {!trackInventory ? (
@@ -874,18 +948,9 @@ const Modal = () => {
                 </div>
               ) : null}
 </section>
+) : null}
 <section className='article-section article-section--actions'>
 <div className='article-modal__actions-grid'>
-                  <button
-                    type='button'
-                    className='btn__general-purple article-modal__action-btn'
-                    onClick={() => setVariationsModalOpen(true)}
-                  >
-                    <span className='material-symbols-rounded article-modal__action-icon' aria-hidden>
-                      palette
-                    </span>
-                    <span>Variaciones {variations.length > 0 && `(${variations.length})`}</span>
-                  </button>
                   <button
                     type='button'
                     className='btn__general-orange article-modal__action-btn'
@@ -896,6 +961,8 @@ const Modal = () => {
                     </span>
                     <span>Rangos de Precio {tempPriceRanges.length > 0 && `(${tempPriceRanges.length})`}</span>
                   </button>
+                  {!isService ? (
+                  <>
                   <button
                     type='button'
                     className='btn__general-primary article-modal__action-btn'
@@ -916,6 +983,8 @@ const Modal = () => {
                     </span>
                     <span>Stock</span>
                   </button>
+                  </>
+                  ) : null}
                 </div>
 </section>
 </div>
@@ -939,7 +1008,7 @@ const Modal = () => {
             >
               {isSaving
                 ? isCreate ? 'Creando...' : 'Actualizando...'
-                : isCreate ? 'Crear artículo' : 'Guardar cambios'}
+                : isCreate ? `Crear ${noun}` : 'Guardar cambios'}
             </button>
           </div>
         </div>
@@ -960,12 +1029,6 @@ const Modal = () => {
         />
       )}
 
-      <VariationsModal
-        variations={variations}
-        onChange={setVariations}
-        isOpen={variationsModalOpen}
-        onClose={() => setVariationsModalOpen(false)}
-      />
 
       {priceRangesOpen && isCreate && (
         <TempPriceRangesModal

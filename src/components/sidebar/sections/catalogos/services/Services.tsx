@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import './Services.css'
-import Modal from './Modal'
-import './Modal.css'
+// Servicios usan el mismo modal que Artículos (con tipo Servicio, precio, plantilla, imágenes e insumos)
+import ItemModal from '../articles/Modal'
+import { loadArticleDetail } from '../articles/articleDetail'
 import { useDispatch } from 'react-redux'
 import { modal } from '../../../../../redux/state/modals'
 import { useSelector } from 'react-redux'
-import { setServices, updateServices } from '../../../../../redux/state/Services'
+import { setServices } from '../../../../../redux/state/Services'
 import APIs from '../../../../../services/APIs'
 import Swal from 'sweetalert2'
 import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
@@ -36,6 +37,14 @@ const Services: React.FC = () => {
     return []
   }
 
+  // Al guardar en el modal se vuelve a pedir la lista
+  const [reload, setReload] = useState(0)
+  useEffect(() => {
+    const onChanged = () => setReload((n) => n + 1)
+    window.addEventListener('articles:changed', onChanged)
+    return () => window.removeEventListener('articles:changed', onChanged)
+  }, [])
+
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -64,7 +73,7 @@ const Services: React.FC = () => {
     return () => {
       cancelled = true
     }
-  }, [dispatch, token, companyId, branchId])
+  }, [dispatch, token, companyId, branchId, reload])
 
   const filteredServices = (services ?? []).filter((item: any) => {
     if (!search.trim()) return true
@@ -75,8 +84,8 @@ const Services: React.FC = () => {
   })
 
   const updateModalServices = (item: any) => {
-    dispatch(updateServices(item))
-    setModal('services-modal-update')
+    setModal('articles-modal-update')
+    loadArticleDetail(item, dispatch)
   }
 
   const handleDelete = async (item: any) => {
@@ -135,7 +144,7 @@ const Services: React.FC = () => {
               aria-label='Buscar servicios'
             />
           </div>
-          <button className='btn__general-primary' type='button' onClick={() => setModal('services-modal')}>
+          <button className='btn__general-primary' type='button' onClick={() => setModal('articles-modal')}>
             Nuevo servicio
           </button>
         </div>
@@ -196,7 +205,7 @@ const Services: React.FC = () => {
           )}
         </div>
       </div>
-      <Modal />
+      <ItemModal defaultType='SERVICE' />
     </div>
   )
 }

@@ -1,0 +1,104 @@
+/* Panel lateral: precio y categorías, cada uno en un bloque sin bordes de más */
+.advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.advanced__block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.advanced__block h4 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.advanced__block h4 .material-symbols-rounded {
+  font-size: 1.1rem;
+  color: var(--secondary-color);
+}
+
+.advanced__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.advanced__toggle:hover {
+  background: none;
+  color: var(--text-color);
+}
+
+.advanced__toggle small {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.advanced__chev {
+  color: var(--text-muted);
+}
+
+.advanced__note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.advanced__search {
+  margin: 0 !important;
+}
+
+.advanced__cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.advanced__cats button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.advanced__cats button .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.advanced__cats button small {
+  color: var(--text-muted);
+}
+
+.advanced__cats button.is-on {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
