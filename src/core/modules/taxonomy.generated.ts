@@ -2247,7 +2247,7 @@ export const TAXONOMY: TaxModule[] = [
           },
           {
             "key": "productos-y-servicios-variantes",
-            "label": "Variantes",
+            "label": "Plantillas de variantes",
             "live": false,
             "path": "catalogos/productos-y-servicios/variantes",
             "permission": "catalogos.productos-y-servicios-variantes.view",
@@ -4946,7 +4946,7 @@ export const SUBMODULE_LABELS: Record<string, string> = {
   "restaurants.entrega-entregas": "Entrega › Entregas",
   "restaurants.entrega-canales-externos": "Entrega › Canales externos",
   "restaurants.entrega-seguimiento-de-pedidos": "Entrega › Seguimiento de pedidos",
-  "catalogos.productos-y-servicios-variantes": "Productos y servicios › Variantes",
+  "catalogos.productos-y-servicios-variantes": "Productos y servicios › Plantillas de variantes",
   "catalogos.productos-y-servicios-presentaciones": "Productos y servicios › Presentaciones",
   "catalogos.productos-y-servicios-codigos-de-barras": "Productos y servicios › Códigos de barras",
   "catalogos.productos-y-servicios-kits-y-paquetes": "Productos y servicios › Kits y paquetes",

@@ -1,3 +1,5 @@
+import { cssVar, loadPdfMake, tint } from '../../../utils/pdf'
+
 /**
  * PDF del reporte de ventas con pdfmake (descarga directa). pdfmake y sus fuentes se cargan con import dinámico solo al
  * exportar, para no engordar la carga inicial de la app.
@@ -13,22 +15,7 @@ const dateTime = (iso?: string) =>
 
 const STATUS_LABEL: Record<string, string> = { COMPLETED: 'Completada', CANCELLED: 'Cancelada', DRAFT: 'Borrador' }
 
-// Colores de la app: se leen de las variables del tema (--primary-color / --secondary-color) para que el PDF siga la marca;
-// si no existen se usan los de fixora. Con tintes muy suaves para que también se lea bien impreso en blanco y negro.
-const cssVar = (name: string, fallback: string) => {
-  try {
-    const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
-    return /^#[0-9a-f]{6}$/i.test(v) ? v : fallback
-  } catch {
-    return fallback
-  }
-}
-/** Mezcla un color con blanco (0 = color, 1 = blanco) para fondos suaves. */
-const tint = (hex: string, amount: number) => {
-  const n = parseInt(hex.slice(1), 16)
-  const mix = (c: number) => Math.round(c + (255 - c) * amount).toString(16).padStart(2, '0')
-  return `#${mix((n >> 16) & 255)}${mix((n >> 8) & 255)}${mix(n & 255)}`
-}
+// Colores de la app (variables del tema) con respaldo en los de fixora; tintes suaves para que se lea bien en blanco y negro
 let PRIMARY = '#072a57'
 let SECONDARY = '#fc7400'
 const DARK = '#111827'
@@ -45,24 +32,6 @@ export interface SalesPdfInput {
   summary: any
   rows: any[]
   totalRows: number
-}
-
-let pdfMakePromise: Promise<any> | null = null
-/** Carga pdfmake + fuentes una sola vez. */
-async function loadPdfMake() {
-  if (!pdfMakePromise) {
-    pdfMakePromise = Promise.all([import('pdfmake/build/pdfmake'), import('pdfmake/build/vfs_fonts')]).then(([pdfMod, fontsMod]: any[]) => {
-      const pdfMake = pdfMod.default ?? pdfMod
-      const fonts = fontsMod.default ?? fontsMod
-      if (typeof pdfMake.addVirtualFileSystem === 'function') pdfMake.addVirtualFileSystem(fonts)
-      else pdfMake.vfs = fonts?.pdfMake?.vfs ?? fonts?.vfs ?? fonts
-      return pdfMake
-    })
-    pdfMakePromise.catch(() => {
-      pdfMakePromise = null
-    })
-  }
-  return pdfMakePromise
 }
 
 /** Tabla con encabezado repetido en cada página, filas cebra y columnas numéricas alineadas a la derecha. */

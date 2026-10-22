@@ -45,7 +45,8 @@ class ApiService {
       (response) => response,
       (error) => {
         const message = error?.response?.data?.message || error?.message || 'Error de red';
-        return Promise.reject({ message });
+        // code: motivo de negocio que manda el servidor (p. ej. APPROVAL_REQUIRED) para que la pantalla reaccione
+        return Promise.reject({ message, code: error?.response?.data?.code });
       },
     );
   }

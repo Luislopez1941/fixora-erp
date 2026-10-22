@@ -35,7 +35,8 @@ const taxonomy = MODULES.map((m) => {
     const groupKey = g.label ? slug(g.label) : null;
     const screens = g.screens.map((s) => {
       const screen = typeof s === 'string' ? { label: s, live: false } : s;
-      const screenSlug = slug(screen.label);
+      // `slug` opcional: renombrar la etiqueta sin cambiar ruta, carpeta ni permisos de una pantalla ya construida
+      const screenSlug = screen.slug ?? slug(screen.label);
       const key = groupKey ? `${groupKey}-${screenSlug}` : screenSlug;
       const base = `${m.key}/${groupKey ? `${groupKey}/` : ''}${screenSlug}`;
       return {

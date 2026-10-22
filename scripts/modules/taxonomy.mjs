@@ -180,7 +180,7 @@ export const MODULES = [
     requiredPermission: 'catalogos.view',
     description: 'Productos y servicios, clasificación, unidades, precios, impuestos y otros catálogos.',
     groups: [
-      { label: 'Productos y servicios', screens: [live('Artículos', 'catalogos/articles', 'catalogos.articles.view'), live('Servicios', 'catalogos/services', 'catalogos.services.view'), 'Variantes', 'Presentaciones', 'Códigos de barras', 'Kits y paquetes'] },
+      { label: 'Productos y servicios', screens: [live('Artículos', 'catalogos/articles', 'catalogos.articles.view'), live('Servicios', 'catalogos/services', 'catalogos.services.view'), { label: 'Plantillas de variantes', slug: 'variantes' }, 'Presentaciones', 'Códigos de barras', 'Kits y paquetes'] },
       { label: 'Clasificación', screens: [live('Familias', 'catalogos/familias', 'catalogos.familias.view'), live('Categorías', 'catalogos/categories', 'catalogos.containers.view'), 'Subcategorías', 'Marcas', 'Modelos', 'Atributos', 'Características'] },
       { label: 'Unidades y cantidades', screens: [live('Unidades de medida', 'catalogos/units', 'catalogos.units.view'), 'Conversiones', 'Unidades de compra', 'Unidades de venta'] },
       { label: 'Precios y condiciones', screens: ['Listas de precios', live('Rangos', 'catalogos/price-ranges', 'catalogos.prices.view'), 'Tarifas', 'Condiciones comerciales', 'Reglas de precio'] },

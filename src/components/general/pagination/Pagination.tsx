@@ -40,13 +40,17 @@ const Pagination: React.FC<Props> = ({ total, page, pageSize, onPage, noun = 're
           </button>
           {pagesToShow(current, pages).map((p, i) =>
             p === '…' ? (
-              <span key={`gap-${i}`} className='pager__gap'>…</span>
+              <span key={`gap-${i}`} className='pager__gap pager__num'>…</span>
             ) : (
-              <button key={p} type='button' className={`pager__btn ${p === current ? 'is-current' : ''}`} onClick={() => onPage(p)} aria-current={p === current ? 'page' : undefined}>
+              <button key={p} type='button' className={`pager__btn pager__num ${p === current ? 'is-current' : ''}`} onClick={() => onPage(p)} aria-current={p === current ? 'page' : undefined}>
                 {p}
               </button>
             ),
           )}
+          {/* En celular los números se cambian por "Página X de Y" (cabe en una línea) */}
+          <span className='pager__compact' aria-live='polite'>
+            Página <strong>{current}</strong> de <strong>{pages}</strong>
+          </span>
           <button type='button' className='pager__btn' disabled={current === pages} onClick={() => onPage(current + 1)} aria-label='Página siguiente'>
             <span className='material-symbols-rounded'>chevron_right</span>
           </button>

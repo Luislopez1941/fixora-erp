@@ -1,5 +1,13 @@
 import ConfigurationAPIs from './configurationAPIs';
 
+/** Query string sin vacíos para los reportes de existencias. */
+const stockQs = (params: Record<string, any>) =>
+  new URLSearchParams(
+    Object.entries(params)
+      .filter(([, v]) => v !== undefined && v !== null && v !== '' && !(typeof v === 'number' && Number.isNaN(v)))
+      .map(([k, v]) => [k, String(v)]),
+  ).toString()
+
 const APIs = {
   login: async (data: any, customPath?: string) => {
     const path = customPath || 'auth/login';
@@ -343,6 +351,20 @@ const APIs = {
     if (filters.storeId != null && filters.storeId > 0) params.set('storeId', String(filters.storeId))
     return ConfigurationAPIs.get(`products/search?${params.toString()}`, { signal })
   },
+  // Catálogo del punto de venta: tarjetas paginadas con filtros y las familias para el filtro
+  getPosCatalog: async (
+    params: { companyId?: number; branchId?: number; code?: string; name?: string; familyId?: number; inStock?: boolean; page?: number; pageSize?: number },
+    signal?: AbortSignal,
+  ) => {
+    const q = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v === undefined || v === null || v === '' || v === false || v === 0) return
+      q.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`products/catalog?${q.toString()}`, { signal })
+  },
+  getPosCatalogFamilies: async (companyId?: number) =>
+    ConfigurationAPIs.get(`products/catalog/families${companyId ? `?companyId=${companyId}` : ''}`),
   // Artículo completo (variaciones, rangos, existencias por almacén) del resultado elegido
   getProductForSale: async (id: number, filters: { branchId?: number; storeId?: number }) => {
     const params = new URLSearchParams()
@@ -576,6 +598,111 @@ const APIs = {
     const path = customPath || `suppliers/get${query ? `?${query}` : ''}`;
     return ConfigurationAPIs.get(path);
   },
+
+  // Arqueos de caja
+  getCashCountShifts: async (branchId: number) => ConfigurationAPIs.get(`cash-counts/shifts?branchId=${branchId}`),
+  getCashCountExpected: async (shiftId: number) => ConfigurationAPIs.get(`cash-counts/expected/${shiftId}`),
+  createCashCount: async (data: { shiftId: number; lines: { denomination: number; kind: string; quantity: number }[]; notes?: string; otherValues?: string }) =>
+    ConfigurationAPIs.post('cash-counts', data),
+  getCashCounts: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`cash-counts?${search.toString()}`)
+  },
+  getCashCount: async (id: number) => ConfigurationAPIs.get(`cash-counts/${id}`),
+  cancelCashCount: async (id: number, reason: string) => ConfigurationAPIs.patch(`cash-counts/${id}/cancel`, { reason }),
+
+  // Catálogos › Variantes: plantillas de variantes (ejes como Talla y Color)
+  getVariantTemplates: async (companyId?: number | null) =>
+    ConfigurationAPIs.get(`variant-templates${companyId ? `?companyId=${companyId}` : ''}`),
+  createVariantTemplate: async (data: any) => ConfigurationAPIs.post('variant-templates', data),
+  updateVariantTemplate: async (id: number, data: any) => ConfigurationAPIs.patch(`variant-templates/${id}`, data),
+  duplicateVariantTemplate: async (id: number) => ConfigurationAPIs.post(`variant-templates/${id}/duplicate`, {}),
+  deleteVariantTemplate: async (id: number) => ConfigurationAPIs.delete(`variant-templates/${id}`),
+  setVariantTemplateCategories: async (id: number, categoryIds: number[]) => ConfigurationAPIs.put(`variant-templates/${id}/categories`, { categoryIds }),
+  // Recalcular en lote los precios de los artículos con "precio según la plantilla"
+  // Insumos (maquila): buscador de materia prima y costo actual de los insumos
+  searchItemComponents: async (q: string, companyId: number | null, signal?: AbortSignal) =>
+    ConfigurationAPIs.get(`item/component-search?${new URLSearchParams({ q, ...(companyId ? { companyId: String(companyId) } : {}) }).toString()}`, { signal }),
+  getComponentCosts: async (keys: string[]) => ConfigurationAPIs.get(`item/component-costs?keys=${encodeURIComponent(keys.join(','))}`),
+  getVariantTemplateRecalcPreview: async (id: number) => ConfigurationAPIs.get(`variant-templates/${id}/recalc-preview`),
+  recalcVariantTemplatePrices: async (id: number) => ConfigurationAPIs.post(`variant-templates/${id}/recalc`, {}),
+
+  // Almacén › Existencias (reportes agregados en el servidor)
+  getStockByBranch: async (params: Record<string, any>) => ConfigurationAPIs.get(`stock-reports/by-branch?${stockQs(params)}`),
+  getStockItemStores: async (itemId: number, companyId?: number | null) =>
+    ConfigurationAPIs.get(`stock-reports/by-branch/items/${itemId}${companyId ? `?companyId=${companyId}` : ''}`),
+  getStockByStore: async (params: Record<string, any>) => ConfigurationAPIs.get(`stock-reports/by-store?${stockQs(params)}`),
+  getStockStoreItem: async (storeId: number, itemId: number) => ConfigurationAPIs.get(`stock-reports/by-store/${storeId}/items/${itemId}`),
+  updateStockLevels: async (itemId: number, data: { minStockAlert: number | null; maxStock: number | null }) =>
+    ConfigurationAPIs.patch(`stock-reports/items/${itemId}/levels`, data),
+  getStockAvailability: async (params: Record<string, any>) => ConfigurationAPIs.get(`stock-reports/availability?${stockQs(params)}`),
+  getStockAvailabilityItem: async (itemId: number, params: Record<string, any>) =>
+    ConfigurationAPIs.get(`stock-reports/availability/items/${itemId}?${stockQs(params)}`),
+  getStockReservations: async (params: Record<string, any>) => ConfigurationAPIs.get(`stock-reports/reservations?${stockQs(params)}`),
+  getStockReservation: async (orderId: number) => ConfigurationAPIs.get(`stock-reports/reservations/${orderId}`),
+
+  // Caja › Control (section: limits | opening | closing | authorization)
+  getCashControl: async (section: string, branchId: number) => ConfigurationAPIs.get(`cash-control/${section}?branchId=${branchId}`),
+  updateCashControl: async (section: string, branchId: number, data: any) => ConfigurationAPIs.patch(`cash-control/${section}?branchId=${branchId}`, data),
+  setCashRegisterFund: async (registerId: number, openingAmount: number | null) =>
+    ConfigurationAPIs.patch(`cash-control/opening/registers/${registerId}`, { openingAmount }),
+  getCashDenominations: async (branchId: number) => ConfigurationAPIs.get(`cash-denominations?branchId=${branchId}`),
+  saveCashDenomination: async (data: { branchId: number; kind: 'BILL' | 'COIN'; value: number; active?: boolean }) =>
+    ConfigurationAPIs.put('cash-denominations', data),
+  deleteCashDenomination: async (branchId: number, kind: string, value: number) =>
+    ConfigurationAPIs.delete(`cash-denominations?branchId=${branchId}&kind=${kind}&value=${value}`),
+  resetCashDenominations: async (branchId: number) => ConfigurationAPIs.post('cash-denominations/reset', { branchId }),
+
+  // Rotaciones de turnos
+  getCashRotations: async (branchId: number) => ConfigurationAPIs.get(`cash-rotations?branchId=${branchId}`),
+  getCashRotationCalendar: async (branchId: number, from: string, to: string) =>
+    ConfigurationAPIs.get(`cash-rotations/calendar?branchId=${branchId}&from=${from}&to=${to}`),
+  createCashRotation: async (data: any) => ConfigurationAPIs.post('cash-rotations', data),
+  updateCashRotation: async (id: number, data: any) => ConfigurationAPIs.patch(`cash-rotations/${id}`, data),
+  deleteCashRotation: async (id: number) => ConfigurationAPIs.delete(`cash-rotations/${id}`),
+  getCashRotationCoverage: async (branchId: number, from: string, to: string) =>
+    ConfigurationAPIs.get(`cash-reports/rotations?branchId=${branchId}&from=${from}&to=${to}`),
+
+  // Asignaciones cajero ↔ caja
+  getCashAssignments: async (branchId: number) => ConfigurationAPIs.get(`cash-assignments?branchId=${branchId}`),
+  getCashAssignmentHistory: async (branchId: number) => ConfigurationAPIs.get(`cash-assignments/history?branchId=${branchId}`),
+  createCashAssignment: async (data: { registerId: number; userId: number; isDefault?: boolean; validFrom?: string | null; validTo?: string | null; active?: boolean }) =>
+    ConfigurationAPIs.post('cash-assignments', data),
+  updateCashAssignment: async (id: number, data: { isDefault?: boolean; validFrom?: string | null; validTo?: string | null; active?: boolean }) =>
+    ConfigurationAPIs.patch(`cash-assignments/${id}`, data),
+  deleteCashAssignment: async (id: number) => ConfigurationAPIs.delete(`cash-assignments/${id}`),
+
+  // Autorizaciones de caja
+  getCashAuthorizations: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`cash-authorizations?${search.toString()}`)
+  },
+  resolveCashAuthorization: async (data: { refType: string; refId: number; decision: 'AUTHORIZED' | 'REJECTED'; comment?: string }) =>
+    ConfigurationAPIs.post('cash-authorizations/resolve', data),
+
+  // Reportes de caja: diferencias e historial de cortes
+  getCashDifferences: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`cash-reports/differences?${search.toString()}`)
+  },
+  getCashCloses: async (params: Record<string, string | number | undefined>) => {
+    const search = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== '' && v !== 0) search.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`cash-reports/closes?${search.toString()}`)
+  },
+  getCashClose: async (shiftId: number, from?: 'differences' | 'authorizations') =>
+    ConfigurationAPIs.get(`cash-reports/closes/${shiftId}${from ? `?from=${from}` : ''}`),
 
   // Reportes: ventas (todo agregado en el servidor)
   getSalesReportSummary: async (params: Record<string, string | number | undefined>) => {
@@ -846,6 +973,9 @@ const APIs = {
     return ConfigurationAPIs.patch(`orders/${saleId}/fulfillment`, data);
   },
 
+  /** Ficha completa de un artículo (vista de detalle del inventario): datos, unidades, variaciones, almacenes, lotes y kardex */
+  getInventoryItemDetail: async (itemId: number, branchId?: number) =>
+    ConfigurationAPIs.get(`inventory/item/${itemId}/detail${branchId && branchId > 0 ? `?branchId=${branchId}` : ''}`),
   getInventory: async (filters?: {
     companyId?: number;
     branchId?: number;
