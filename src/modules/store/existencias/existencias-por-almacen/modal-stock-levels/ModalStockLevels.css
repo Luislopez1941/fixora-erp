@@ -1,0 +1,74 @@
+/* Modal de mínimo y máximo (se abre encima del detalle) */
+.stock-levels-modal__overlay {
+  z-index: 10003;
+}
+
+.stock-levels-modal {
+  width: min(460px, 100%);
+}
+
+.stock-levels-modal__name {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  text-align: left;
+}
+
+.stock-levels-modal__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stock-levels-modal__grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.stock-levels-modal__grid .inputs__general {
+  width: 100%;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.stock-levels-modal__grid small {
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.stock-levels-modal__note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  font-size: 0.74rem;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.stock-levels-modal__note .material-symbols-rounded {
+  font-size: 17px;
+  color: var(--primary-color);
+}
+
+.stock-levels-modal__error {
+  margin: 8px 0 0;
+  font-size: 0.76rem;
+  color: #d64545;
+}
+
+@media (max-width: 480px) {
+  .stock-levels-modal__grid {
+    grid-template-columns: 1fr;
+  }
+}

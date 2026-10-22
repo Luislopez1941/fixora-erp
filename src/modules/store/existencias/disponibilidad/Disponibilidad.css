@@ -1,0 +1,12 @@
+/* Disponibilidad: contenedor de la tabla (atenuado mientras recarga) */
+.disponibilidad__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.15s;
+}
+
+.disponibilidad__body.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}

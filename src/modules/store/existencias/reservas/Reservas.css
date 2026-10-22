@@ -1,0 +1,45 @@
+/* Reservas: rango de fechas y contenedor de la tabla */
+.reservas__dates {
+  flex-wrap: nowrap;
+}
+
+.reservas__dates .inputs__general {
+  width: 150px;
+  margin: 0;
+}
+
+.reservas__clear {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.reservas__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.15s;
+}
+
+.reservas__body.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .reservas__dates {
+    width: 100%;
+  }
+
+  .reservas__dates .inputs__general {
+    flex: 1;
+    width: auto;
+  }
+}

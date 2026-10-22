@@ -1,0 +1,12 @@
+/* Existencias por sucursal: contenedor de la tabla (atenuado mientras recarga) */
+.existencias-sucursal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: opacity 0.15s;
+}
+
+.existencias-sucursal__body.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}

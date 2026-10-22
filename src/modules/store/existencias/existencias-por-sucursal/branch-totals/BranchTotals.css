@@ -1,0 +1,60 @@
+/* Totales por sucursal: tarjetas en fila con barra relativa */
+.branch-totals {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.branch-totals__item {
+  flex: 1 0 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--surface, var(--card-bg));
+  text-align: left;
+}
+
+.branch-totals__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.branch-totals__head .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--secondary-color);
+}
+
+.branch-totals__head strong {
+  font-size: 0.84rem;
+  color: var(--text-color);
+}
+
+.branch-totals__item > b {
+  font-size: 1.05rem;
+  color: var(--primary-color);
+}
+
+.branch-totals__item small {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.branch-totals__bar {
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  overflow: hidden;
+}
+
+.branch-totals__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary-color);
+}

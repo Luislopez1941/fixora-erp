@@ -1,0 +1,129 @@
+/* Detalle de disponibilidad de un artículo */
+.availability-modal {
+  width: min(560px, 100%);
+}
+
+.availability-modal__math {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
+}
+
+.availability-modal__math > div {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.availability-modal__math small {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.availability-modal__math b {
+  font-size: 1.1rem;
+  color: var(--primary-color);
+}
+
+.availability-modal__math > span {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+.availability-modal__math .stock-status {
+  margin-left: auto;
+}
+
+.availability-modal .is-committed {
+  color: #c25e00;
+}
+
+.availability-modal .is-free {
+  color: #1f7a45;
+}
+
+.availability-modal .is-neg {
+  color: #d64545;
+}
+
+.availability-modal__section {
+  margin-top: 14px;
+  text-align: left;
+}
+
+.availability-modal__section h3 {
+  margin: 0 0 6px;
+  padding-left: 8px;
+  border-left: 3px solid var(--secondary-color);
+  font-size: 0.84rem;
+  color: var(--primary-color);
+}
+
+.availability-modal__section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.availability-modal__section li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.availability-modal__section li:last-child {
+  border-bottom: none;
+}
+
+.availability-modal__section li > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.availability-modal__section strong {
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.availability-modal__section small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.availability-modal__section small.is-late {
+  color: #d64545;
+  font-weight: 600;
+}
+
+.availability-modal__empty,
+.availability-modal__error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.availability-modal__error {
+  margin-top: 10px;
+  color: #d64545;
+}
+
+.availability-modal__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.availability-modal__skeleton .table-skeleton__shimmer {
+  display: block;
+  height: 38px;
+  border-radius: 10px;
+}

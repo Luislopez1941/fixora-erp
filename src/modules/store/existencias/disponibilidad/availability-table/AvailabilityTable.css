@@ -1,0 +1,80 @@
+/* Tabla de disponibilidad (filas del kit cash-ui; tarjetas en celular) */
+.availability__row {
+  grid-template-columns: minmax(200px, 2.2fr) 100px 120px 100px minmax(120px, 1.2fr) 110px;
+}
+
+.availability__item {
+  min-width: 0;
+}
+
+.availability__item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.availability__row .is-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.availability__committed {
+  color: #c25e00;
+}
+
+.availability__available {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1f7a45;
+}
+
+.availability__available.is-neg {
+  color: #d64545;
+}
+
+.availability__bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  overflow: hidden;
+}
+
+.availability__bar span {
+  height: 100%;
+}
+
+.availability__bar .is-committed {
+  background: #fc7400;
+}
+
+.availability__bar .is-free {
+  background: #1f9d55;
+}
+
+.availability__bar.is-short span {
+  background: repeating-linear-gradient(45deg, #d64545 0 6px, #e46a6a 6px 12px);
+}
+
+@media (max-width: 760px) {
+  .cash-ui__list.availability .availability__item {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .cash-ui__list.availability .availability__status {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .cash-ui__list.availability .availability__split {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 761px) {
+  .availability__row > :nth-child(5) {
+    padding-left: 14px;
+  }
+}

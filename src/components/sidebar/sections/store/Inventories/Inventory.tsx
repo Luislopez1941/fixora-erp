@@ -1,30 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import './Inventory.css'
 import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker'
 import APIs from '../../../../../services/APIs'
 import TableSkeleton from '../../../../general/skeleton/TableSkeleton'
 import Pagination from '../../../../general/pagination/Pagination'
+import { useCan } from '../../../../../core/permissions/useCan'
+import { modal } from '../../../../../redux/state/modals'
+import ArticleModal from '../../catalogos/articles/Modal'
+import '../../catalogos/articles/Modal.css'
+import { loadArticleDetail } from '../../catalogos/articles/articleDetail'
+import { STATUS_CLASS } from './inventoryStatus'
+import InventoryRow from './inventory-row/InventoryRow'
+import ModalItemDetail from './modal-item-detail/ModalItemDetail'
 
 const PAGE_SIZE = 30
+/** Una página ya vista se reutiliza durante este tiempo (volver de página o de otra pantalla es instantáneo) */
+const CACHE_TTL = 60_000
 
-type StockStatus = 'disponible' | 'stock_bajo' | 'agotado' | 'sin_rastreo'
-
-const STATUS_LABEL: Record<StockStatus, string> = {
-  disponible: 'En stock',
-  stock_bajo: 'Stock bajo',
-  agotado: 'Desabasto',
-  sin_rastreo: 'Sin rastreo',
-}
-
-const STATUS_CLASS: Record<StockStatus, string> = {
-  disponible: 'is-ok',
-  stock_bajo: 'is-low',
-  agotado: 'is-out',
-  sin_rastreo: 'is-none',
+type PageData = { items: any[]; summary: any; total: number }
+// Caché en memoria del módulo: sobrevive a salir y volver a la pantalla
+const pageCache = new Map<string, { at: number; data: PageData }>()
+const fresh = (key: string) => {
+  const hit = pageCache.get(key)
+  return hit && Date.now() - hit.at < CACHE_TTL ? hit.data : null
 }
 
 const Inventory: React.FC = () => {
+  const dispatch = useDispatch()
+  const can = useCan()
+  const canEdit = can('catalogos.articles.manage')
+  const modalState = useSelector((state: any) => state.modals)
   const [branchId, setBranchId] = useState(() => {
     const id = Number(localStorage.getItem('categories-picker-branch-id'))
     return !Number.isNaN(id) && id > 0 ? id : 0
@@ -40,10 +46,20 @@ const Inventory: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [page, setPage] = useState(1)
   const [total, setTotal] = useState(0)
   const requestRef = useRef(0)
-  const [expandedId, setExpandedId] = useState<number | null>(null)
+  const [detail, setDetail] = useState<any | null>(null)
+  const [editing, setEditing] = useState(false)
+
+  const effectiveCompanyId: number | null =
+    companyId ?? userState?.activeCompanyId ?? userState?.companyId ?? userState?.companyIds?.[0] ?? null
+
+  // Los filtros en una sola clave. La página va ligada a esa clave: al cambiar un filtro la página vuelve a 1 en el mismo
+  // render (antes un efecto la regresaba después y se disparaban DOS peticiones: la vieja página con el filtro nuevo y la 1).
+  const filtersKey = JSON.stringify([effectiveCompanyId, branchId, statusFilter, debouncedSearch.trim()])
+  const [pageState, setPageState] = useState({ key: filtersKey, page: 1 })
+  const page = pageState.key === filtersKey ? pageState.page : 1
+  const setPage = useCallback((p: number) => setPageState({ key: filtersKey, page: p }), [filtersKey])
 
   const persistBranchId = useCallback((id: number) => {
     setBranchId(id)
@@ -52,21 +68,41 @@ const Inventory: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 400)
+    const timer = setTimeout(() => setDebouncedSearch(search), 350)
     return () => clearTimeout(timer)
   }, [search])
 
-  // Al buscar o cambiar de filtro/sucursal se vuelve a la primera página
-  useEffect(() => {
-    setPage(1)
-  }, [debouncedSearch, statusFilter, branchId, companyId])
+  const requestFor = useCallback(
+    (p: number) => ({
+      companyId: effectiveCompanyId ?? undefined,
+      branchId: branchId > 0 ? branchId : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+      page: p,
+      pageSize: PAGE_SIZE,
+      search: debouncedSearch.trim(),
+    }),
+    [effectiveCompanyId, branchId, statusFilter, debouncedSearch],
+  )
+  const cacheKey = (p: number) => `${filtersKey}|${p}`
 
-  // Cada página, búsqueda o filtro es una petición: el servidor entrega solo los 30 de esa página y el resumen de todo el inventario.
-  // Una respuesta vieja nunca pisa a una nueva.
+  const fetchPage = useCallback(
+    async (p: number): Promise<PageData> => {
+      const response: any = await APIs.getInventory(requestFor(p))
+      const data = {
+        items: Array.isArray(response?.data) ? response.data : [],
+        summary: response?.summary ?? null,
+        total: response?.pagination?.total ?? 0,
+      }
+      pageCache.set(`${filtersKey}|${p}`, { at: Date.now(), data })
+      return data
+    },
+    [requestFor, filtersKey],
+  )
+
+  // Cada página es una petición (el servidor entrega solo esos 30 y el resumen). Si la página ya está en caché se muestra al
+  // instante; mientras llega una nueva se conservan los datos actuales (sin parpadeo de skeleton). Una respuesta vieja nunca
+  // pisa a una nueva. Al terminar se pide en segundo plano la página siguiente.
   const fetchInventory = useCallback(async () => {
-    // Empresa del selector o, si no hay ninguna vinculada, la activa de la sesión
-    const effectiveCompanyId =
-      companyId ?? userState?.activeCompanyId ?? userState?.companyId ?? userState?.companyIds?.[0] ?? null
     if (!effectiveCompanyId) {
       setItems([])
       setSummary(null)
@@ -74,23 +110,24 @@ const Inventory: React.FC = () => {
       setLoading(false)
       return
     }
-
     const requestId = ++requestRef.current
-    setLoading(true)
+    const cached = fresh(cacheKey(page))
+    if (cached) {
+      setItems(cached.items)
+      setSummary(cached.summary)
+      setTotal(cached.total)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
     try {
-      const response: any = await APIs.getInventory({
-        companyId: effectiveCompanyId,
-        branchId: branchId > 0 ? branchId : undefined,
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        page,
-        pageSize: PAGE_SIZE,
-        search: debouncedSearch,
-      })
+      const data = cached ?? (await fetchPage(page))
       if (requestId !== requestRef.current) return
-      setItems(Array.isArray(response?.data) ? response.data : [])
-      setSummary(response?.summary ?? null)
-      setTotal(response?.pagination?.total ?? 0)
-      setExpandedId(null)
+      setItems(data.items)
+      setSummary(data.summary)
+      setTotal(data.total)
+      const pages = Math.ceil(data.total / PAGE_SIZE)
+      if (page < pages && !fresh(cacheKey(page + 1))) fetchPage(page + 1).catch(() => undefined)
     } catch (error) {
       if (requestId !== requestRef.current) return
       console.error('Error al cargar inventario:', error)
@@ -100,15 +137,35 @@ const Inventory: React.FC = () => {
     } finally {
       if (requestId === requestRef.current) setLoading(false)
     }
-  }, [branchId, companyId, statusFilter, userState?.activeCompanyId, page, debouncedSearch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [effectiveCompanyId, filtersKey, page, fetchPage])
 
   useEffect(() => {
     fetchInventory()
   }, [fetchInventory])
 
-  const toggleExpand = (id: number) => {
-    setExpandedId((prev) => (prev === id ? null : id))
-  }
+  const openDetail = useCallback((item: any) => setDetail(item), [])
+  const closeDetail = useCallback(() => setDetail(null), [])
+
+  // "Editar artículo" abre el mismo modal de edición de Artículos; al cerrarlo se refrescan los datos (pueden haber cambiado)
+  const openEdit = useCallback(
+    (item: any) => {
+      setDetail(null)
+      setEditing(true)
+      dispatch(modal('articles-modal-update'))
+      loadArticleDetail({ id: item.itemId, name: item.name, code: item.code }, dispatch)
+    },
+    [dispatch],
+  )
+  useEffect(() => {
+    if (editing && !modalState) {
+      setEditing(false)
+      pageCache.clear()
+      fetchInventory()
+    }
+  }, [editing, modalState, fetchInventory])
+
+  const showSkeleton = loading && items.length === 0
 
   return (
     <div className='inventory-list'>
@@ -143,7 +200,7 @@ const Inventory: React.FC = () => {
         </div>
 
         {/* Resumen: siempre ocupa su lugar para que la página no salte al cargar */}
-        <div className='inventory-list__summary'>
+        <div className='inventory-list__summary inventory-list__summary--accent'>
           {([
             ['Artículos', summary?.totalItems, ''],
             ['En stock', summary?.disponibles, STATUS_CLASS.disponible],
@@ -151,101 +208,37 @@ const Inventory: React.FC = () => {
             ['Desabasto', summary?.agotados, STATUS_CLASS.agotado],
           ] as [string, number | undefined, string][]).map(([label, value, cls]) => (
             <div className={`inventory-list__card ${cls}`} key={label}>
-              <span>{label}</span>
-              {loading ? (
-                <span className='table-skeleton__shimmer inventory-list__card-sk' />
-              ) : (
-                <b>{value ?? 0}</b>
-              )}
+              <div className='inventory-list__card-text'>
+                <span><i className='inventory-list__card-dot' aria-hidden />{label}</span>
+                {showSkeleton ? (
+                  <span className='table-skeleton__shimmer inventory-list__card-sk' />
+                ) : (
+                  <b>{value ?? 0}</b>
+                )}
+              </div>
             </div>
           ))}
         </div>
 
         {/* La tabla siempre se ve; el skeleton va dentro */}
-        <div className='inventory-list__list'>
-          <div className='inventory-list__row inventory-list__row--head'>
+        <div className={`inventory-list__list ${loading && !showSkeleton ? 'is-refreshing' : ''}`}>
+          <div className='inventory-list__row inventory-list__row--head inventory-row'>
             <span>Código</span>
             <span>Artículo</span>
             <span>Stock total</span>
             <span>Estado</span>
-            <span>Tallas</span>
+            <span>Variantes</span>
+            <span />
           </div>
 
-          {loading ? (
+          {showSkeleton ? (
             <TableSkeleton rowClassName='inventory-list__row' cols={[{ pill: true, width: '64px' }, { width: '65%' }, { width: '35%' }, { pill: true, width: '72px' }, { width: '50%' }]} />
           ) : items.length === 0 ? (
             <div className='inventory-list__state'>
               <p>{debouncedSearch.trim() ? 'No se encontraron artículos con ese criterio' : 'No hay artículos para mostrar'}</p>
             </div>
           ) : (
-            items.map((item) => {
-              const status = (item.status ?? 'sin_rastreo') as StockStatus
-              const canExpand = item.hasVariations || (item.generalStock ?? 0) > 0
-              const isExpanded = expandedId === item.itemId
-              const variations = item.variations ?? []
-
-              return (
-                <div className='inventory-list__item' key={item.itemId}>
-                  <div
-                    className={`inventory-list__row ${canExpand ? 'inventory-list__row--expandable' : ''}`}
-                    onClick={() => canExpand && toggleExpand(item.itemId)}
-                    role={canExpand ? 'button' : undefined}
-                    aria-expanded={canExpand ? isExpanded : undefined}
-                  >
-                    <div className='inventory-list__cell' data-label='Código'>
-                      {item.code ? <span className='inventory-list__tag'>{item.code}</span> : '—'}
-                    </div>
-                    <div className='inventory-list__cell inventory-list__cell--name' data-label='Artículo'>
-                      {canExpand && (
-                        <span className={`inventory-list__chevron material-symbols-rounded ${isExpanded ? 'is-open' : ''}`}>chevron_right</span>
-                      )}
-                      <strong>{item.name}</strong>
-                    </div>
-                    <div className='inventory-list__cell' data-label='Stock total'>
-                      {item.trackInventory ? item.totalStock : '—'}
-                    </div>
-                    <div className='inventory-list__cell' data-label='Estado'>
-                      <span className={`inventory-list__status ${STATUS_CLASS[status]}`}>{STATUS_LABEL[status]}</span>
-                    </div>
-                    <div className='inventory-list__cell inventory-list__cell--muted' data-label='Tallas'>
-                      {item.hasVariations
-                        ? `${variations.length} tallas${item.outOfStockCount > 0 ? ` · ${item.outOfStockCount} agotadas` : ''}${item.lowStockCount > 0 ? ` · ${item.lowStockCount} bajas` : ''}`
-                        : '—'}
-                    </div>
-                  </div>
-
-                  {isExpanded && (variations.length > 0 || (item.generalStock ?? 0) > 0) && (
-                    <div className='inventory-list__sizes'>
-                      <p className='inventory-list__sizes-title'>Existencias por talla</p>
-                      <div className='inventory-list__sizes-grid'>
-                        {(item.generalStock ?? 0) > 0 && (
-                          <div className={`inventory-list__size ${STATUS_CLASS.disponible}`}>
-                            <span className='inventory-list__size-label'>Sin talla asignada</span>
-                            <strong>General</strong>
-                            <b>{item.generalStock} pzs</b>
-                            <span className={`inventory-list__status ${STATUS_CLASS.disponible}`}>Entradas sin talla</span>
-                          </div>
-                        )}
-                        {variations.map((v: any) => {
-                          const vStatus = (v.status ?? 'agotado') as StockStatus
-                          return (
-                            <div className={`inventory-list__size ${STATUS_CLASS[vStatus]}`} key={v.id}>
-                              <span className='inventory-list__size-label'>
-                                <span className='inventory-list__swatch' style={{ backgroundColor: v.colorHex || '#586ae9' }} />
-                                {v.color}
-                              </span>
-                              <strong>{v.size}</strong>
-                              <b>{v.stock} pzs</b>
-                              <span className={`inventory-list__status ${STATUS_CLASS[vStatus]}`}>{STATUS_LABEL[vStatus]}</span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })
+            items.map((item) => <InventoryRow key={item.itemId} item={item} onOpen={openDetail} />)
           )}
         </div>
 
@@ -253,6 +246,9 @@ const Inventory: React.FC = () => {
           <Pagination total={total} page={page} pageSize={PAGE_SIZE} onPage={setPage} noun='artículos' />
         )}
       </div>
+
+      {detail ? <ModalItemDetail item={detail} branchId={branchId > 0 ? branchId : undefined} canEdit={canEdit} onEdit={openEdit} onClose={closeDetail} /> : null}
+      {editing ? <ArticleModal /> : null}
     </div>
   )
 }

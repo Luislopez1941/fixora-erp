@@ -307,30 +307,102 @@ select.inventory-list__filter {
 }
 
 .inventory-list__card {
+  /* Plana: fondo sólido con un tinte suave del color del indicador, sin degradados ni sombras */
+  --card-accent: #072a57;
+  --card-ink: #072a57;
+  --card-tint: 8%;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px;
-  background: var(--card-bg);
-  border: 1px solid var(--panel-border);
-  border-left: 4px solid var(--primary-color);
-  border-radius: 12px;
+  align-items: center;
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 14%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--card-accent) var(--card-tint), var(--card-bg));
+  min-width: 0;
 }
 
-.inventory-list__card.is-ok { border-left-color: #059669; }
-.inventory-list__card.is-low { border-left-color: #d97706; }
-.inventory-list__card.is-out { border-left-color: #dc2626; }
+.inventory-list__card.is-ok { --card-accent: #059669; --card-ink: #047857; --card-tint: 10%; }
+.inventory-list__card.is-low { --card-accent: #fc7400; --card-ink: #b45309; --card-tint: 11%; }
+.inventory-list__card.is-out { --card-accent: #dc2626; --card-ink: #b91c1c; --card-tint: 8%; }
 
-.inventory-list__card > span:first-child {
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
+.inventory-list__card-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.inventory-list__card-text > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inventory-list__card-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--card-accent);
 }
 
 .inventory-list__card b {
-  font-size: 1.4rem;
-  color: var(--text-color);
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--card-ink);
+}
+
+/* Acento de identidad: la tarjeta principal en azul marino sólido (como el TOTAL de la ficha de cobro) */
+.inventory-list__summary--accent .inventory-list__card:first-child {
+  background: #072a57;
+  border-color: #072a57;
+}
+
+.inventory-list__summary--accent .inventory-list__card:first-child .inventory-list__card-text > span:first-child {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.inventory-list__summary--accent .inventory-list__card:first-child .inventory-list__card-dot {
+  background: #fc7400;
+}
+
+.inventory-list__summary--accent .inventory-list__card:first-child b {
+  color: #fff;
+}
+
+/* Modo oscuro: tintes equivalentes sobre la superficie oscura y textos claros */
+[data-theme='dark'] .inventory-list__card,
+:root:not([data-theme]) .inventory-list__card {
+  --card-tint: 16%;
+  border-color: color-mix(in srgb, var(--card-accent) 30%, transparent);
+}
+
+[data-theme='dark'] .inventory-list__card:not(.is-ok):not(.is-low):not(.is-out),
+:root:not([data-theme]) .inventory-list__card:not(.is-ok):not(.is-low):not(.is-out) {
+  --card-accent: #3b6fd8;
+  --card-ink: #9cbcff;
+}
+
+[data-theme='dark'] .inventory-list__card.is-ok, :root:not([data-theme]) .inventory-list__card.is-ok { --card-ink: #6ee7b7; }
+[data-theme='dark'] .inventory-list__card.is-low, :root:not([data-theme]) .inventory-list__card.is-low { --card-ink: #fdba74; }
+[data-theme='dark'] .inventory-list__card.is-out, :root:not([data-theme]) .inventory-list__card.is-out { --card-ink: #fca5a5; }
+
+[data-theme='dark'] .inventory-list__card-text > span:first-child,
+:root:not([data-theme]) .inventory-list__card-text > span:first-child {
+  color: var(--text-muted);
+}
+
+[data-theme='dark'] .inventory-list__summary--accent .inventory-list__card:first-child,
+:root:not([data-theme]) .inventory-list__summary--accent .inventory-list__card:first-child {
+  background: #0b3a78;
+  border-color: #0b3a78;
 }
 
 .inventory-list__card-sk {
@@ -404,5 +476,77 @@ select.inventory-list__filter {
 
   .inventory-list__sizes {
     padding-left: 16px;
+  }
+}
+
+/* ── Encabezado: controles alineados al borde izquierdo del contenido ── */
+.inventory-list__header {
+  justify-content: flex-start;
+  align-items: flex-end;
+  text-align: left;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.inventory-list__search {
+  flex: 1 1 240px;
+  max-width: 420px;
+}
+
+.inventory-list__search .inputs__general.inventory-list__search-input,
+select.inventory-list__filter {
+  margin: 0;
+}
+
+.inventory-list__search .inputs__general.inventory-list__search-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 600px) {
+  .inventory-list__header {
+    align-items: stretch;
+  }
+
+  .inventory-list__search,
+  select.inventory-list__filter {
+    flex: 1 1 100%;
+    max-width: none;
+    width: 100%;
+  }
+
+  .inventory-list__card {
+    padding: 12px 14px;
+  }
+
+  .inventory-list__card b {
+    font-size: 1.35rem;
+  }
+}
+
+/* Mientras llega otra página se conservan los datos actuales, atenuados */
+.inventory-list__list.is-refreshing {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+/* Celular / tablet: la página entera hace scroll (sin scroll interno en la lista, que cortaba las tarjetas) */
+@media screen and (max-width: 900px) {
+  .inventory-list,
+  .inventory-list__container {
+    height: auto;
+  }
+
+  .inventory-list__list {
+    flex: none;
+    overflow: visible;
+  }
+}
+
+/* La barra de navegación inferior fija del celular (Menu, ~58 px) tapaba la paginación: se deja su espacio al final */
+@media screen and (max-width: 768px) {
+  .inventory-list__container {
+    padding-bottom: calc(16px + 58px + env(safe-area-inset-bottom, 0px));
   }
 }

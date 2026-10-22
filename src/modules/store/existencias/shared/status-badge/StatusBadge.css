@@ -1,0 +1,17 @@
+/* Etiqueta de estado de existencias */
+.stock-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.stock-status--ok { color: #1f7a45; background: color-mix(in srgb, #1f9d55 13%, transparent); }
+.stock-status--warn { color: #b25400; background: color-mix(in srgb, #fc7400 14%, transparent); }
+.stock-status--bad { color: #b42323; background: color-mix(in srgb, #d64545 12%, transparent); }
+.stock-status--info { color: #1d4ed8; background: color-mix(in srgb, #2563eb 11%, transparent); }
+.stock-status--muted { color: var(--text-muted); background: color-mix(in srgb, var(--text-color) 7%, transparent); }

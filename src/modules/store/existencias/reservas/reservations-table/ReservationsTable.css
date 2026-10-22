@@ -1,0 +1,66 @@
+/* Tabla de reservas (filas del kit cash-ui; tarjetas en celular) */
+.reservations__row {
+  grid-template-columns: minmax(150px, 1.2fr) minmax(160px, 1.6fr) 120px 100px 120px 150px;
+}
+
+.reservations__row.is-overdue {
+  box-shadow: inset 3px 0 0 #d64545;
+}
+
+.reservations__order strong {
+  color: var(--primary-color);
+}
+
+.reservations__customer {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reservations__late {
+  color: #d64545;
+}
+
+.reservations__flags {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.reservations__flag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.reservations__flag.is-late { color: #b42323; background: color-mix(in srgb, #d64545 12%, transparent); }
+.reservations__flag.is-short { color: #b25400; background: color-mix(in srgb, #fc7400 14%, transparent); }
+.reservations__flag.is-ok { color: #1f7a45; background: color-mix(in srgb, #1f9d55 12%, transparent); }
+
+@media (max-width: 760px) {
+  .cash-ui__list.reservations .reservations__order {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .cash-ui__list.reservations .reservations__flags {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    align-self: start;
+  }
+
+  .reservations__customer {
+    white-space: normal;
+  }
+}
+
+@media (min-width: 761px) {
+  .reservations__row > :last-child {
+    padding-left: 14px;
+  }
+}

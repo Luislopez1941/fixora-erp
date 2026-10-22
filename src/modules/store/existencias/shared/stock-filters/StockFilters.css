@@ -1,0 +1,114 @@
+/* Barra de filtros de existencias */
+.stock-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stock-filters__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-filters__search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 260px;
+  min-width: 0;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--modal-input-bg, var(--surface, transparent));
+  box-sizing: border-box;
+}
+
+.stock-filters__search:focus-within {
+  border-color: var(--primary-color);
+}
+
+.stock-filters__search .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+.stock-filters__search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.86rem;
+}
+
+.stock-filters__search button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.stock-filters__select {
+  width: auto;
+  min-width: 180px;
+  max-width: 240px;
+  height: 40px;
+  margin: 0 !important;
+}
+
+.stock-filters__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.stock-filters__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.stock-filters__chips .cash-ui__chip b {
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--secondary-color) 18%, transparent);
+  font-size: 0.7rem;
+}
+
+.stock-filters__chips .cash-ui__chip.is-active b {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 760px) {
+  .stock-filters__select {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .stock-filters__actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .stock-filters__actions > * {
+    flex: 1;
+  }
+
+  .stock-filters__chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .stock-filters__chips .cash-ui__chip {
+    flex-shrink: 0;
+  }
+}

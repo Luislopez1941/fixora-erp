@@ -1,0 +1,89 @@
+/* Detalle de un artículo por almacén (marco en el kit cash-ui) */
+.item-stores-modal {
+  width: min(520px, 100%);
+}
+
+.item-stores-modal__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.item-stores-modal__summary b {
+  color: var(--primary-color);
+}
+
+.item-stores-modal__group {
+  margin-bottom: 10px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.item-stores-modal__group header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+}
+
+.item-stores-modal__group header .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--secondary-color);
+}
+
+.item-stores-modal__group header strong {
+  flex: 1;
+  font-size: 0.84rem;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.item-stores-modal__group header b {
+  color: var(--primary-color);
+}
+
+.item-stores-modal__group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 12px;
+}
+
+.item-stores-modal__group li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.item-stores-modal__group li:last-child {
+  border-bottom: none;
+}
+
+.item-stores-modal__group li.is-zero b {
+  color: #d64545;
+}
+
+.item-stores-modal__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-stores-modal__skeleton .table-skeleton__shimmer {
+  display: block;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.item-stores-modal__error {
+  font-size: 0.8rem;
+  color: #d64545;
+}

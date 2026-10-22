@@ -1,0 +1,93 @@
+/* Tabla de existencias del almacén (filas del kit cash-ui; tarjetas en celular) */
+.store-stock__row {
+  grid-template-columns: minmax(200px, 2.2fr) 100px minmax(150px, 1.4fr) minmax(130px, 1.1fr) minmax(130px, 1fr) 110px;
+}
+
+.store-stock__item {
+  min-width: 0;
+}
+
+.store-stock__item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-stock__qty {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.store-stock__muted {
+  color: var(--text-muted);
+}
+
+.store-stock__level {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.store-stock__bar {
+  position: relative;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+}
+
+.store-stock__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #1f9d55;
+}
+
+.store-stock__bar.is-stock_bajo span { background: #fc7400; }
+.store-stock__bar.is-agotado span { background: #d64545; }
+.store-stock__bar.is-sobre_maximo span { background: #2563eb; }
+
+.store-stock__bar i {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 13px;
+  border-radius: 1px;
+  background: var(--text-color);
+  opacity: 0.55;
+}
+
+.store-stock__lots {
+  display: flex;
+  flex-direction: column;
+}
+
+.store-stock__lots b {
+  font-size: 0.8rem;
+}
+
+.store-stock__lots small.is-warn {
+  color: #c25e00;
+  font-weight: 600;
+}
+
+.store-stock__lots small.is-bad {
+  color: #d64545;
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  /* Tarjeta: artículo y estado arriba; los demás datos en pares con su etiqueta (kit cash-ui) */
+  .cash-ui__list.store-stock .store-stock__item {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .cash-ui__list.store-stock .store-stock__status {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+  }
+}

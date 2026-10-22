@@ -1,0 +1,195 @@
+/* Fila de inventario (escritorio) y tarjeta compacta (celular). La rejilla base viene de .inventory-list__row en Inventory.css */
+.inventory-list__row.inventory-row {
+  grid-template-columns: 110px minmax(220px, 2.4fr) 110px 120px minmax(140px, 1fr) 44px;
+  cursor: pointer;
+}
+
+.inventory-row:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: -2px;
+}
+
+.inventory-row__name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.inventory-row__thumb {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--card-bg));
+}
+
+.inventory-row__thumb--empty {
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.inventory-row__title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inventory-row__title strong {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inventory-row__title small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.inventory-row__stock {
+  display: flex;
+  flex-direction: column;
+}
+
+.inventory-row__stock b {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.inventory-row__stock small {
+  display: none;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.inventory-row__chips {
+  display: none;
+}
+
+.inventory-row__dash {
+  color: var(--text-muted);
+}
+
+.inventory-row__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.inventory-row__eye {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.inventory-row__eye .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.inventory-row__eye:hover {
+  border-color: var(--secondary-color);
+  color: var(--secondary-color);
+}
+
+[data-theme='dark'] .inventory-row__eye,
+:root:not([data-theme]) .inventory-row__eye {
+  color: var(--text-color);
+}
+
+/* Celular / tablet: tarjeta compacta
+   [miniatura] Nombre (2 líneas)              Stock
+               código · estado · tallas        [ojo] */
+@media screen and (max-width: 900px) {
+  .inventory-list__row.inventory-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'name stock'
+      'chips eye';
+    gap: 8px 12px;
+    padding: 12px 14px;
+  }
+
+  .inventory-row .inventory-list__cell::before {
+    content: none !important;
+  }
+
+  .inventory-row__name {
+    grid-area: name;
+    align-items: flex-start;
+  }
+
+  .inventory-row__thumb {
+    width: 44px;
+    height: 44px;
+  }
+
+  .inventory-row__title strong {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .inventory-row__stock {
+    grid-area: stock;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .inventory-row__stock b {
+    font-size: 1.2rem;
+    color: var(--primary-color);
+  }
+
+  [data-theme='dark'] .inventory-row__stock b,
+  :root:not([data-theme]) .inventory-row__stock b {
+    color: var(--text-color);
+  }
+
+  .inventory-row__stock small {
+    display: block;
+  }
+
+  /* Las celdas de escritorio se cambian por la fila de chips */
+  .inventory-row__code,
+  .inventory-row__status,
+  .inventory-row__sizes {
+    display: none !important;
+  }
+
+  .inventory-row__chips {
+    grid-area: chips;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding-left: 54px;
+  }
+
+  .inventory-row__size-chip {
+    font-size: 0.74rem;
+    color: var(--text-muted);
+  }
+
+  .inventory-row__actions {
+    grid-area: eye;
+    align-items: center;
+  }
+
+  .inventory-row__eye {
+    width: 44px;
+    height: 44px;
+  }
+}

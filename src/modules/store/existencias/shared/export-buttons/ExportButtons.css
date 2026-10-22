@@ -1,0 +1,28 @@
+/* Botones de exportar */
+.export-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.export-buttons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 40px;
+  white-space: nowrap;
+}
+
+.export-buttons .material-symbols-rounded {
+  font-size: 18px;
+}
+
+@media (max-width: 760px) {
+  .export-buttons {
+    width: 100%;
+  }
+
+  .export-buttons button {
+    flex: 1;
+  }
+}

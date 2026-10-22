@@ -1,0 +1,151 @@
+/* Tabla artículo × sucursal (scroll horizontal con muchas sucursales); tarjetas en celular */
+.branch-matrix {
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--surface, var(--card-bg));
+  overflow-x: auto;
+}
+
+.branch-matrix__row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: max-content;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--panel-border);
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+button.branch-matrix__row {
+  cursor: pointer;
+}
+
+button.branch-matrix__row:hover {
+  background: color-mix(in srgb, var(--primary-color) 4%, transparent);
+}
+
+.branch-matrix__row:last-child {
+  border-bottom: none;
+}
+
+.branch-matrix__row--head {
+  position: sticky;
+  top: 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--primary-color) 5%, var(--surface, #fff));
+}
+
+.branch-matrix .is-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.branch-matrix__item {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.branch-matrix__item strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.branch-matrix__item small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.branch-matrix__cell {
+  font-weight: 600;
+}
+
+.branch-matrix__cell.is-out {
+  color: #d64545;
+}
+
+.branch-matrix__cell.is-low {
+  color: #c25e00;
+}
+
+.branch-matrix__cell.is-na {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.branch-matrix__total {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+@media (max-width: 760px) {
+  .branch-matrix {
+    border: none;
+    background: none;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .branch-matrix__row.branch-matrix__row--head {
+    display: none !important;
+  }
+
+  .branch-matrix__row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    background: var(--surface, var(--card-bg));
+  }
+
+  .branch-matrix__item {
+    grid-column: 1;
+  }
+
+  .branch-matrix__status {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .branch-matrix__cell,
+  .branch-matrix__total {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    grid-column: 1 / -1;
+    padding-top: 6px;
+    border-top: 1px dashed var(--panel-border);
+  }
+
+  .branch-matrix__cell::before,
+  .branch-matrix__total::before {
+    content: attr(data-label);
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+}
+
+/* Separación entre Total y Estado en escritorio */
+@media (min-width: 761px) {
+  .branch-matrix__row > :last-child {
+    padding-left: 14px;
+  }
+}
