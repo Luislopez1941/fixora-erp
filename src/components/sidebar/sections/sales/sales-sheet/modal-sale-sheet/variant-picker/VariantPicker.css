@@ -1,0 +1,243 @@
+/* Elegir variante al vender (encima de la ficha de cobro) */
+.variant-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(7, 20, 40, 0.5);
+}
+
+.variant-picker__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, 100%);
+  max-height: calc(100dvh - 32px);
+  border-radius: 18px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color);
+  box-shadow: 0 20px 50px rgba(7, 20, 40, 0.3);
+  overflow: hidden;
+}
+
+.variant-picker__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.variant-picker__head h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--primary-color);
+}
+
+[data-theme='dark'] .variant-picker__head h3 {
+  color: var(--text-color);
+}
+
+.variant-picker__head small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.variant-picker__close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.variant-picker__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.variant-picker__axis,
+.variant-picker__all {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variant-picker__axis-name {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.variant-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.variant-picker__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 48px;
+  height: 42px;
+  padding: 0 16px;
+  justify-content: center;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.variant-picker__chip i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+}
+
+.variant-picker__chip.is-on {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.variant-picker__chip:disabled {
+  opacity: 0.35;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.variant-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.variant-picker__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.variant-picker__card:hover,
+.variant-picker__card.is-on {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 6%, var(--card-bg, #fff));
+  color: var(--text-color);
+}
+
+.variant-picker__card strong {
+  font-size: 0.86rem;
+}
+
+.variant-picker__card span {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.variant-picker__card small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.variant-picker__card small.is-out {
+  color: #d64545;
+}
+
+.variant-picker__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.variant-picker__pick {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+
+.variant-picker__pick strong {
+  font-size: 0.95rem;
+}
+
+.variant-picker__pick span {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.variant-picker__pick small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.variant-picker__pick.is-empty {
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.variant-picker__add {
+  height: 42px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 12px;
+  background: var(--primary-color);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.variant-picker__add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .variant-picker {
+    padding: 0;
+    place-items: end stretch;
+  }
+
+  .variant-picker__panel {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .variant-picker__foot {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+}

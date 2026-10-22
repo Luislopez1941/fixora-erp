@@ -1,0 +1,72 @@
+/* Paginación del catálogo del punto de venta */
+.catalog-pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--card-bg);
+}
+
+.catalog-pager__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid #072a57;
+  border-radius: 10px;
+  background: #072a57;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.catalog-pager__btn .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.catalog-pager__btn:disabled {
+  border-color: var(--panel-border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.catalog-pager__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.catalog-pager__info strong {
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.catalog-pager__info small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+/* Celular: fija abajo para cambiar de página sin regresar arriba */
+@media (max-width: 640px) {
+  .catalog-pager {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    padding: 8px 10px;
+    border-radius: 14px 14px 0 0;
+    box-shadow: 0 -6px 18px rgba(7, 42, 87, 0.12);
+  }
+
+  .catalog-pager__btn {
+    padding: 0 10px;
+  }
+}

@@ -1,0 +1,203 @@
+/* Medidas de la pieza al vender (encima de la ficha de cobro) */
+.measure-form {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(7, 20, 40, 0.5);
+}
+
+.measure-form__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(520px, 100%);
+  max-height: calc(100dvh - 32px);
+  margin: 0;
+  border-radius: 18px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color);
+  box-shadow: 0 20px 50px rgba(7, 20, 40, 0.3);
+  overflow: hidden;
+}
+
+.measure-form__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.measure-form__head h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  color: var(--primary-color);
+}
+
+[data-theme='dark'] .measure-form__head h3 {
+  color: var(--text-color);
+}
+
+.measure-form__head small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.measure-form__close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.measure-form__body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.measure-form__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.measure-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.measure-form__input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.measure-form__input input {
+  width: 100%;
+  height: 46px;
+  padding: 0 44px 0 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--text-color);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.measure-form__input input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+.measure-form__input em {
+  position: absolute;
+  right: 14px;
+  font-style: normal;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.measure-form__price {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--secondary-color) 8%, var(--card-bg, #fff));
+}
+
+.measure-form__price small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.measure-form__price strong {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+}
+
+.measure-form__price span {
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.measure-form__price.is-empty {
+  background: color-mix(in srgb, var(--text-muted) 8%, var(--card-bg, #fff));
+}
+
+.measure-form__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.measure-form__cancel,
+.measure-form__add {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.measure-form__cancel {
+  border: 1px solid var(--panel-border);
+  background: none;
+  color: var(--text-color);
+}
+
+.measure-form__add {
+  border: none;
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.measure-form__add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .measure-form {
+    padding: 0;
+    place-items: end stretch;
+  }
+
+  .measure-form__panel {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .measure-form__foot {
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .measure-form__foot button {
+    flex: 1;
+  }
+}

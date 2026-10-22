@@ -11,6 +11,11 @@ import {
   getUrgencySurchargeLabel,
   URGENCY_OPTIONS,
 } from '../../../../../../constants/urgencyPricing'
+import VariantPicker from './variant-picker/VariantPicker'
+import MeasureForm, { MeasureResult, priceFieldsOf } from './measure-form/MeasureForm'
+import CustomerMaterial from './customer-material/CustomerMaterial'
+import CatalogModal from './catalog-modal/CatalogModal'
+import { SHEET_ADD_EVENT, takePendingSheetItems } from './sheetBridge'
 
 const LS_COMPANY = 'categories-picker-company-id'
 
@@ -120,6 +125,17 @@ type SaleLine = {
   rangeLabel: string
   trackInventory: boolean
   areaId: number | null
+  /** Variante de plantilla: etiqueta "M / Rojo" (se cambia con el selector de variantes) */
+  variationLabel: string
+  /** Medidas con las que se calculó el precio (vidrio 120 × 80 cm) */
+  measures: Record<string, number> | null
+  measureText: string
+  /** Servicio con insumos que el cliente puede traer: interruptor "El cliente trae su material" */
+  customerMaterial: boolean
+  materialAdjust: number
+  clientMaterials: string[]
+  /** Detalle del artículo para volver a abrir el selector de variantes */
+  product: any
 }
 
 const applyPriceRangeToLine = (
@@ -141,7 +157,8 @@ const applyPriceRangeToLine = (
     }
   }
 
-  const listPrice = Number(selectedRange.price) || 0
+  // Si el cliente trae su material, el ajuste del servicio también aplica sobre el precio del rango
+  const listPrice = Math.max(0, (Number(selectedRange.price) || 0) + (line.customerMaterial ? line.materialAdjust : 0))
 
   return {
     ...line,
@@ -213,8 +230,14 @@ const getVariationStockForLine = (
   return null
 }
 
+/** Bajo pedido: sin inventario propio y no es servicio (un servicio se vende directo y descuenta sus insumos) */
+const madeToOrder = (line: SaleLine) => !line.trackInventory && line.product?.type !== 'SERVICE'
+
 const canMergeSaleLines = (a: SaleLine, b: SaleLine) => {
   if (a.productId !== b.productId || a.storeId !== b.storeId) return false
+  // Cada pieza con medidas es su propia línea (120×80 y 60×40 no se suman)
+  if (a.measures || b.measures) return false
+  if (a.customerMaterial !== b.customerMaterial) return false
   if ((a.areaId ?? null) !== (b.areaId ?? null)) return false
 
   if (a.usesSizes) {
@@ -292,7 +315,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const [sellStatus, setSellStatus] = useState<{ canSell: boolean; reason: string | null; shift: any; why?: string; expired?: boolean; debug?: any } | null>(null)
   const codeInputRef = useRef<HTMLInputElement>(null)
   const [productionAreas, setProductionAreas] = useState<any[]>([])
-  const [defaultAreaId, setDefaultAreaId] = useState<string>('')
   const [saleDueDate, setSaleDueDate] = useState('')
   const [saleUrgency, setSaleUrgency] = useState('NORMAL')
 
@@ -311,7 +333,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     dispatch(modal(value))
   }
 
-  // Cierre desde la X, Cerrar ficha o Esc: si ya hay artículos capturados pide
+  // Cierre desde la X o Esc: si ya hay artículos capturados pide
   // confirmación para no perder la ficha por un clic accidental.
   const requestClose = async () => {
     if (isSubmitting) return
@@ -384,9 +406,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
         })
         const list = Array.isArray(response?.data) ? response.data : []
         setProductionAreas(list)
-        if (list.length === 1) {
-          setDefaultAreaId(String(list[0].id))
-        }
       } catch {
         setProductionAreas([])
       }
@@ -424,6 +443,10 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const detailCache = useRef(new Map<string, Promise<any>>())
   const searchAbort = useRef<AbortController | null>(null)
   const [pickingId, setPickingId] = useState<number | null>(null)
+  // Selector de variantes (al agregar o al cambiar la de una línea) y medidas de la pieza (vidrio, tela…)
+  const [variantPicker, setVariantPicker] = useState<{ product: any; lineKey?: string } | null>(null)
+  const [measureFor, setMeasureFor] = useState<{ product: any; variation: any | null } | null>(null)
+  const [catalogOpen, setCatalogOpen] = useState(false)
 
   const searchFilters = () => ({
     companyId: selectedCompany || readCompanyId() || undefined,
@@ -454,7 +477,8 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     setPickingId(product.id)
     try {
       const response: any = await prefetchProduct(product.id)
-      addProduct(response?.data ?? product)
+      // Si se escaneó el código de una variante, esa variante entra directo
+      addProduct(response?.data ?? product, { variationId: product?.variationId ?? null })
     } catch (error) {
       console.error('Error al cargar el artículo:', error)
       setSearchError((error as any)?.response?.data?.message || 'No se pudo cargar el artículo')
@@ -547,7 +571,68 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     runSearch('name', name)
   }
 
-  const addProduct = (product: any) => {
+  /**
+   * Agregar un artículo: con variantes de plantilla se elige la variante (o entra directo si se escaneó su código);
+   * si su precio se calcula con medidas, se piden las medidas de la pieza.
+   */
+  /** 'added' = ya está en la ficha; 'asking' = se abrió el selector de variante o de medidas */
+  const addProduct = (product: any, opts: { variationId?: number | null } = {}): 'added' | 'asking' => {
+    const variations = getProductVariations(product)
+    if (variations.some((v: any) => v.option1)) {
+      const pre = opts.variationId ? variations.find((v: any) => v.id === opts.variationId) : null
+      if (!pre) {
+        setVariantPicker({ product })
+        return 'asking'
+      }
+      return addWithVariation(product, pre)
+    }
+    return addWithVariation(product, null)
+  }
+
+  const addWithVariation = (product: any, variation: any | null): 'added' | 'asking' => {
+    if (priceFieldsOf(product).length) {
+      setMeasureFor({ product, variation })
+      return 'asking'
+    }
+    pushLine(product, variation, null)
+    return 'added'
+  }
+
+  // Artículos que llegan del catálogo (el de esta ficha o el del encabezado): mismo flujo que al buscarlos aquí
+  const addFromCatalog = useRef<((item: { id: number; name?: string }, notify: boolean) => Promise<void>) | undefined>(undefined)
+  addFromCatalog.current = async (item, notify) => {
+    try {
+      const response: any = await prefetchProduct(item.id)
+      const result = addProduct(response?.data ?? item)
+      if (notify && result === 'added') showToast({ type: 'success', title: `${item.name ?? 'Artículo'} agregado a la ficha`, timer: 1600 })
+    } catch (error: any) {
+      showToast({ type: 'error', title: 'No se pudo agregar', text: error?.response?.data?.message || 'Intenta de nuevo.' })
+    }
+  }
+
+  useEffect(() => {
+    if (!isOpen) return
+    const drain = () => {
+      for (const item of takePendingSheetItems()) addFromCatalog.current?.(item, !!item.notify)
+    }
+    drain()
+    window.addEventListener(SHEET_ADD_EVENT, drain)
+    return () => window.removeEventListener(SHEET_ADD_EVENT, drain)
+  }, [isOpen])
+
+  // "El cliente trae su material": cambia el precio con el ajuste del servicio (el servidor lo vuelve a calcular)
+  const toggleCustomerMaterial = (key: string, on: boolean) =>
+    setSaleLines((prev) =>
+      mergeSaleLines(
+        prev.map((line) => {
+          if (line.key !== key || line.customerMaterial === on) return line
+          const listUnitPrice = Math.max(0, line.listUnitPrice + (on ? line.materialAdjust : -line.materialAdjust))
+          return { ...line, customerMaterial: on, listUnitPrice, unitPrice: applyDiscountPercent(listUnitPrice, line.discountPercent ?? 0) }
+        }),
+      ),
+    )
+
+  const pushLine = (product: any, picked: any | null, measured: MeasureResult | null) => {
     const usesSizes = product.usesSizes === true
     const trackInventory = product.trackInventory !== false
     const variations = getProductVariations(product)
@@ -560,24 +645,30 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     )
 
     const colors = getVariationColors(variations)
-    const initialColor = colors.length === 1 ? colors[0].color : ''
+    // Variante de plantilla elegida: su color / talla (doble escritura) sirven para la existencia por variante
+    const initialColor = picked ? picked.color ?? '' : colors.length === 1 ? colors[0].color : ''
     const sizes = initialColor ? getSizesForColor(variations, initialColor) : []
-    const initialSize = sizes.length === 1 ? sizes[0].size : ''
-    const selectedVariation = resolveVariation(
+    const initialSize = picked ? picked.size ?? '' : sizes.length === 1 ? sizes[0].size : ''
+    const selectedVariation = picked ?? resolveVariation(
       variations,
       initialColor || null,
       initialSize || null,
     )
 
     const discountPercent = getItemDiscountPercent(product)
-    const listUnitPrice = getProductUnitPrice(product, 1)
+    // Precio: el calculado con las medidas, el de la variante elegida o el del artículo
+    const listUnitPrice = measured
+      ? measured.price
+      : picked
+        ? Number(picked.price ?? product.price ?? 0) || 0
+        : getProductUnitPrice(product, 1)
 
     let line: SaleLine = {
       key: `${product.id}-${Date.now()}`,
       productId: product.id,
       code: product.code ?? '',
       name: product.name ?? '',
-      quantity: 1,
+      quantity: measured?.quantity ?? 1,
       listUnitPrice,
       unitPrice: applyDiscountPercent(listUnitPrice, discountPercent),
       discountPercent,
@@ -590,13 +681,20 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       selectedColor: initialColor,
       selectedSize: initialSize,
       itemVariationId: selectedVariation?.id ?? null,
-      priceRanges,
+      // Las piezas con medidas no usan rangos de precio por cantidad
+      priceRanges: measured ? [] : priceRanges,
       priceRangeId: null,
       rangeLabel: '',
       trackInventory,
-      areaId:
-        getFirstRouteAreaId(product) ??
-        (!trackInventory && defaultAreaId ? Number(defaultAreaId) : null),
+      variationLabel: picked?.label ?? '',
+      measures: measured?.measures ?? null,
+      measureText: measured?.text ?? '',
+      customerMaterial: false,
+      materialAdjust: Number(product.customerMaterialAdjust ?? 0) || 0,
+      clientMaterials: (Array.isArray(product.components) ? product.components : []).filter((c: any) => c.customerCanProvide).map((c: any) => c.component?.name ?? ''),
+      product,
+      // El área sale de la ruta de producción del artículo; si es bajo pedido y no tiene ruta, el cajero la elige en la línea
+      areaId: getFirstRouteAreaId(product),
     }
 
     line = applyPriceRangeToLine(line)
@@ -606,6 +704,34 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     clearSearch()
     setActiveField(null)
     setTimeout(() => codeInputRef.current?.focus(), 0)
+  }
+
+  /** Variante elegida en el selector: nueva línea o cambio de la variante de una línea */
+  const handleVariantPicked = (variation: any) => {
+    const target = variantPicker
+    setVariantPicker(null)
+    if (!target) return
+    if (!target.lineKey) {
+      addWithVariation(target.product, variation)
+      return
+    }
+    setSaleLines((prev) =>
+      mergeSaleLines(
+        prev.map((line) => {
+          if (line.key !== target.lineKey) return line
+          const listUnitPrice = Number(variation.price ?? target.product.price ?? 0) || 0
+          return applyPriceRangeToLine({
+            ...line,
+            selectedColor: variation.color ?? '',
+            selectedSize: variation.size ?? '',
+            itemVariationId: variation.id,
+            variationLabel: variation.label ?? '',
+            listUnitPrice,
+            unitPrice: applyDiscountPercent(listUnitPrice, line.discountPercent ?? 0),
+          })
+        }),
+      ),
+    )
   }
 
   const applyVariationSelection = (line: SaleLine, color: string, size: string): SaleLine => {
@@ -692,21 +818,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     )
   }
 
-  const applyDefaultAreaToAll = (areaId: string) => {
-    setDefaultAreaId(areaId)
-    if (!areaId) return
-
-    setSaleLines((prev) =>
-      mergeSaleLines(
-        prev.map((line) =>
-          line.trackInventory === false || !line.areaId
-            ? { ...line, areaId: Number(areaId) }
-            : line,
-        ),
-      ),
-    )
-  }
-
   const updateItemPrice = (key: string, price: number) => {
     setSaleLines((prev) =>
       prev.map((line) =>
@@ -739,6 +850,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   )
 
   const hasSizedLines = saleLines.some((line) => line.usesSizes)
+  const templateVariantsOnly = hasSizedLines && saleLines.every((line) => !line.usesSizes || !!line.variationLabel)
   const hasRangeLines = saleLines.some((line) => line.priceRanges.length > 0)
 
   const getTableLayoutClass = () => {
@@ -748,7 +860,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     return ''
   }
 
-  const hasProductionLines = saleLines.some((line) => !line.trackInventory)
+  const hasProductionLines = saleLines.some(madeToOrder)
 
   // Entrega y urgencia solo aplican a lo que se produce bajo pedido
   useEffect(() => {
@@ -757,7 +869,8 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       setSaleDueDate('')
     }
   }, [hasProductionLines])
-  const tableLayoutClass = `${getTableLayoutClass()} sales-sheet-table--production`.trim()
+  // La columna "Área prod." solo aparece cuando hay algo bajo pedido en la ficha
+  const tableLayoutClass = `${getTableLayoutClass()} ${hasProductionLines ? '' : 'sales-sheet-table--no-area'}`.trim()
 
   useEffect(() => {
     if (!isOpen || !selectedCompany) return
@@ -797,7 +910,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   const resetSaleForm = () => {
     setSaleLines([])
     setDiscount('0')
-    setDefaultAreaId('')
     setSaleDueDate('')
     setSaleUrgency('NORMAL')
     setFields({ codigo: '', name: '' })
@@ -887,7 +999,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
     }
 
     const missingAreaLine = saleLines.find(
-      (line) => !line.trackInventory && !line.areaId,
+      (line) => madeToOrder(line) && !line.areaId,
     )
 
     if (missingAreaLine) {
@@ -934,6 +1046,9 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           storeId: Number(line.storeId) > 0 ? Number(line.storeId) : undefined,
           itemVariationId: line.itemVariationId ?? undefined,
           priceRangeId: line.priceRangeId ?? undefined,
+          // Medidas de la pieza: el servidor recalcula el precio con la fórmula
+          measures: line.measures ?? undefined,
+          customerMaterial: line.customerMaterial || undefined,
           code: line.code,
           name: line.name,
           areaId: line.areaId ?? undefined,
@@ -1028,7 +1143,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                       {stock <= 0 ? 'Sin existencias' : `${stock} disp.`}
                     </span>
                   ) : (
-                    <span className='modal-sale-result-stock'>Bajo pedido</span>
+                    <span className='modal-sale-result-stock'>{product.type === 'SERVICE' ? 'Servicio' : 'Bajo pedido'}</span>
                   )}
                 </span>
               </button>
@@ -1042,7 +1157,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
   }
 
   const renderAreaCell = (line: SaleLine) => {
-    const requiresArea = !line.trackInventory
+    const requiresArea = madeToOrder(line)
 
     return (
       <div className='sales-sheet-table__cell sales-sheet-table__cell--area'>
@@ -1055,7 +1170,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           aria-label={`Área de producción para ${line.name}`}
         >
           <option value=''>
-            {requiresArea ? 'Selecciona área *' : 'Sin producción'}
+            {productionAreas.length ? (requiresArea ? 'Selecciona área *' : 'Sin producción') : 'Crea un área de producción'}
           </option>
           {productionAreas.map((area) => (
             <option key={area.id} value={String(area.id)}>
@@ -1078,6 +1193,10 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
       <div className="modal-sale-sheet">
         <div className="modal-sale-sheet-header">
           <h2 className="modal-sale-sheet-title">Ficha de cobro</h2>
+          <button type='button' className='modal-sale-sheet-catalog' onClick={() => setCatalogOpen(true)}>
+            <span className='material-symbols-rounded' aria-hidden>grid_view</span>
+            Catálogo
+          </button>
           <button
             type='button'
             className='modal-sale-sheet-close'
@@ -1130,7 +1249,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           )}
 
           <section className="modal-sale-section">
-            <div className="modal-sale-section-title">Búsqueda de Artículos</div>
             <div className="modal-sale-search-grid">
               <div className="modal-sale-search-field">
                 <label>Código</label>
@@ -1194,24 +1312,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           <section className="modal-sale-section">
             <div className="modal-sale-section-title">
               Artículos en la Ficha ({saleLines.length})
-              {productionAreas.length > 0 && (
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', marginLeft: '20px', verticalAlign: 'middle' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'normal', textTransform: 'none' }}>Área Predeterminada:</span>
-                  <select
-                    className='modal-sale-select'
-                    style={{ height: '30px', fontSize: '0.8rem', padding: '0 8px' }}
-                    value={defaultAreaId}
-                    onChange={(e) => applyDefaultAreaToAll(e.target.value)}
-                  >
-                    <option value=''>—</option>
-                    {productionAreas.map((area) => (
-                      <option key={area.id} value={String(area.id)}>
-                        {area.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
             </div>
 
             <div className="modal-sale-table-wrap">
@@ -1220,12 +1320,13 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                 <div>Artículo</div>
                 {hasSizedLines && (
                   <>
-                    <div>Color</div>
-                    <div>Talla</div>
+                    {/* Con variantes de plantilla la columna es "Variante" (M / Rojo); con las viejas, color y talla */}
+                    <div>{templateVariantsOnly ? 'Variante' : 'Color'}</div>
+                    <div>{templateVariantsOnly ? '' : 'Talla'}</div>
                   </>
                 )}
                 {hasRangeLines && <div>Rango</div>}
-                <div>Área Prod.</div>
+                {hasProductionLines && <div>Área Prod.</div>}
                 <div style={{ textAlign: 'center' }}>Cant.</div>
                 <div style={{ textAlign: 'right' }}>Precio</div>
                 <div style={{ textAlign: 'right' }}>Subtotal</div>
@@ -1245,9 +1346,36 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                       </div>
                       <div className='modal-sale-cell modal-sale-cell--name'>
                         <strong>{line.name}</strong>
+                        {line.measureText ? <span className='modal-sale-line-detail'>{line.measureText}</span> : null}
+                        {line.clientMaterials?.length ? (
+                          <CustomerMaterial
+                            on={line.customerMaterial}
+                            adjust={line.materialAdjust}
+                            materials={line.clientMaterials}
+                            onChange={(on) => toggleCustomerMaterial(line.key, on)}
+                          />
+                        ) : null}
                       </div>
                       {hasSizedLines && (
                         <>
+                          {line.variationLabel ? (
+                            <>
+                              <div className='modal-sale-cell modal-sale-cell--opt' data-label='Variante'>
+                                <button type='button' className='modal-sale-variant-btn' onClick={() => setVariantPicker({ product: line.product, lineKey: line.key })} title='Cambiar variante'>
+                                  {line.variationLabel}
+                                  <span className='material-symbols-rounded' aria-hidden>swap_horiz</span>
+                                </button>
+                              </div>
+                              <div className='modal-sale-cell modal-sale-cell--opt' />
+                            </>
+                          ) : !line.usesSizes ? (
+                            // Artículo sin variantes en una ficha que sí tiene: celdas vacías
+                            <>
+                              <div className='modal-sale-cell modal-sale-cell--opt' />
+                              <div className='modal-sale-cell modal-sale-cell--opt' />
+                            </>
+                          ) : (
+                          <>
                           <div className='modal-sale-cell modal-sale-cell--opt' data-label='Color'>
                             <select
                               className='modal-sale-row-select'
@@ -1280,6 +1408,8 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                                 : []}
                             </select>
                           </div>
+                          </>
+                          )}
                         </>
                       )}
                       {hasRangeLines && (
@@ -1298,9 +1428,14 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
                           </select>
                         </div>
                       )}
-                      <div className='modal-sale-cell modal-sale-cell--area' data-label='Área de producción'>
-                        {renderAreaCell(line)}
-                      </div>
+                      {/* Solo los bajo pedido llevan área; un producto normal no muestra nada de producción */}
+                      {!hasProductionLines ? null : madeToOrder(line) ? (
+                        <div className='modal-sale-cell modal-sale-cell--area' data-label='Área de producción'>
+                          {renderAreaCell(line)}
+                        </div>
+                      ) : (
+                        <div className='modal-sale-cell modal-sale-cell--area-empty' aria-hidden />
+                      )}
                       <div className='modal-sale-cell modal-sale-cell--qty' data-label='Cantidad'>
                         {/* − / + solo se muestran en celular (CSS); usan el mismo updateQuantity que el campo */}
                         <button
@@ -1367,6 +1502,8 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
 
           </div>
           <aside className="modal-sale-pos__side">
+          {/* Datos de la venta y formas de pago: en escritorio hacen scroll propio si no caben; el total y Cobrar quedan abajo */}
+          <div className="modal-sale-pos__side-top">
           {hasProductionLines && (
           <section className="modal-sale-section">
             <div className="modal-sale-section-title">Datos de la venta</div>
@@ -1428,6 +1565,7 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
               </div>
             </section>
           )}
+          </div>
 
           <footer className="modal-sale-footer">
             <div className="modal-sale-totals">
@@ -1486,13 +1624,6 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
             <div className="modal-sale-footer-actions">
               <button
                 type='button'
-                className='btn-cancel'
-                onClick={requestClose}
-              >
-                Cerrar ficha
-              </button>
-              <button
-                type='button'
                 className='btn-save'
                 onClick={handleCobrar}
                 disabled={isSubmitting || (!!sellStatus && !sellStatus.canSell)}
@@ -1540,6 +1671,34 @@ const ModalSheet: React.FC<{ onSaved?: () => void }> = ({ onSaved }) => {
           </div>
         )}
       </div>
+      {variantPicker ? (
+        <VariantPicker
+          product={variantPicker.product}
+          currentId={variantPicker.lineKey ? saleLines.find((l) => l.key === variantPicker.lineKey)?.itemVariationId : null}
+          onPick={handleVariantPicked}
+          onClose={() => setVariantPicker(null)}
+        />
+      ) : null}
+      {measureFor ? (
+        <MeasureForm
+          product={measureFor.product}
+          variation={measureFor.variation}
+          onConfirm={(result) => {
+            const target = measureFor
+            setMeasureFor(null)
+            pushLine(target.product, target.variation, result)
+          }}
+          onClose={() => setMeasureFor(null)}
+        />
+      ) : null}
+      {isOpen && catalogOpen ? (
+        <CatalogModal
+          companyId={searchFilters().companyId}
+          branchId={searchFilters().branchId}
+          onAdd={(item) => addFromCatalog.current?.(item, true) ?? Promise.resolve()}
+          onClose={() => setCatalogOpen(false)}
+        />
+      ) : null}
     </div>,
     document.body
   )

@@ -1,0 +1,102 @@
+/* Catálogo del punto de venta: filtros, cuadrícula de tarjetas y paginación */
+.catalog-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  scroll-margin-top: 12px;
+}
+
+.catalog-view__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  transition: opacity 0.15s ease;
+}
+
+.catalog-view--compact .catalog-view__grid {
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* Cambiando de página: la página anterior queda tenue mientras llega la nueva */
+.catalog-view__grid.is-loading {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.catalog-view__state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 20px;
+  border: 1px dashed var(--panel-border);
+  border-radius: 14px;
+  background: var(--card-bg);
+  text-align: center;
+}
+
+.catalog-view__state .material-symbols-rounded {
+  font-size: 42px;
+  color: color-mix(in srgb, #072a57 40%, transparent);
+}
+
+[data-theme='dark'] .catalog-view__state .material-symbols-rounded {
+  color: var(--text-muted);
+}
+
+.catalog-view__state.is-error .material-symbols-rounded {
+  color: #dc2626;
+}
+
+.catalog-view__state strong {
+  font-size: 0.98rem;
+  color: var(--text-color);
+}
+
+.catalog-view__state p {
+  max-width: 380px;
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.catalog-view__state button {
+  height: 36px;
+  margin-top: 8px;
+  padding: 0 16px;
+  border: 1px solid #072a57;
+  border-radius: 10px;
+  background: transparent;
+  color: #072a57;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+[data-theme='dark'] .catalog-view__state button {
+  border-color: var(--text-color);
+  color: var(--text-color);
+}
+
+/* Celular: dos tarjetas por fila (una en pantallas muy angostas) */
+@media (max-width: 640px) {
+  .catalog-view {
+    gap: 12px;
+  }
+
+  .catalog-view__grid,
+  .catalog-view--compact .catalog-view__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (max-width: 340px) {
+  .catalog-view__grid,
+  .catalog-view--compact .catalog-view__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

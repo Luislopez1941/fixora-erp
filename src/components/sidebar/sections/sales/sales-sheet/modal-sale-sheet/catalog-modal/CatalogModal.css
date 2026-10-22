@@ -1,0 +1,98 @@
+/* Catálogo encima de la ficha de cobro (los selectores de variante y medidas quedan por encima: z-index 10050) */
+.pos-catalog-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 42, 87, 0.45);
+  animation: pos-catalog-fade 0.15s ease;
+}
+
+@keyframes pos-catalog-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+.pos-catalog-modal__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(1240px, 100%);
+  height: min(860px, 100%);
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 24px 60px rgba(7, 42, 87, 0.3);
+}
+
+.pos-catalog-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.pos-catalog-modal__head h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #072a57;
+}
+
+[data-theme='dark'] .pos-catalog-modal__head h2 {
+  color: var(--text-color);
+}
+
+.pos-catalog-modal__head small {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.pos-catalog-modal__close {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.pos-catalog-modal__close:hover {
+  background: color-mix(in srgb, #fc7400 12%, transparent);
+  color: #fc7400;
+}
+
+.pos-catalog-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+  background: color-mix(in srgb, #072a57 3%, var(--surface));
+}
+
+@media (max-width: 640px) {
+  .pos-catalog-modal {
+    padding: 0;
+  }
+
+  .pos-catalog-modal__panel {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
+
+  .pos-catalog-modal__head {
+    padding: 10px 12px 10px 14px;
+  }
+
+  .pos-catalog-modal__body {
+    padding: 12px 12px 0;
+  }
+}

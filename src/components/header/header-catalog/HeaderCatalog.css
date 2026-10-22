@@ -1,0 +1,24 @@
+/* Ícono "Catálogo de artículos" del encabezado (mismo tamaño y colores que los demás íconos del header) */
+.header-catalog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--icon-bg);
+  color: var(--icon-color);
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.header-catalog .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.header-catalog:hover,
+.header-catalog.is-open {
+  background-color: var(--secondary-color);
+  color: #fff;
+}
