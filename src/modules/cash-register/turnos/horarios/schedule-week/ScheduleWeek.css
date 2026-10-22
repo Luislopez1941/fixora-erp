@@ -1,0 +1,95 @@
+/* Vista semanal de horarios: columnas lunes a domingo y bloques de color por horario */
+.schedule-week {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 6px;
+}
+
+.schedule-week__hours {
+  position: relative;
+  margin-top: 22px;
+  height: 360px;
+}
+
+.schedule-week__hours span {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 0.66rem;
+  color: var(--text-muted);
+}
+
+.schedule-week__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.schedule-week__day-name {
+  display: block;
+  height: 18px;
+  margin-bottom: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.schedule-week__track {
+  position: relative;
+  height: 360px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary-color) 4%, transparent);
+  overflow: hidden;
+}
+
+.schedule-week__line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--panel-border);
+}
+
+.schedule-week__block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  min-height: 14px;
+  padding: 2px 4px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  opacity: 0.92;
+}
+
+.schedule-week__block:hover {
+  opacity: 1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.schedule-week__block span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 560px) {
+  .schedule-week {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .schedule-week__grid {
+    gap: 2px;
+  }
+
+  .schedule-week__block span {
+    display: none;
+  }
+}

@@ -1,0 +1,103 @@
+/* Modal de asignar / editar cajero (marco y botones base en ../../../shared/CashShared.css) */
+.assignment-modal {
+  width: min(520px, 100%);
+}
+
+.assignment-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.assignment-modal__field .inputs__general {
+  width: 100%;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.assignment-modal__users {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.assignment-modal__users button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--panel-border);
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.assignment-modal__users button:last-child {
+  border-bottom: none;
+}
+
+.assignment-modal__users button small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.assignment-modal__users button.is-active {
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+.assignment-modal__empty {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-weight: 400;
+}
+
+.assignment-modal__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.assignment-modal__switch strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.assignment-modal__switch small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.assignment-modal__dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.assignment-modal__error {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #b42323;
+}
+
+@media (max-width: 560px) {
+  .assignment-modal__dates {
+    grid-template-columns: 1fr;
+  }
+}

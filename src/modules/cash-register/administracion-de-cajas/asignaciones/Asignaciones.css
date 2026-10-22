@@ -1,0 +1,182 @@
+/* Asignaciones: tarjetas por caja con sus cajeros (chips) y bitácora; lo común está en ../../shared/CashShared.css */
+.asignaciones__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+.asignaciones__registers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.asignaciones__register.is-inactive {
+  opacity: 0.7;
+}
+
+.asignaciones__register-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.asignaciones__register-head h2 {
+  margin-bottom: 2px;
+}
+
+.asignaciones__register-head small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.asignaciones__add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 9px;
+  background: none;
+  color: var(--primary-color);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.asignaciones__add .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.asignaciones__chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asignaciones__chip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--primary-color);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.asignaciones__chip.is-off {
+  border-left-color: #9ca3af;
+  opacity: 0.75;
+}
+
+.asignaciones__chip-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-color);
+  min-width: 0;
+}
+
+.asignaciones__chip-name .material-symbols-rounded {
+  font-size: 16px;
+  color: var(--secondary-color);
+  font-variation-settings: 'FILL' 1;
+}
+
+.asignaciones__chip small {
+  grid-column: 1;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.asignaciones__chip-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  gap: 4px;
+}
+
+.asignaciones__chip-actions button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.asignaciones__chip-actions button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.asignaciones__chip-actions .material-symbols-rounded {
+  font-size: 17px;
+}
+
+.asignaciones__empty {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.asignaciones__schedules {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--panel-border);
+}
+
+.asignaciones__schedules small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.asignaciones__schedules p {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-color);
+}
+
+.asignaciones__history {
+  position: sticky;
+  top: 0;
+}
+
+@media (max-width: 1000px) {
+  .asignaciones__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asignaciones__history {
+    position: static;
+  }
+}
+
+@media (max-width: 560px) {
+  .asignaciones__registers {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asignaciones__chip-actions button {
+    width: 40px;
+    height: 40px;
+  }
+}

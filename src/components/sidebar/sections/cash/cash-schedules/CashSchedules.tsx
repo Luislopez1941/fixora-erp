@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import TableSkeleton from '../../../general/skeleton/TableSkeleton';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
-import { fmtRange } from './timeFormat';
-import './CashShifts.css';
+import APIs from '../../../../../services/APIs';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
+import { fmtRange } from '../shared/timeFormat';
+import '../shared/CashShifts.css';
 
 const DAY_LABELS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];

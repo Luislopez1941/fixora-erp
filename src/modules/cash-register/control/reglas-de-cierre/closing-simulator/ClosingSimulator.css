@@ -1,0 +1,63 @@
+/* Simulador de cierre */
+.closing-simulator__inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.closing-simulator__inputs > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+}
+
+.closing-simulator__inputs .money-input {
+  width: 100%;
+}
+
+.closing-simulator__result {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  text-align: left;
+  --tone: #1f9d55;
+  background: color-mix(in srgb, var(--tone) 9%, transparent);
+  border-left: 4px solid var(--tone);
+}
+
+.closing-simulator__result.is-warn { --tone: #fc7400; }
+.closing-simulator__result.is-block { --tone: #d64545; }
+.closing-simulator__result.is-approval { --tone: #072a57; }
+
+.closing-simulator__result .material-symbols-rounded {
+  color: var(--tone);
+}
+
+.closing-simulator__result div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.closing-simulator__result strong {
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.closing-simulator__result small,
+.closing-simulator__note {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.closing-simulator__note {
+  margin: 8px 0 0;
+  text-align: left;
+}

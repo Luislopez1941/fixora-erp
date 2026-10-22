@@ -1,0 +1,47 @@
+/* Bitácora de cambios de asignaciones */
+.assignment-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assignment-history li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+}
+
+.assignment-history .material-symbols-rounded {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 17px;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+
+.assignment-history p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-color);
+}
+
+.assignment-history small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.assignment-history__empty {
+  margin: 0;
+  padding: 16px 0;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}

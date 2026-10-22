@@ -1,0 +1,140 @@
+/* Horarios: selector de vista y tarjetas de la lista; lo común está en ../../shared/CashShared.css */
+.horarios__toggle {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.horarios__toggle button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.horarios__toggle button .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.horarios__toggle button.is-active {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.horarios__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 12px;
+}
+
+.cash-ui__card.horarios__item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-left-width: 4px;
+}
+
+.horarios__item.is-inactive {
+  opacity: 0.65;
+}
+
+.horarios__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.horarios__item-main strong {
+  font-size: 0.95rem;
+  color: var(--text-color);
+}
+
+.horarios__time {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.horarios__item-main small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.horarios__item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.horarios__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.horarios__actions button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.horarios__actions button:hover {
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.horarios__actions button.is-danger:hover {
+  color: #b42323;
+  border-color: #d64545;
+}
+
+.horarios__actions .material-symbols-rounded {
+  font-size: 17px;
+}
+
+.horarios__note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 560px) {
+  .horarios__list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cash-ui__card.horarios__item {
+    flex-direction: column;
+  }
+
+  .horarios__item-side {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .horarios__actions button {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -1,0 +1,69 @@
+/* Fondos por caja */
+.register-funds ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.register-funds li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--panel-border);
+  text-align: left;
+}
+
+.register-funds li:last-child {
+  border-bottom: none;
+}
+
+.register-funds li.is-inactive {
+  opacity: 0.55;
+}
+
+.register-funds__name,
+.register-funds__amount {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-funds__amount {
+  align-items: flex-end;
+}
+
+.register-funds strong {
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.register-funds b {
+  font-size: 0.9rem;
+  color: var(--primary-color);
+}
+
+.register-funds small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.register-funds li button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.register-funds__empty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

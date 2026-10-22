@@ -1,0 +1,6 @@
+/* Límites: el marco y la rejilla vienen de ../../shared/control-page; aquí solo ajustes propios de la pantalla */
+.limites__hint {
+  margin: 0 0 4px;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}

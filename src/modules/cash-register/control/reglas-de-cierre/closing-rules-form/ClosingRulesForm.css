@@ -1,0 +1,26 @@
+/* Formulario de reglas de cierre */
+.closing-rules-form h2 {
+  margin-bottom: 4px;
+}
+
+.closing-rules-form__group {
+  margin-top: 18px !important;
+}
+
+.closing-rules-form__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  font-size: 0.76rem;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.closing-rules-form__note .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--primary-color);
+}

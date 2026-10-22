@@ -1,0 +1,9 @@
+/* Formulario de límites (renglones en ../../../shared/setting-row) */
+.limits-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.limits-form h2 {
+  margin-bottom: 4px;
+}

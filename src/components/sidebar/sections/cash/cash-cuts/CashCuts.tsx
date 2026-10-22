@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import TableSkeleton from '../../../general/skeleton/TableSkeleton';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
-import { CashReportData, CutKind, differenceLabel, printCashReport } from './printCashReport';
+import APIs from '../../../../../services/APIs';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
+import { CashReportData, CutKind, differenceLabel, printCashReport } from '../shared/printCashReport';
 import './CashCuts.css';
 
 type Tab = 'current' | 'history';

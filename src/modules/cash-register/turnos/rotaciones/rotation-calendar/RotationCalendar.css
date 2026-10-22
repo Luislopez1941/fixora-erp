@@ -1,0 +1,188 @@
+/* Calendario de rotación: tabla en escritorio, lista por día en celular */
+.rotation-calendar {
+  display: flex;
+  flex-direction: column;
+  overflow-x: auto;
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  background: var(--surface, var(--card-bg));
+}
+
+.rotation-calendar__row {
+  display: grid;
+  grid-template-columns: 170px repeat(var(--rc-days, 14), minmax(78px, 1fr));
+  border-bottom: 1px solid var(--panel-border);
+  min-width: calc(170px + var(--rc-days, 14) * 78px);
+}
+
+.rotation-calendar__row:last-child {
+  border-bottom: none;
+}
+
+.rotation-calendar__row > span {
+  padding: 8px 6px;
+  border-left: 1px solid var(--panel-border);
+  min-width: 0;
+}
+
+.rotation-calendar__row > span:first-child {
+  border-left: none;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface, var(--card-bg));
+}
+
+.rotation-calendar__row--head > span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
+}
+
+.rotation-calendar__row--head > span.is-weekend {
+  color: var(--secondary-color);
+}
+
+.rotation-calendar__row--head > span.is-today {
+  color: #fff;
+  background: var(--primary-color);
+}
+
+.rotation-calendar__who {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.rotation-calendar__who strong {
+  font-size: 0.82rem;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rotation-calendar__who small {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.rotation-calendar__cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  margin: 3px;
+  padding: 4px 6px !important;
+  border: none !important;
+  border-left: 3px solid var(--rc-color) !important;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rc-color) 12%, transparent);
+  text-align: left;
+  overflow: hidden;
+}
+
+.rotation-calendar__cell b {
+  font-size: 0.72rem;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rotation-calendar__cell small {
+  font-size: 0.64rem;
+  line-height: 1.25;
+  color: var(--text-muted);
+}
+
+.rotation-calendar__cell.is-rest {
+  align-items: center;
+  border-left: none !important;
+  background: none;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.rotation-calendar__cell.is-off {
+  opacity: 0.45;
+}
+
+.rotation-calendar__cell.is-today:not(.is-rest) {
+  box-shadow: inset 0 0 0 1px var(--rc-color);
+}
+
+/* Vista por día (solo celular) */
+.rotation-calendar-days {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .rotation-calendar {
+    display: none;
+  }
+
+  .rotation-calendar-days {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .rotation-calendar-days__day {
+    padding: 12px;
+    border: 1px solid var(--panel-border);
+    border-radius: 14px;
+    background: var(--surface, var(--card-bg));
+    text-align: left;
+  }
+
+  .rotation-calendar-days__day.is-today {
+    border-color: var(--primary-color);
+  }
+
+  .rotation-calendar-days__day h3 {
+    margin: 0 0 8px;
+    font-size: 0.86rem;
+    color: var(--primary-color);
+  }
+
+  .rotation-calendar-days__day ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .rotation-calendar-days__day li {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    padding: 6px 10px;
+    border-left: 3px solid var(--rc-color);
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--rc-color) 10%, transparent);
+  }
+
+  .rotation-calendar-days__day li strong {
+    font-size: 0.84rem;
+    color: var(--text-color);
+  }
+
+  .rotation-calendar-days__day li span {
+    font-size: 0.78rem;
+    color: var(--text-color);
+  }
+
+  .rotation-calendar-days__day li small,
+  .rotation-calendar-days__day p {
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+}

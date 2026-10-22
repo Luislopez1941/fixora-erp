@@ -1,0 +1,58 @@
+/* Últimas aperturas */
+.opening-history ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.opening-history li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--panel-border);
+  text-align: left;
+}
+
+.opening-history li > span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.opening-history strong {
+  font-size: 0.82rem;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opening-history small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.opening-history__amount {
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.opening-history__amount b {
+  font-size: 0.88rem;
+  color: var(--primary-color);
+}
+
+.opening-history__amount em {
+  font-size: 0.66rem;
+}
+
+.opening-history__empty,
+.opening-history__note {
+  margin: 10px 0 0;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  text-align: left;
+}

@@ -1,13 +1,13 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import { PrivateRoutes } from "../../../models/routes";
-import CashCurrent from "../../../components/sidebar/sections/cash/CashCurrent";
-import CashMovements from "../../../components/sidebar/sections/cash/CashMovements";
-import CashCuts from "../../../components/sidebar/sections/cash/CashCuts";
-import CashShifts from "../../../components/sidebar/sections/cash/CashShifts";
-import CashRegisters from "../../../components/sidebar/sections/cash/CashRegisters";
-import CashSchedules from "../../../components/sidebar/sections/cash/CashSchedules";
-import CashConfig from "../../../components/sidebar/sections/cash/CashConfig";
+import CashCurrent from "../../../components/sidebar/sections/cash/cash-current/CashCurrent";
+import CashMovements from "../../../components/sidebar/sections/cash/cash-movements/CashMovements";
+import CashCuts from "../../../components/sidebar/sections/cash/cash-cuts/CashCuts";
+import CashShifts from "../../../components/sidebar/sections/cash/cash-shifts/CashShifts";
+import CashRegisters from "../../../components/sidebar/sections/cash/cash-registers/CashRegisters";
+import CashSchedules from "../../../components/sidebar/sections/cash/cash-schedules/CashSchedules";
+import CashConfig from "../../../components/sidebar/sections/cash/cash-config/CashConfig";
 import ModuleScreen from '../../../core/modules/ModuleScreen';
 
 const RouteCash: React.FC = () => {

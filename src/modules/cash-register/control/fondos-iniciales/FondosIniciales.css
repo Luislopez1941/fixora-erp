@@ -1,0 +1,7 @@
+/* Fondos iniciales: columna principal con la configuración y las cajas */
+.fondos__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}

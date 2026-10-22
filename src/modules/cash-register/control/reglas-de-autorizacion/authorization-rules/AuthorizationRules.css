@@ -1,0 +1,22 @@
+/* Reglas de autorización de caja */
+.authorization-rules h2 {
+  margin-bottom: 4px;
+}
+
+.authorization-rules__warn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+  font-size: 0.76rem;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.authorization-rules__warn .material-symbols-rounded {
+  font-size: 18px;
+  color: var(--secondary-color);
+}

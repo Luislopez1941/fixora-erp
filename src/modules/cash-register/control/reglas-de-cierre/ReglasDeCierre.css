@@ -1,0 +1,7 @@
+/* Reglas de cierre: columna lateral con el simulador y las estadísticas */
+.reglas-cierre__side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}

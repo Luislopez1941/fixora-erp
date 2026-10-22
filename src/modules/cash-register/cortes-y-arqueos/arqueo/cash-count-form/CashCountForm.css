@@ -1,0 +1,380 @@
+/* Nuevo arqueo: turnos, conteo por denominación, resumen en vivo y barra compacta en celular */
+.cash-count-form__skel {
+  height: 160px;
+}
+
+/* Dos columnas: conteo a la izquierda, resumen fijo a la derecha */
+.cash-count-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.cash-count-form__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cash-count-form__side {
+  position: sticky;
+  top: 0;
+  min-width: 0;
+}
+
+/* Turnos abiertos */
+.cash-count-form__shifts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+}
+
+.cash-count-form__shift {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-color);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.cash-count-form__shift strong {
+  font-size: 0.9rem;
+}
+
+.cash-count-form__shift span,
+.cash-count-form__shift small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.cash-count-form__shift:hover {
+  border-color: var(--secondary-color);
+}
+
+.cash-count-form__shift.is-active {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 6%, transparent);
+  box-shadow: inset 3px 0 0 var(--primary-color);
+}
+
+/* Conteo por denominación */
+.cash-count-form__groups {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.cash-count-form__group h3 {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.cash-count-form__denom {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) 96px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--panel-border);
+}
+
+.cash-count-form__chip {
+  display: inline-flex;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+}
+
+.cash-count-form__chip--coin {
+  border-radius: 999px;
+  color: #8a5300;
+  background: color-mix(in srgb, var(--secondary-color) 16%, transparent);
+}
+
+.cash-count-form__qty {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cash-count-form__qty button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--panel-border);
+  border-radius: 9px;
+  background: var(--surface, transparent);
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.cash-count-form__qty button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.cash-count-form__qty button .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.cash-count-form__qty input {
+  width: 100%;
+  min-width: 44px;
+  max-width: 80px;
+  height: 34px;
+  padding: 0 6px;
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  border-radius: 9px;
+  background: var(--modal-input-bg, transparent);
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.cash-count-form__subtotal {
+  text-align: right;
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.cash-count-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cash-count-form__field .inputs__general {
+  margin-top: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cash-count-form__field textarea.is-required {
+  border-color: #d64545;
+}
+
+/* Resumen */
+.cash-count-form__expected {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.84rem;
+}
+
+.cash-count-form__expected div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cash-count-form__expected dt {
+  color: var(--text-muted);
+}
+
+.cash-count-form__expected dd {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.cash-count-form__expected .is-total {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.cash-count-form__expected .is-total dt,
+.cash-count-form__expected .is-total dd {
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.cash-count-form__counted {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.cash-count-form__counted span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.85;
+}
+
+.cash-count-form__counted strong {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.cash-count-form__result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.cash-count-form__result .material-symbols-rounded {
+  font-size: 26px;
+}
+
+.cash-count-form__result small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cash-count-form__result strong {
+  font-size: 1.15rem;
+}
+
+.cash-count-form__result--balanced { color: #1a7f45; border-color: color-mix(in srgb, #1f9d55 40%, transparent); background: color-mix(in srgb, #1f9d55 9%, transparent); }
+
+.cash-count-form__result--over { color: #1d4ed8; border-color: color-mix(in srgb, #2563eb 40%, transparent); background: color-mix(in srgb, #2563eb 8%, transparent); }
+
+.cash-count-form__result--short { color: #b42323; border-color: color-mix(in srgb, #d64545 40%, transparent); background: color-mix(in srgb, #d64545 8%, transparent); }
+
+.cash-count-form__hint {
+  margin: 8px 0 0;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.cash-count-form__save {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 12px;
+  background: var(--secondary-color);
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--secondary-color) 35%, transparent);
+}
+
+.cash-count-form__save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Barra compacta (solo celular/tablet) */
+.cash-count-form__mini {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--primary-color);
+  color: #fff;
+  box-shadow: 0 -8px 20px rgba(7, 42, 87, 0.18);
+}
+
+.cash-count-form__mini > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cash-count-form__mini small {
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.cash-count-form__mini strong {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cash-count-form__mini > div:last-child {
+  padding-left: 8px;
+  border-left: 3px solid #9ca3af;
+}
+
+.cash-count-form__mini--balanced > div:last-child { border-left-color: #4ade80; }
+
+.cash-count-form__mini--over > div:last-child { border-left-color: #93c5fd; }
+
+.cash-count-form__mini--short > div:last-child { border-left-color: #fca5a5; }
+
+@media (max-width: 1000px) {
+  .cash-count-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* En una columna el resumen completo va debajo del conteo, y una barra compacta queda pegada abajo mientras cuentas */
+  .cash-count-form__side {
+    position: static;
+  }
+
+  .cash-count-form__mini {
+    display: grid;
+  }
+}
+
+@media (max-width: 760px) {
+  .cash-count-form__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .cash-count-form__denom {
+    grid-template-columns: 64px minmax(0, 1fr) 84px;
+  }
+
+  .cash-count-form__qty button {
+    width: 44px;
+    height: 44px;
+  }
+
+  .cash-count-form__qty input {
+    height: 44px;
+  }
+}

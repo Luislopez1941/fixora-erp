@@ -3,9 +3,9 @@ import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import TableSkeleton from '../../../general/skeleton/TableSkeleton';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
+import APIs from '../../../../../services/APIs';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
 import './CashMovements.css';
 
 type Filter = 'ALL' | 'INCOME' | 'EXPENSE';
@@ -89,20 +89,62 @@ const CashMovements = () => {
     setShowModal(true);
   };
 
+  // Egresos mayores al umbral de Caja › Control › Reglas de autorización: pide usuario y contraseña de un supervisor
+  const askSupervisor = async (message: string): Promise<{ userId: number; password: string } | null> => {
+    const res: any = await APIs.getCashSupervisors().catch(() => null);
+    const list: any[] = res?.data ?? [];
+    if (!list.length) {
+      Swal.fire({ icon: 'warning', title: 'Se requiere supervisor', text: `${message} No hay supervisores activos.` });
+      return null;
+    }
+    const options = list
+      .map((u) => `<option value="${u.id}">${`${u.firstName ?? ''} ${u.firstLastName ?? ''}`.trim() || u.email}</option>`)
+      .join('');
+    const result = await Swal.fire({
+      title: 'Autorización de supervisor',
+      html: `<p style="margin:0 0 10px;font-size:14px">${message}</p>
+        <select id="sv-user" class="swal2-select" style="width:100%;margin:0 0 8px">${options}</select>
+        <input id="sv-pass" class="swal2-input" type="password" placeholder="Contraseña del supervisor" autocomplete="off" style="width:100%;margin:0">`,
+      showCancelButton: true,
+      confirmButtonText: 'Autorizar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#072a57',
+      preConfirm: () => {
+        const userId = Number((document.getElementById('sv-user') as HTMLSelectElement)?.value);
+        const password = (document.getElementById('sv-pass') as HTMLInputElement)?.value ?? '';
+        if (!userId || !password) {
+          Swal.showValidationMessage('Elige al supervisor y escribe su contraseña');
+          return false;
+        }
+        return { userId, password };
+      },
+    });
+    return result.isConfirmed ? (result.value as { userId: number; password: string }) : null;
+  };
+
   const handleAddMovement = async (e: React.FormEvent) => {
     e.preventDefault();
     setTouched(true);
     if (!shift || amountError || conceptError) return;
 
+    const payload: any = {
+      shiftId: shift.id,
+      userId: userState?.id ?? userState?._id,
+      type: form.type,
+      amount: amountNumber,
+      concept: form.concept.trim(),
+    };
     try {
       setIsSubmitting(true);
-      const response: any = await APIs.addCashMovement({
-        shiftId: shift.id,
-        userId: userState?.id ?? userState?._id,
-        type: form.type,
-        amount: amountNumber,
-        concept: form.concept.trim(),
-      });
+      let response: any;
+      try {
+        response = await APIs.addCashMovement(payload);
+      } catch (err: any) {
+        if (err?.code !== 'APPROVAL_REQUIRED') throw err;
+        const approval = await askSupervisor(err.message);
+        if (!approval) return;
+        response = await APIs.addCashMovement({ ...payload, approval });
+      }
       if (response?.status === 'success') {
         setShowModal(false);
         await loadCashData();

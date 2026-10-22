@@ -1,0 +1,11 @@
+/* Reglas de devoluciones */
+.return-rules h2 {
+  margin-bottom: 4px;
+}
+
+.return-rules h2 small {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}

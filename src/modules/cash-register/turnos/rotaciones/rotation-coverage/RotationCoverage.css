@@ -1,0 +1,16 @@
+/* Cobertura real de los turnos */
+.rotation-coverage {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rotation-coverage__row {
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+}
+
+.rotation-coverage__empty {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}

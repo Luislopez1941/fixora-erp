@@ -1,0 +1,13 @@
+/* Gráfica de diferencias por día */
+.differences-by-day {
+  width: 100%;
+  min-width: 0;
+}
+
+.differences-by-day__empty {
+  margin: 0;
+  padding: 32px 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}

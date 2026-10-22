@@ -1,0 +1,49 @@
+/* Modal para agregar una denominación (marco en ../../../shared/CashShared.css) */
+.denomination-modal {
+  width: min(420px, 100%);
+}
+
+.denomination-modal__kind {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.denomination-modal__kind button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: none;
+  color: var(--text-color);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.denomination-modal__kind button.is-active {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.denomination-modal__value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.denomination-modal__error {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  color: #d64545;
+}

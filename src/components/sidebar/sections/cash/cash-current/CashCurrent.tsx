@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
-import { CashReportData } from './printCashReport';
-import '../../../general/skeleton/TableSkeleton.css';
+import APIs from '../../../../../services/APIs';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
+import { CashReportData } from '../shared/printCashReport';
+import '../../../../general/skeleton/TableSkeleton.css';
 import './CashCurrent.css';
 
 const REFRESH_MS = 30_000;

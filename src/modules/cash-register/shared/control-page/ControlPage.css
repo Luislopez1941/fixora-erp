@@ -1,0 +1,38 @@
+/* Marco de las pantallas de Caja › Control */
+.control-page__actions {
+  justify-content: flex-end;
+}
+
+.control-page__body {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.control-page__body > .control-page__full {
+  grid-column: 1 / -1;
+}
+
+.control-page__skeleton {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 14px;
+}
+
+.control-page__skeleton .table-skeleton__shimmer {
+  display: block;
+  height: 320px;
+  border-radius: 14px;
+}
+
+@media (max-width: 960px) {
+  .control-page__body,
+  .control-page__skeleton {
+    grid-template-columns: 1fr;
+  }
+
+  .control-page__skeleton .table-skeleton__shimmer:last-child {
+    height: 180px;
+  }
+}

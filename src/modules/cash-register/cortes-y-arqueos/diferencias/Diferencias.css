@@ -1,0 +1,26 @@
+/* Diferencias: acomodo de gráfica + rankings y columnas de su lista; lo común está en ../shared/CashShared.css */
+.diferencias__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.diferencias__row {
+  grid-template-columns: minmax(150px, 1.2fr) 90px minmax(120px, 1fr) minmax(110px, 1fr) 105px 105px 105px 100px;
+}
+
+@media (max-width: 1100px) {
+  .diferencias__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .diferencias__chart {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .diferencias__grid {
+    grid-template-columns: 1fr;
+  }
+}

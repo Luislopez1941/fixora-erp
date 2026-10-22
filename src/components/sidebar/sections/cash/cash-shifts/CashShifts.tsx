@@ -3,12 +3,12 @@ import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import { PrivateRoutes } from '../../../../models/routes';
-import TableSkeleton from '../../../general/skeleton/TableSkeleton';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
-import { fmt12, fmtRange } from './timeFormat';
-import './CashShifts.css';
+import APIs from '../../../../../services/APIs';
+import { PrivateRoutes } from '../../../../../models/routes';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
+import { fmt12, fmtRange } from '../shared/timeFormat';
+import '../shared/CashShifts.css';
 
 type Tab = 'active' | 'history';
 

@@ -1,0 +1,4 @@
+/* Historial de cortes: solo las columnas de su lista; lo común está en ../shared/CashShared.css */
+.closes__row {
+  grid-template-columns: minmax(130px, 1.1fr) minmax(110px, 1fr) minmax(150px, 1.2fr) 90px 100px 100px 100px 100px 110px;
+}

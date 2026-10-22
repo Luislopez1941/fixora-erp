@@ -1,0 +1,64 @@
+/* Detalle de un arqueo: lo propio del modal (el marco, la tabla y los botones están en ../../shared/CashShared.css) */
+.cash-count-detail__meta {
+  margin: 0 0 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.cash-count-detail__cancelled {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #d64545 9%, transparent);
+  color: #b42323;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.cash-count-detail__kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cash-count-detail__kpis > div {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 5%, transparent);
+}
+
+.cash-count-detail__kpis small {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cash-count-detail__kpis strong {
+  font-size: 1rem;
+}
+
+.cash-count-detail__note {
+  margin: 10px 0 0;
+  font-size: 0.84rem;
+}
+
+.cash-count-detail__danger {
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, #d64545 50%, transparent);
+  border-radius: 10px;
+  background: none;
+  color: #b42323;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .cash-count-detail__kpis {
+    grid-template-columns: 1fr;
+  }
+}

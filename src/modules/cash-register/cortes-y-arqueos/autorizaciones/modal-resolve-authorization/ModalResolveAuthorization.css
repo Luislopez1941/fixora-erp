@@ -1,0 +1,138 @@
+/* Modal de resolución de una autorización (marco y botones base en ../../shared/CashShared.css) */
+.resolve-auth {
+  width: min(520px, 100%);
+}
+
+.resolve-auth__status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.resolve-auth__facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.resolve-auth__facts div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.resolve-auth__facts dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.resolve-auth__facts dd {
+  margin: 2px 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.resolve-auth__facts dd.is-short { color: #b42323; }
+.resolve-auth__facts dd.is-over { color: #1d4ed8; }
+
+.resolve-auth__note {
+  margin: 12px 0 0;
+  font-size: 0.84rem;
+}
+
+.resolve-auth__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.resolve-auth__field .inputs__general {
+  width: 100%;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.resolve-auth__error {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: #b42323;
+}
+
+.resolve-auth__hint {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.resolve-auth__link,
+.resolve-auth__reject,
+.resolve-auth__approve {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.resolve-auth__link {
+  margin-right: auto;
+  border: 1px solid var(--panel-border);
+  background: none;
+  color: var(--primary-color);
+}
+
+.resolve-auth__link .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.resolve-auth__reject {
+  border: 1px solid color-mix(in srgb, #d64545 50%, transparent);
+  background: none;
+  color: #b42323;
+}
+
+.resolve-auth__approve {
+  border: none;
+  background: #1f9d55;
+  color: #fff;
+}
+
+.resolve-auth__reject:disabled,
+.resolve-auth__approve:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+@media (max-width: 560px) {
+  .resolve-auth__facts {
+    grid-template-columns: 1fr;
+  }
+
+  .resolve-auth__link {
+    margin-right: 0;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .resolve-auth__reject,
+  .resolve-auth__approve {
+    flex: 1;
+    justify-content: center;
+  }
+}

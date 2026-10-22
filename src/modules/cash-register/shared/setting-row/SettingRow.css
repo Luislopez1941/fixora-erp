@@ -1,0 +1,78 @@
+/* Renglón de configuración de Caja › Control */
+.setting-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--panel-border);
+  text-align: left;
+}
+
+.setting-row:last-child {
+  border-bottom: none;
+}
+
+.setting-row__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  color: var(--primary-color);
+  font-size: 20px;
+}
+
+.setting-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.setting-row__text strong {
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.setting-row__text small {
+  font-size: 0.74rem;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.setting-row__control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .setting-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .setting-row__control {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+
+  .setting-row__control > * {
+    flex: 1;
+  }
+
+  /* Con switch el control cabe en el mismo renglón que el texto */
+  .setting-row:has(.ios-switch) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .setting-row:has(.ios-switch) .setting-row__control {
+    grid-column: auto;
+  }
+
+  .setting-row__control > .ios-switch {
+    flex: 0 0 auto;
+  }
+}

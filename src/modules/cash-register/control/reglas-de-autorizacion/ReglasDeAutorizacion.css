@@ -1,0 +1,7 @@
+/* Reglas de autorización: columna principal con las reglas de caja y de devoluciones */
+.reglas-autorizacion__main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}

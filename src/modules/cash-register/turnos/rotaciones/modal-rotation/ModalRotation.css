@@ -1,0 +1,186 @@
+/* Modal de rotación: patrón semanas × días e integrantes (marco base en ../../../shared/CashShared.css) */
+.rotation-modal {
+  width: min(760px, 100%);
+}
+
+.rotation-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rotation-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.rotation-modal__field--wide {
+  grid-column: 1 / -1;
+}
+
+.rotation-modal__field .inputs__general,
+.rotation-modal__add .inputs__general,
+.rotation-modal__members .inputs__general {
+  width: 100%;
+  margin-top: 0;
+  box-sizing: border-box;
+}
+
+.rotation-modal__section {
+  margin-top: 16px;
+}
+
+.rotation-modal__section h3 {
+  margin: 0 0 2px;
+  padding-left: 8px;
+  border-left: 3px solid var(--secondary-color);
+  font-size: 0.86rem;
+  color: var(--primary-color);
+}
+
+.rotation-modal__section > p {
+  margin: 0 0 8px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.rotation-modal__pattern {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-x: auto;
+}
+
+.rotation-modal__pattern-row {
+  display: grid;
+  grid-template-columns: 56px repeat(7, minmax(70px, 1fr));
+  gap: 4px;
+  min-width: 560px;
+}
+
+.rotation-modal__pattern-row--head span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rotation-modal__week {
+  align-self: center;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.rotation-modal__cell {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 4px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: var(--modal-input-bg, transparent);
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.74rem;
+}
+
+.rotation-modal__cell.is-work {
+  border-color: var(--primary-color);
+  background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.rotation-modal__members {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rotation-modal__members li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px 36px;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.rotation-modal__members li > span {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.rotation-modal__members button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.rotation-modal__add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.rotation-modal__empty {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.rotation-modal__switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.rotation-modal__switch strong {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--text-color);
+}
+
+.rotation-modal__switch small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.rotation-modal__error {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #b42323;
+}
+
+@media (max-width: 560px) {
+  .rotation-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .rotation-modal__members li {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+
+  .rotation-modal__members li .inputs__general {
+    grid-column: 1;
+  }
+
+  .rotation-modal__members li > span {
+    grid-column: 1 / -1;
+  }
+}

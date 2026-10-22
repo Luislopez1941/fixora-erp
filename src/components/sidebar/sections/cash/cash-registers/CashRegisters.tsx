@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import TableSkeleton from '../../../general/skeleton/TableSkeleton';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
-import './CashShifts.css';
+import APIs from '../../../../../services/APIs';
+import TableSkeleton from '../../../../general/skeleton/TableSkeleton';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
+import '../shared/CashShifts.css';
 
 // El tipo de caja (principal, rápida, autoservicio, móvil) queda para más adelante: el servidor guarda 'MAIN' por defecto
 const EMPTY = { id: null as number | null, name: '', active: true };

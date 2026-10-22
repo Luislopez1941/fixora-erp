@@ -1,0 +1,17 @@
+/* Denominaciones: aviso de predeterminadas */
+.denominaciones__banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--secondary-color) 10%, transparent);
+  font-size: 0.8rem;
+  color: var(--text-color);
+  text-align: left;
+}
+
+.denominaciones__banner .material-symbols-rounded {
+  color: var(--secondary-color);
+}

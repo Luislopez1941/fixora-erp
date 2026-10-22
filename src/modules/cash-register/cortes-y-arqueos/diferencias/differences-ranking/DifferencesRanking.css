@@ -1,0 +1,62 @@
+/* Ranking por cajero o por caja */
+.differences-ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.differences-ranking li {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: 100%;
+  text-align: left;
+}
+
+.differences-ranking__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.84rem;
+}
+
+.differences-ranking__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.differences-ranking__head .is-short { color: #b42323; }
+.differences-ranking__head .is-over { color: #1d4ed8; }
+
+.differences-ranking__track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-color) 8%, transparent);
+  overflow: hidden;
+}
+
+.differences-ranking__track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #d64545;
+}
+
+.differences-ranking small {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.differences-ranking__empty {
+  margin: 0;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}

@@ -1,4 +1,4 @@
-import logo from '../../../../assets/logo-fixora.png'
+import logo from '../../../../../assets/logo-fixora.png'
 
 // Impresión del reporte de corte de caja: arma un documento aparte (en un iframe oculto)
 // para que el resultado no dependa de los estilos de la app ni del modo claro/oscuro.

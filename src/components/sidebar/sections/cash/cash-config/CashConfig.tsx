@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Swal from 'sweetalert2';
-import APIs from '../../../../services/APIs';
-import IOSSwitch from '../catalogos/shared/IOSSwitch';
-import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker';
+import APIs from '../../../../../services/APIs';
+import IOSSwitch from '../../catalogos/shared/IOSSwitch';
+import CategoriesStorePicker from '../../catalogos/categories/CategoriesStorePicker';
 import './CashConfig.css';
 
 interface CashConfigForm {

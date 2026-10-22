@@ -1,0 +1,211 @@
+/* Rotaciones: pestañas, tarjetas con el patrón (base en ../../shared/CashShared.css) */
+.rotaciones__tabs {
+  display: inline-flex;
+  padding: 3px;
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  background: var(--surface, var(--card-bg));
+}
+
+.rotaciones__tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rotaciones__tabs button .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.rotaciones__tabs button.is-active {
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.rotaciones__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.rotaciones__nav > button:not(.cash-ui__chip) {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.rotaciones__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 12px;
+}
+
+.rotaciones__item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.rotaciones__item.is-inactive {
+  opacity: 0.6;
+}
+
+.rotaciones__item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.rotaciones__item-head strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--primary-color);
+}
+
+.rotaciones__item-head small {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+
+.rotaciones__item-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.rotaciones__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.rotaciones__actions button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  background: none;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+.rotaciones__actions button .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.rotaciones__actions button.is-danger {
+  color: #d64545;
+}
+
+.rotaciones__pattern {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.rotaciones__pattern-row {
+  display: grid;
+  grid-template-columns: 22px repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.rotaciones__pattern-row--head span {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rotaciones__week {
+  align-self: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--secondary-color);
+}
+
+.rotaciones__slot {
+  padding: 4px 3px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--rc-color) 16%, transparent);
+  border-left: 3px solid var(--rc-color);
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rotaciones__slot.is-rest {
+  border-left: none;
+  background: color-mix(in srgb, var(--text-color) 4%, transparent);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.rotaciones__members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.rotaciones__members small {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+}
+
+.rotaciones__member {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  font-size: 0.76rem;
+  color: var(--text-color);
+}
+
+.rotaciones__member b {
+  color: var(--secondary-color);
+}
+
+@media (max-width: 760px) {
+  .rotaciones__tabs {
+    width: 100%;
+  }
+
+  .rotaciones__tabs button {
+    flex: 1;
+    justify-content: center;
+    padding: 6px 4px;
+    font-size: 0.74rem;
+  }
+
+  .rotaciones__list {
+    grid-template-columns: 1fr;
+  }
+
+  .rotaciones__nav {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
