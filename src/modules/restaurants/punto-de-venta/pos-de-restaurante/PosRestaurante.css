@@ -1,0 +1,146 @@
+/* POS de restaurante: plano a pantalla completa; con cuenta abierta, catálogo a la izquierda y cuenta a la derecha */
+.rpos {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 20px 24px 24px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.rpos.has-tab {
+  overflow: hidden;
+}
+
+.rpos__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.rpos__header-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rpos__switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.rpos__skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.rpos__skeleton .table-skeleton__shimmer {
+  display: block;
+  height: 112px;
+  border-radius: var(--radius-lg);
+}
+
+.rpos__work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.rpos__catalog {
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.rpos__tab {
+  min-width: 0;
+  min-height: 0;
+}
+
+.rpos__switcher {
+  display: none;
+}
+
+.rpos__paid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.rpos__paid > .material-symbols-rounded {
+  font-size: 48px;
+  color: var(--rest-free);
+}
+
+.rpos__paid p {
+  margin: 0;
+  color: var(--text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.rpos__change {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 24px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--rest-free) 12%, transparent);
+}
+
+.rpos__change small {
+  color: var(--text-muted);
+}
+
+.rpos__change strong {
+  font-size: 2rem;
+  color: var(--rest-free);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tablet vertical y celular: catálogo y cuenta en pestañas */
+@media (max-width: 960px) {
+  .rpos { padding: 14px 12px 16px; }
+  .rpos__work {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .rpos__switcher {
+    display: flex;
+    gap: 6px;
+  }
+  .rpos__switcher button {
+    flex: 1;
+    height: 38px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--panel-border);
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rpos__switcher button.is-active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+  }
+  .rpos__work.show-catalog .rpos__tab,
+  .rpos__work.show-tab .rpos__catalog {
+    display: none;
+  }
+}

@@ -1,11 +1,11 @@
 {
   "name": "Fixora ERP",
-  "short_name": "Fixora",
+  "short_name": "Fixora ERP",
   "description": "Sistema ERP completo para gestión empresarial",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1d24",
-  "theme_color": "#3f7dc0",
+  "background_color": "#072a57",
+  "theme_color": "#072a57",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -21,21 +21,37 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity", "finance"],
+  "categories": [
+    "business",
+    "productivity",
+    "finance"
+  ],
   "shortcuts": [
     {
       "name": "Punto de Venta",
       "short_name": "POS",
       "description": "Abrir punto de venta",
       "url": "/pos",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     },
     {
       "name": "Inventario",
       "short_name": "Inventario",
       "description": "Ver inventario",
       "url": "/inventory",
-      "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }

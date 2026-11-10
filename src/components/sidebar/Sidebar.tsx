@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import './Sidebar.css'
 import './SidebarRail.css'
-import logoFixora from '../../assets/logo-fixora.png'
+// Barra lateral oscura: logo con la F en blanco
+import logoFixora from '../../assets/logo-fixora-white.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { PrivateRoutes } from '../../models/routes'
@@ -189,7 +190,7 @@ const SidebarDual: React.FC = () => {
       {/* ── Nivel 1: riel de módulos ── */}
       <div className="sbx-rail" onMouseOver={showTip} onMouseLeave={() => setTip(null)} onClick={() => setTip(null)}>
         <Link to={PRIVATE_BASE} className="sbx-logo" data-tip="Inicio">
-          <img src={logoFixora} alt="Fixora" />
+          <img src={logoFixora} alt="Fixora ERP" />
         </Link>
 
         {/* Accesos directos (una sola pantalla) arriba, separados de los módulos con submenú */}
@@ -243,6 +244,13 @@ const SidebarDual: React.FC = () => {
           {showPanel && !wide && <div className="sbx-backdrop" onClick={() => setPanelOpen(false)} />}
           <aside className={`sbx-panel ${showPanel ? '' : 'is-hidden'}`} aria-label={`Submenú de ${panelModule.label}`} aria-hidden={!showPanel}>
             <div className="sbx-panel__inner">
+            <Link to={PRIVATE_BASE} className="sbx-brand" aria-label="Fixora ERP, ir al inicio">
+              <img src={logoFixora} alt="" />
+              <span className="sbx-brand__text">
+                <strong>Fixora <em>ERP</em></strong>
+                <small>Gestión Empresarial Integral</small>
+              </span>
+            </Link>
             <header className="sbx-panel__head">
               <h2>{panelModule.label}</h2>
               <button type="button" className="sbx-panel__hide" onClick={() => (wide ? remember(false) : setPanelOpen(false))} title="Ocultar submenú" aria-label="Ocultar submenú">

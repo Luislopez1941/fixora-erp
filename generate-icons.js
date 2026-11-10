@@ -6,6 +6,7 @@ import { execSync } from 'child_process';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ojo: los íconos de public/ ya vienen del logo de Fixora ERP (fondo azul). Este script los reemplaza por el logo sin fondo.
 const logoPath = path.join(__dirname, 'src/assets/logo-fixora.png');
 const publicDir = path.join(__dirname, 'public');
 

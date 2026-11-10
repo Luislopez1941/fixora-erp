@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useMemo } from 'react'
+import React, { Suspense, lazy } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { TAXONOMY } from './taxonomy.generated'
@@ -21,6 +21,21 @@ const BY_PATH = new Map(
   ),
 )
 
+/**
+ * El componente perezoso se crea una sola vez por pantalla. Si se creara en cada render, al navegar (React Router
+ * navega dentro de una transición) cada reintento tras cargar el módulo crearía un `lazy` nuevo que vuelve a
+ * suspender: la URL cambiaba pero la vista anterior se quedaba.
+ */
+const LAZY_SCREENS = new Map<string, React.LazyExoticComponent<React.ComponentType>>()
+const lazyScreen = (key: string, loader: () => Promise<{ default: React.ComponentType }>) => {
+  let screen = LAZY_SCREENS.get(key)
+  if (!screen) {
+    screen = lazy(loader)
+    LAZY_SCREENS.set(key, screen)
+  }
+  return screen
+}
+
 const ModuleScreen: React.FC = () => {
   const { pathname } = useLocation()
   const can = useCan()
@@ -31,7 +46,7 @@ const ModuleScreen: React.FC = () => {
   const relative = pathname.replace(/^\/auth\/?/, '').replace(/\/+$/, '')
   const entry = BY_PATH.get(relative)
   const loader = entry ? SCREEN_FILES[`/src/modules/${relative}/index.tsx`] : undefined
-  const Screen = useMemo(() => (loader ? lazy(loader) : null), [loader])
+  const Screen = loader ? lazyScreen(relative, loader) : null
 
   if (!entry) {
     return (

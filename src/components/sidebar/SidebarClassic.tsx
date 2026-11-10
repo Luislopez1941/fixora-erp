@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import './SidebarClassic.css'
-import logoFixora from '../../assets/logo-fixora.png'
+// Barra lateral oscura: logo con la F en blanco
+import logoFixora from '../../assets/logo-fixora-white.png'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { PrivateRoutes } from '../../models/routes'
@@ -101,7 +102,7 @@ const SidebarClassic: React.FC<Props> = ({ variant }) => {
       </button>
       <div className="sbc-head">
         <Link to={PRIVATE_BASE} className="sbc-logo" title="Inicio">
-          <img src={logoFixora} alt="Fixora" />
+          <img src={logoFixora} alt="Fixora ERP" />
         </Link>
       </div>
 

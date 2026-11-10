@@ -85,6 +85,30 @@
   /* Panel "hundido" bajo un módulo expandido (lista de permisos) — negro
      semitransparente oscurece un poco un fondo ya oscuro, se ve bien aquí. */
   --modal-recessed-bg: rgba(0, 0, 0, 0.15);
+
+  /* ── Tokens del rediseño (tema oscuro: equivalentes) ── */
+  --text-heading: #f5f6f7;
+  --text-secondary: #8b919c;
+  --text-disabled: #5a5f6a;
+  --input-bg: rgba(255, 255, 255, 0.06);
+  --active-bg: rgba(252, 116, 0, 0.16);
+  --active-color: #fc7400;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-control: rgba(255, 255, 255, 0.12);
+  --border-active: #fc7400;
+  --icon-blue-bg: rgba(79, 127, 209, 0.18);
+  --icon-orange-bg: rgba(252, 116, 0, 0.16);
+  --success: #34d399;
+  --success-bg: rgba(52, 211, 153, 0.14);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --chart-blue: #4f7fd1;
+  --chart-blue-light: #7ea2e6;
+  --chart-orange: #fc7400;
+  --chart-gray: rgba(255, 255, 255, 0.12);
+  --radius-card: 16px;
+  --radius-button: 10px;
+  --radius-input: 10px;
 }
 
 /* ====== MODO CLARO ====== */
@@ -178,6 +202,70 @@
      mancha gris sucia — aquí el mismo "hundido" se logra con un tinte navy
      muy sutil, consistente con el resto de overlays claros de la app. */
   --modal-recessed-bg: rgba(7, 42, 87, 0.035);
+}
+
+/* ====== MODO CLARO · rediseño Fixora ERP (paleta del dashboard) ======
+   Va después del bloque anterior a propósito: sobrescribe lo que cambia
+   y agrega los tokens nuevos (--text-heading, --active-bg, --chart-*, …). */
+[data-theme="light"] {
+  /* Marca */
+  --primary-color: #002649;
+  --secondary-color: #FC7400;
+
+  /* Fondos y superficies */
+  --background: #FFFFFF;
+  --body-bg: #FFFFFF;
+  --dashboard-bg-start: #FFFFFF;
+  --dashboard-bg-end: #FFFFFF;
+  --header-bg: #FFFFFF;
+  --sidebar-background: #002649;
+  --sub-menu-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --card-background: #FFFFFF;
+  --surface: #FFFFFF;
+  --input-bg: #EFF1F3;
+  --icon-bg: #EFF1F3;
+  --icon-blue-bg: #D8E7FE;
+  --icon-orange-bg: #FFECD4;
+
+  /* Selección de menú */
+  --active-bg: #FEE5CC;
+  --active-color: #FC7400;
+  --sub-menu-hover-bg: #F4F6F8;
+
+  /* Bordes y separadores */
+  --card-border: #E6EAF0;
+  --header-border: #E5EAF0;
+  --panel-border: #E5EAF0;
+  --border-subtle: #E5EAF0;
+  --border-control: #E1E6EC;
+  --border-active: #FC7400;
+
+  /* Tipografía */
+  --text-color: #111827;
+  --text-heading: #0B2948;
+  --text-secondary: #7C8798;
+  --text-muted: #7C8798;
+  --text-disabled: #A9B7C8;
+  --sub-menu-text: #111827;
+  --breadcrumb-text-active: #0B2948;
+
+  /* Estados */
+  --success: #16A34A;
+  --success-bg: #DFFAE1;
+  --danger: #DC2626;
+  --danger-bg: #FDE3E0;
+
+  /* Gráficos */
+  --chart-blue: #002649;
+  --chart-blue-light: #1F4DA6;
+  --chart-orange: #FC7400;
+  --chart-gray: #E1E5E9;
+
+  /* Radios */
+  --radius-card: 16px;
+  --radius-button: 10px;
+  --radius-input: 10px;
 }
 
 body {

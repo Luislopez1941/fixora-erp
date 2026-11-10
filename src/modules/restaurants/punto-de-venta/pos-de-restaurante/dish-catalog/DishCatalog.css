@@ -1,0 +1,27 @@
+/* Catálogo de platillos del POS de restaurante: tocar = agregar a la cuenta */
+.dish-cat { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.dish-cat__search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px; border-radius: var(--radius-md); border: 1px solid var(--panel-border); background: var(--input-color); color: var(--text-muted); }
+.dish-cat__search input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--text-color); font: inherit; font-size: 0.92rem; outline: none; }
+.dish-cat__search:focus-within { outline: 2px solid var(--secondary-color); outline-offset: 1px; }
+.dish-cat__search .material-symbols-rounded { font-size: 20px; }
+.dish-cat__chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.dish-cat__chips::-webkit-scrollbar { display: none; }
+.dish-cat__chips .pos-chip { flex: none; }
+.dish-cat__chips.is-sub .pos-chip { height: 28px; font-size: 0.8rem; }
+
+.dish-cat__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.dish-tile {
+  display: flex; flex-direction: column; gap: 6px; min-height: 88px; padding: 10px 12px; text-align: left;
+  border-radius: var(--radius-md); border: 1px solid var(--panel-border); background: var(--card-bg); color: var(--text-color);
+  font: inherit; cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.dish-tile__img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: calc(var(--radius-md) - 2px); }
+.dish-tile__name { font-size: 0.9rem; font-weight: 600; line-height: 1.25; overflow-wrap: anywhere; }
+.dish-tile__foot { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: auto; }
+.dish-tile__price { font-size: 0.88rem; color: var(--text-muted); }
+.dish-tile__add { font-size: 20px; color: var(--secondary-color); }
+.dish-tile__off { font-size: 0.72rem; font-weight: 600; color: var(--rest-danger); }
+.dish-tile.is-off { opacity: 0.55; cursor: not-allowed; }
+@media (hover: hover) and (pointer: fine) {
+  .dish-tile:not(:disabled):hover { border-color: color-mix(in srgb, var(--secondary-color) 55%, var(--panel-border)); }
+}

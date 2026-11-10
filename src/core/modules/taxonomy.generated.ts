@@ -1879,9 +1879,60 @@ export const TAXONOMY: TaxModule[] = [
     "label": "Restaurantes y Food Service",
     "icon": "restaurants",
     "order": 90,
-    "description": "Salón, comandas, menús, cocina (KDS), recetas y entrega.",
+    "description": "Comandero, mesas, cocina (KDS), menú QR, recetario y costos, delivery, cobro, propinas, lealtad y BI para restaurantes.",
     "requiredPermission": "restaurants.view",
     "groups": [
+      {
+        "key": "punto-de-venta",
+        "label": "Punto de venta",
+        "screens": [
+          {
+            "key": "punto-de-venta-pos-de-restaurante",
+            "label": "POS de restaurante",
+            "live": false,
+            "path": "restaurants/punto-de-venta/pos-de-restaurante",
+            "permission": "restaurants.punto-de-venta-pos-de-restaurante.view",
+            "own": false,
+            "folder": "src/modules/restaurants/punto-de-venta/pos-de-restaurante"
+          },
+          {
+            "key": "punto-de-venta-cuentas-abiertas",
+            "label": "Cuentas abiertas",
+            "live": false,
+            "path": "restaurants/punto-de-venta/cuentas-abiertas",
+            "permission": "restaurants.punto-de-venta-cuentas-abiertas.view",
+            "own": false,
+            "folder": "src/modules/restaurants/punto-de-venta/cuentas-abiertas"
+          },
+          {
+            "key": "punto-de-venta-dividir-cuenta-y-pagos-mixtos",
+            "label": "Dividir cuenta y pagos mixtos",
+            "live": false,
+            "path": "restaurants/punto-de-venta/dividir-cuenta-y-pagos-mixtos",
+            "permission": "restaurants.punto-de-venta-dividir-cuenta-y-pagos-mixtos.view",
+            "own": false,
+            "folder": "src/modules/restaurants/punto-de-venta/dividir-cuenta-y-pagos-mixtos"
+          },
+          {
+            "key": "punto-de-venta-propinas-al-cobrar",
+            "label": "Propinas al cobrar",
+            "live": false,
+            "path": "restaurants/punto-de-venta/propinas-al-cobrar",
+            "permission": "restaurants.punto-de-venta-propinas-al-cobrar.view",
+            "own": false,
+            "folder": "src/modules/restaurants/punto-de-venta/propinas-al-cobrar"
+          },
+          {
+            "key": "punto-de-venta-reimpresion-de-tickets",
+            "label": "Reimpresión de tickets",
+            "live": false,
+            "path": "restaurants/punto-de-venta/reimpresion-de-tickets",
+            "permission": "restaurants.punto-de-venta-reimpresion-de-tickets.view",
+            "own": false,
+            "folder": "src/modules/restaurants/punto-de-venta/reimpresion-de-tickets"
+          }
+        ]
+      },
       {
         "key": "salon",
         "label": "Salón",
@@ -1939,6 +1990,15 @@ export const TAXONOMY: TaxModule[] = [
             "permission": "restaurants.salon-reservaciones.view",
             "own": false,
             "folder": "src/modules/restaurants/salon/reservaciones"
+          },
+          {
+            "key": "salon-tiempos-de-ocupacion",
+            "label": "Tiempos de ocupación",
+            "live": false,
+            "path": "restaurants/salon/tiempos-de-ocupacion",
+            "permission": "restaurants.salon-tiempos-de-ocupacion.view",
+            "own": false,
+            "folder": "src/modules/restaurants/salon/tiempos-de-ocupacion"
           }
         ]
       },
@@ -1990,6 +2050,24 @@ export const TAXONOMY: TaxModule[] = [
             "permission": "restaurants.comandas-estados.view",
             "own": false,
             "folder": "src/modules/restaurants/comandas/estados"
+          },
+          {
+            "key": "comandas-comandero-movil",
+            "label": "Comandero móvil",
+            "live": false,
+            "path": "restaurants/comandas/comandero-movil",
+            "permission": "restaurants.comandas-comandero-movil.view",
+            "own": false,
+            "folder": "src/modules/restaurants/comandas/comandero-movil"
+          },
+          {
+            "key": "comandas-union-de-cuentas",
+            "label": "Unión de cuentas",
+            "live": false,
+            "path": "restaurants/comandas/union-de-cuentas",
+            "permission": "restaurants.comandas-union-de-cuentas.view",
+            "own": false,
+            "folder": "src/modules/restaurants/comandas/union-de-cuentas"
           }
         ]
       },
@@ -2054,6 +2132,48 @@ export const TAXONOMY: TaxModule[] = [
         ]
       },
       {
+        "key": "menu-digital",
+        "label": "Menú digital",
+        "screens": [
+          {
+            "key": "menu-digital-menu-qr",
+            "label": "Menú QR",
+            "live": false,
+            "path": "restaurants/menu-digital/menu-qr",
+            "permission": "restaurants.menu-digital-menu-qr.view",
+            "own": false,
+            "folder": "src/modules/restaurants/menu-digital/menu-qr"
+          },
+          {
+            "key": "menu-digital-codigos-qr-por-mesa",
+            "label": "Códigos QR por mesa",
+            "live": false,
+            "path": "restaurants/menu-digital/codigos-qr-por-mesa",
+            "permission": "restaurants.menu-digital-codigos-qr-por-mesa.view",
+            "own": false,
+            "folder": "src/modules/restaurants/menu-digital/codigos-qr-por-mesa"
+          },
+          {
+            "key": "menu-digital-auto-pedido-en-mesa",
+            "label": "Auto-pedido en mesa",
+            "live": false,
+            "path": "restaurants/menu-digital/auto-pedido-en-mesa",
+            "permission": "restaurants.menu-digital-auto-pedido-en-mesa.view",
+            "own": false,
+            "folder": "src/modules/restaurants/menu-digital/auto-pedido-en-mesa"
+          },
+          {
+            "key": "menu-digital-pago-desde-el-celular",
+            "label": "Pago desde el celular",
+            "live": false,
+            "path": "restaurants/menu-digital/pago-desde-el-celular",
+            "permission": "restaurants.menu-digital-pago-desde-el-celular.view",
+            "own": false,
+            "folder": "src/modules/restaurants/menu-digital/pago-desde-el-celular"
+          }
+        ]
+      },
+      {
         "key": "cocina",
         "label": "Cocina",
         "screens": [
@@ -2101,6 +2221,24 @@ export const TAXONOMY: TaxModule[] = [
             "permission": "restaurants.cocina-pantalla-kds.view",
             "own": false,
             "folder": "src/modules/restaurants/cocina/pantalla-kds"
+          },
+          {
+            "key": "cocina-alertas-de-retraso",
+            "label": "Alertas de retraso",
+            "live": false,
+            "path": "restaurants/cocina/alertas-de-retraso",
+            "permission": "restaurants.cocina-alertas-de-retraso.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cocina/alertas-de-retraso"
+          },
+          {
+            "key": "cocina-prioridades",
+            "label": "Prioridades",
+            "live": false,
+            "path": "restaurants/cocina/prioridades",
+            "permission": "restaurants.cocina-prioridades.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cocina/prioridades"
           }
         ]
       },
@@ -2161,6 +2299,75 @@ export const TAXONOMY: TaxModule[] = [
             "permission": "restaurants.recetas-costos.view",
             "own": false,
             "folder": "src/modules/restaurants/recetas/costos"
+          },
+          {
+            "key": "recetas-receta-estandar",
+            "label": "Receta estándar",
+            "live": false,
+            "path": "restaurants/recetas/receta-estandar",
+            "permission": "restaurants.recetas-receta-estandar.view",
+            "own": false,
+            "folder": "src/modules/restaurants/recetas/receta-estandar"
+          },
+          {
+            "key": "recetas-costo-real-vs-teorico",
+            "label": "Costo real vs teórico",
+            "live": false,
+            "path": "restaurants/recetas/costo-real-vs-teorico",
+            "permission": "restaurants.recetas-costo-real-vs-teorico.view",
+            "own": false,
+            "folder": "src/modules/restaurants/recetas/costo-real-vs-teorico"
+          }
+        ]
+      },
+      {
+        "key": "insumos-y-compras",
+        "label": "Insumos y compras",
+        "screens": [
+          {
+            "key": "insumos-y-compras-stock-critico",
+            "label": "Stock crítico",
+            "live": false,
+            "path": "restaurants/insumos-y-compras/stock-critico",
+            "permission": "restaurants.insumos-y-compras-stock-critico.view",
+            "own": false,
+            "folder": "src/modules/restaurants/insumos-y-compras/stock-critico"
+          },
+          {
+            "key": "insumos-y-compras-puntos-de-reorden",
+            "label": "Puntos de reorden",
+            "live": false,
+            "path": "restaurants/insumos-y-compras/puntos-de-reorden",
+            "permission": "restaurants.insumos-y-compras-puntos-de-reorden.view",
+            "own": false,
+            "folder": "src/modules/restaurants/insumos-y-compras/puntos-de-reorden"
+          },
+          {
+            "key": "insumos-y-compras-carga-de-facturas-xml-y-pdf",
+            "label": "Carga de facturas XML y PDF",
+            "live": false,
+            "path": "restaurants/insumos-y-compras/carga-de-facturas-xml-y-pdf",
+            "permission": "restaurants.insumos-y-compras-carga-de-facturas-xml-y-pdf.view",
+            "own": false,
+            "folder": "src/modules/restaurants/insumos-y-compras/carga-de-facturas-xml-y-pdf"
+          },
+          {
+            "key": "insumos-y-compras-actualizacion-de-costos",
+            "label": "Actualización de costos",
+            "live": false,
+            "path": "restaurants/insumos-y-compras/actualizacion-de-costos",
+            "permission": "restaurants.insumos-y-compras-actualizacion-de-costos.view",
+            "own": false,
+            "folder": "src/modules/restaurants/insumos-y-compras/actualizacion-de-costos"
+          },
+          {
+            "key": "insumos-y-compras-ordenes-de-compra-a-proveedores",
+            "label": "Órdenes de compra a proveedores",
+            "live": false,
+            "path": "restaurants/insumos-y-compras/ordenes-de-compra-a-proveedores",
+            "permission": "restaurants.insumos-y-compras-ordenes-de-compra-a-proveedores.view",
+            "own": false,
+            "folder": "src/modules/restaurants/insumos-y-compras/ordenes-de-compra-a-proveedores"
           }
         ]
       },
@@ -2212,6 +2419,261 @@ export const TAXONOMY: TaxModule[] = [
             "permission": "restaurants.entrega-seguimiento-de-pedidos.view",
             "own": false,
             "folder": "src/modules/restaurants/entrega/seguimiento-de-pedidos"
+          },
+          {
+            "key": "entrega-uber-eats-rappi-y-didi-food",
+            "label": "Uber Eats, Rappi y DiDi Food",
+            "live": false,
+            "path": "restaurants/entrega/uber-eats-rappi-y-didi-food",
+            "permission": "restaurants.entrega-uber-eats-rappi-y-didi-food.view",
+            "own": false,
+            "folder": "src/modules/restaurants/entrega/uber-eats-rappi-y-didi-food"
+          },
+          {
+            "key": "entrega-menu-en-plataformas",
+            "label": "Menú en plataformas",
+            "live": false,
+            "path": "restaurants/entrega/menu-en-plataformas",
+            "permission": "restaurants.entrega-menu-en-plataformas.view",
+            "own": false,
+            "folder": "src/modules/restaurants/entrega/menu-en-plataformas"
+          }
+        ]
+      },
+      {
+        "key": "cobro-y-facturacion",
+        "label": "Cobro y facturación",
+        "screens": [
+          {
+            "key": "cobro-y-facturacion-terminales-bancarias",
+            "label": "Terminales bancarias",
+            "live": false,
+            "path": "restaurants/cobro-y-facturacion/terminales-bancarias",
+            "permission": "restaurants.cobro-y-facturacion-terminales-bancarias.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cobro-y-facturacion/terminales-bancarias"
+          },
+          {
+            "key": "cobro-y-facturacion-cobro-qr-en-mesa",
+            "label": "Cobro QR en mesa",
+            "live": false,
+            "path": "restaurants/cobro-y-facturacion/cobro-qr-en-mesa",
+            "permission": "restaurants.cobro-y-facturacion-cobro-qr-en-mesa.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cobro-y-facturacion/cobro-qr-en-mesa"
+          },
+          {
+            "key": "cobro-y-facturacion-tap-to-phone",
+            "label": "Tap to Phone",
+            "live": false,
+            "path": "restaurants/cobro-y-facturacion/tap-to-phone",
+            "permission": "restaurants.cobro-y-facturacion-tap-to-phone.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cobro-y-facturacion/tap-to-phone"
+          },
+          {
+            "key": "cobro-y-facturacion-portal-de-autofacturacion",
+            "label": "Portal de autofacturación",
+            "live": false,
+            "path": "restaurants/cobro-y-facturacion/portal-de-autofacturacion",
+            "permission": "restaurants.cobro-y-facturacion-portal-de-autofacturacion.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cobro-y-facturacion/portal-de-autofacturacion"
+          },
+          {
+            "key": "cobro-y-facturacion-timbrado-desde-caja",
+            "label": "Timbrado desde caja",
+            "live": false,
+            "path": "restaurants/cobro-y-facturacion/timbrado-desde-caja",
+            "permission": "restaurants.cobro-y-facturacion-timbrado-desde-caja.view",
+            "own": false,
+            "folder": "src/modules/restaurants/cobro-y-facturacion/timbrado-desde-caja"
+          }
+        ]
+      },
+      {
+        "key": "plataforma",
+        "label": "Plataforma",
+        "screens": [
+          {
+            "key": "plataforma-modo-sin-conexion",
+            "label": "Modo sin conexión",
+            "live": false,
+            "path": "restaurants/plataforma/modo-sin-conexion",
+            "permission": "restaurants.plataforma-modo-sin-conexion.view",
+            "own": false,
+            "folder": "src/modules/restaurants/plataforma/modo-sin-conexion"
+          },
+          {
+            "key": "plataforma-estado-de-sincronizacion",
+            "label": "Estado de sincronización",
+            "live": false,
+            "path": "restaurants/plataforma/estado-de-sincronizacion",
+            "permission": "restaurants.plataforma-estado-de-sincronizacion.view",
+            "own": false,
+            "folder": "src/modules/restaurants/plataforma/estado-de-sincronizacion"
+          },
+          {
+            "key": "plataforma-apis-abiertas",
+            "label": "APIs abiertas",
+            "live": false,
+            "path": "restaurants/plataforma/apis-abiertas",
+            "permission": "restaurants.plataforma-apis-abiertas.view",
+            "own": false,
+            "folder": "src/modules/restaurants/plataforma/apis-abiertas"
+          }
+        ]
+      },
+      {
+        "key": "inteligencia",
+        "label": "Inteligencia",
+        "screens": [
+          {
+            "key": "inteligencia-dashboard-ejecutivo",
+            "label": "Dashboard ejecutivo",
+            "live": false,
+            "path": "restaurants/inteligencia/dashboard-ejecutivo",
+            "permission": "restaurants.inteligencia-dashboard-ejecutivo.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/dashboard-ejecutivo"
+          },
+          {
+            "key": "inteligencia-ticket-promedio",
+            "label": "Ticket promedio",
+            "live": false,
+            "path": "restaurants/inteligencia/ticket-promedio",
+            "permission": "restaurants.inteligencia-ticket-promedio.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/ticket-promedio"
+          },
+          {
+            "key": "inteligencia-platillos-mas-vendidos",
+            "label": "Platillos más vendidos",
+            "live": false,
+            "path": "restaurants/inteligencia/platillos-mas-vendidos",
+            "permission": "restaurants.inteligencia-platillos-mas-vendidos.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/platillos-mas-vendidos"
+          },
+          {
+            "key": "inteligencia-horas-pico",
+            "label": "Horas pico",
+            "live": false,
+            "path": "restaurants/inteligencia/horas-pico",
+            "permission": "restaurants.inteligencia-horas-pico.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/horas-pico"
+          },
+          {
+            "key": "inteligencia-ventas-por-mesero",
+            "label": "Ventas por mesero",
+            "live": false,
+            "path": "restaurants/inteligencia/ventas-por-mesero",
+            "permission": "restaurants.inteligencia-ventas-por-mesero.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/ventas-por-mesero"
+          },
+          {
+            "key": "inteligencia-prediccion-de-insumos",
+            "label": "Predicción de insumos",
+            "live": false,
+            "path": "restaurants/inteligencia/prediccion-de-insumos",
+            "permission": "restaurants.inteligencia-prediccion-de-insumos.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/prediccion-de-insumos"
+          },
+          {
+            "key": "inteligencia-proyeccion-de-demanda",
+            "label": "Proyección de demanda",
+            "live": false,
+            "path": "restaurants/inteligencia/proyeccion-de-demanda",
+            "permission": "restaurants.inteligencia-proyeccion-de-demanda.view",
+            "own": false,
+            "folder": "src/modules/restaurants/inteligencia/proyeccion-de-demanda"
+          }
+        ]
+      },
+      {
+        "key": "personal-y-propinas",
+        "label": "Personal y propinas",
+        "screens": [
+          {
+            "key": "personal-y-propinas-roles-del-restaurante",
+            "label": "Roles del restaurante",
+            "live": false,
+            "path": "restaurants/personal-y-propinas/roles-del-restaurante",
+            "permission": "restaurants.personal-y-propinas-roles-del-restaurante.view",
+            "own": false,
+            "folder": "src/modules/restaurants/personal-y-propinas/roles-del-restaurante"
+          },
+          {
+            "key": "personal-y-propinas-asistencia-del-personal",
+            "label": "Asistencia del personal",
+            "live": false,
+            "path": "restaurants/personal-y-propinas/asistencia-del-personal",
+            "permission": "restaurants.personal-y-propinas-asistencia-del-personal.view",
+            "own": false,
+            "folder": "src/modules/restaurants/personal-y-propinas/asistencia-del-personal"
+          },
+          {
+            "key": "personal-y-propinas-reparto-de-propinas",
+            "label": "Reparto de propinas",
+            "live": false,
+            "path": "restaurants/personal-y-propinas/reparto-de-propinas",
+            "permission": "restaurants.personal-y-propinas-reparto-de-propinas.view",
+            "own": false,
+            "folder": "src/modules/restaurants/personal-y-propinas/reparto-de-propinas"
+          }
+        ]
+      },
+      {
+        "key": "clientes-y-lealtad",
+        "label": "Clientes y lealtad",
+        "screens": [
+          {
+            "key": "clientes-y-lealtad-historial-de-consumo",
+            "label": "Historial de consumo",
+            "live": false,
+            "path": "restaurants/clientes-y-lealtad/historial-de-consumo",
+            "permission": "restaurants.clientes-y-lealtad-historial-de-consumo.view",
+            "own": false,
+            "folder": "src/modules/restaurants/clientes-y-lealtad/historial-de-consumo"
+          },
+          {
+            "key": "clientes-y-lealtad-preferencias-y-alergias",
+            "label": "Preferencias y alergias",
+            "live": false,
+            "path": "restaurants/clientes-y-lealtad/preferencias-y-alergias",
+            "permission": "restaurants.clientes-y-lealtad-preferencias-y-alergias.view",
+            "own": false,
+            "folder": "src/modules/restaurants/clientes-y-lealtad/preferencias-y-alergias"
+          },
+          {
+            "key": "clientes-y-lealtad-cashback",
+            "label": "Cashback",
+            "live": false,
+            "path": "restaurants/clientes-y-lealtad/cashback",
+            "permission": "restaurants.clientes-y-lealtad-cashback.view",
+            "own": false,
+            "folder": "src/modules/restaurants/clientes-y-lealtad/cashback"
+          },
+          {
+            "key": "clientes-y-lealtad-puntos",
+            "label": "Puntos",
+            "live": false,
+            "path": "restaurants/clientes-y-lealtad/puntos",
+            "permission": "restaurants.clientes-y-lealtad-puntos.view",
+            "own": false,
+            "folder": "src/modules/restaurants/clientes-y-lealtad/puntos"
+          },
+          {
+            "key": "clientes-y-lealtad-tarjetas-de-regalo",
+            "label": "Tarjetas de regalo",
+            "live": false,
+            "path": "restaurants/clientes-y-lealtad/tarjetas-de-regalo",
+            "permission": "restaurants.clientes-y-lealtad-tarjetas-de-regalo.view",
+            "own": false,
+            "folder": "src/modules/restaurants/clientes-y-lealtad/tarjetas-de-regalo"
           }
         ]
       }
@@ -4183,6 +4645,15 @@ export const TAXONOMY: TaxModule[] = [
             "folder": "src/modules/reports/rentabilidad"
           },
           {
+            "key": "conciliacion-opera-vs-facto",
+            "label": "Conciliación OPERA vs Facto",
+            "live": false,
+            "path": "reports/conciliacion-opera-vs-facto",
+            "permission": "reports.conciliacion-opera-vs-facto.view",
+            "own": false,
+            "folder": "src/modules/reports/conciliacion-opera-vs-facto"
+          },
+          {
             "key": "reportes-personalizados",
             "label": "Reportes personalizados",
             "live": false,
@@ -4913,39 +5384,85 @@ export const SUBMODULE_LABELS: Record<string, string> = {
   "production.costos-de-fabricacion-mano-de-obra": "Costos de fabricación › Mano de obra",
   "production.costos-de-fabricacion-costos-indirectos": "Costos de fabricación › Costos indirectos",
   "production.costos-de-fabricacion-costos-reales-y-estimados": "Costos de fabricación › Costos reales y estimados",
+  "restaurants.punto-de-venta-pos-de-restaurante": "Punto de venta › POS de restaurante",
+  "restaurants.punto-de-venta-cuentas-abiertas": "Punto de venta › Cuentas abiertas",
+  "restaurants.punto-de-venta-dividir-cuenta-y-pagos-mixtos": "Punto de venta › Dividir cuenta y pagos mixtos",
+  "restaurants.punto-de-venta-propinas-al-cobrar": "Punto de venta › Propinas al cobrar",
+  "restaurants.punto-de-venta-reimpresion-de-tickets": "Punto de venta › Reimpresión de tickets",
   "restaurants.salon-plano": "Salón › Plano",
   "restaurants.salon-salones": "Salón › Salones",
   "restaurants.salon-zonas": "Salón › Zonas",
   "restaurants.salon-mesas": "Salón › Mesas",
   "restaurants.salon-asignacion-de-meseros": "Salón › Asignación de meseros",
   "restaurants.salon-reservaciones": "Salón › Reservaciones",
+  "restaurants.salon-tiempos-de-ocupacion": "Salón › Tiempos de ocupación",
   "restaurants.comandas-nueva-comanda": "Comandas › Nueva comanda",
   "restaurants.comandas-modificaciones": "Comandas › Modificaciones",
   "restaurants.comandas-division-de-cuentas": "Comandas › División de cuentas",
   "restaurants.comandas-division-de-conceptos": "Comandas › División de conceptos",
   "restaurants.comandas-estados": "Comandas › Estados",
+  "restaurants.comandas-comandero-movil": "Comandas › Comandero móvil",
+  "restaurants.comandas-union-de-cuentas": "Comandas › Unión de cuentas",
   "restaurants.menus-menus": "Menús › Menús",
   "restaurants.menus-categorias": "Menús › Categorías",
   "restaurants.menus-platillos": "Menús › Platillos",
   "restaurants.menus-modificadores": "Menús › Modificadores",
   "restaurants.menus-complementos": "Menús › Complementos",
   "restaurants.menus-disponibilidad": "Menús › Disponibilidad",
+  "restaurants.menu-digital-menu-qr": "Menú digital › Menú QR",
+  "restaurants.menu-digital-codigos-qr-por-mesa": "Menú digital › Códigos QR por mesa",
+  "restaurants.menu-digital-auto-pedido-en-mesa": "Menú digital › Auto-pedido en mesa",
+  "restaurants.menu-digital-pago-desde-el-celular": "Menú digital › Pago desde el celular",
   "restaurants.cocina-estaciones": "Cocina › Estaciones",
   "restaurants.cocina-cola-de-preparacion": "Cocina › Cola de preparación",
   "restaurants.cocina-enrutamiento": "Cocina › Enrutamiento",
   "restaurants.cocina-tiempos": "Cocina › Tiempos",
   "restaurants.cocina-pantalla-kds": "Cocina › Pantalla KDS",
+  "restaurants.cocina-alertas-de-retraso": "Cocina › Alertas de retraso",
+  "restaurants.cocina-prioridades": "Cocina › Prioridades",
   "restaurants.recetas-ingredientes": "Recetas › Ingredientes",
   "restaurants.recetas-subrecetas": "Recetas › Subrecetas",
   "restaurants.recetas-rendimientos": "Recetas › Rendimientos",
   "restaurants.recetas-unidades-de-consumo": "Recetas › Unidades de consumo",
   "restaurants.recetas-mermas": "Recetas › Mermas",
   "restaurants.recetas-costos": "Recetas › Costos",
+  "restaurants.recetas-receta-estandar": "Recetas › Receta estándar",
+  "restaurants.recetas-costo-real-vs-teorico": "Recetas › Costo real vs teórico",
+  "restaurants.insumos-y-compras-stock-critico": "Insumos y compras › Stock crítico",
+  "restaurants.insumos-y-compras-puntos-de-reorden": "Insumos y compras › Puntos de reorden",
+  "restaurants.insumos-y-compras-carga-de-facturas-xml-y-pdf": "Insumos y compras › Carga de facturas XML y PDF",
+  "restaurants.insumos-y-compras-actualizacion-de-costos": "Insumos y compras › Actualización de costos",
+  "restaurants.insumos-y-compras-ordenes-de-compra-a-proveedores": "Insumos y compras › Órdenes de compra a proveedores",
   "restaurants.entrega-para-llevar": "Entrega › Para llevar",
   "restaurants.entrega-reparto": "Entrega › Reparto",
   "restaurants.entrega-entregas": "Entrega › Entregas",
   "restaurants.entrega-canales-externos": "Entrega › Canales externos",
   "restaurants.entrega-seguimiento-de-pedidos": "Entrega › Seguimiento de pedidos",
+  "restaurants.entrega-uber-eats-rappi-y-didi-food": "Entrega › Uber Eats, Rappi y DiDi Food",
+  "restaurants.entrega-menu-en-plataformas": "Entrega › Menú en plataformas",
+  "restaurants.cobro-y-facturacion-terminales-bancarias": "Cobro y facturación › Terminales bancarias",
+  "restaurants.cobro-y-facturacion-cobro-qr-en-mesa": "Cobro y facturación › Cobro QR en mesa",
+  "restaurants.cobro-y-facturacion-tap-to-phone": "Cobro y facturación › Tap to Phone",
+  "restaurants.cobro-y-facturacion-portal-de-autofacturacion": "Cobro y facturación › Portal de autofacturación",
+  "restaurants.cobro-y-facturacion-timbrado-desde-caja": "Cobro y facturación › Timbrado desde caja",
+  "restaurants.plataforma-modo-sin-conexion": "Plataforma › Modo sin conexión",
+  "restaurants.plataforma-estado-de-sincronizacion": "Plataforma › Estado de sincronización",
+  "restaurants.plataforma-apis-abiertas": "Plataforma › APIs abiertas",
+  "restaurants.inteligencia-dashboard-ejecutivo": "Inteligencia › Dashboard ejecutivo",
+  "restaurants.inteligencia-ticket-promedio": "Inteligencia › Ticket promedio",
+  "restaurants.inteligencia-platillos-mas-vendidos": "Inteligencia › Platillos más vendidos",
+  "restaurants.inteligencia-horas-pico": "Inteligencia › Horas pico",
+  "restaurants.inteligencia-ventas-por-mesero": "Inteligencia › Ventas por mesero",
+  "restaurants.inteligencia-prediccion-de-insumos": "Inteligencia › Predicción de insumos",
+  "restaurants.inteligencia-proyeccion-de-demanda": "Inteligencia › Proyección de demanda",
+  "restaurants.personal-y-propinas-roles-del-restaurante": "Personal y propinas › Roles del restaurante",
+  "restaurants.personal-y-propinas-asistencia-del-personal": "Personal y propinas › Asistencia del personal",
+  "restaurants.personal-y-propinas-reparto-de-propinas": "Personal y propinas › Reparto de propinas",
+  "restaurants.clientes-y-lealtad-historial-de-consumo": "Clientes y lealtad › Historial de consumo",
+  "restaurants.clientes-y-lealtad-preferencias-y-alergias": "Clientes y lealtad › Preferencias y alergias",
+  "restaurants.clientes-y-lealtad-cashback": "Clientes y lealtad › Cashback",
+  "restaurants.clientes-y-lealtad-puntos": "Clientes y lealtad › Puntos",
+  "restaurants.clientes-y-lealtad-tarjetas-de-regalo": "Clientes y lealtad › Tarjetas de regalo",
   "catalogos.productos-y-servicios-variantes": "Productos y servicios › Plantillas de variantes",
   "catalogos.productos-y-servicios-presentaciones": "Productos y servicios › Presentaciones",
   "catalogos.productos-y-servicios-codigos-de-barras": "Productos y servicios › Códigos de barras",
@@ -5113,6 +5630,7 @@ export const SUBMODULE_LABELS: Record<string, string> = {
   "reports.rh": "RH",
   "reports.produccion": "Producción",
   "reports.rentabilidad": "Rentabilidad",
+  "reports.conciliacion-opera-vs-facto": "Conciliación OPERA vs Facto",
   "reports.reportes-personalizados": "Reportes personalizados",
   "automation.flujos-y-aprobaciones-definiciones": "Flujos y aprobaciones › Definiciones",
   "automation.flujos-y-aprobaciones-versiones": "Flujos y aprobaciones › Versiones",

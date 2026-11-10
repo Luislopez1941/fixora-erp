@@ -1,0 +1,248 @@
+/* Plano del POS de restaurante: salones, mesas por estado y cuentas para llevar / mostrador */
+.floor-map {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.floor-map__bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.floor-map__rooms {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.floor-map__rooms button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--panel-border);
+  background: var(--card-bg);
+  color: var(--text-color);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.floor-map__rooms button.is-active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+
+.floor-map__count {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  font-variant-numeric: tabular-nums;
+}
+
+.floor-map__legend {
+  display: flex;
+  gap: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.floor-map__legend span::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.floor-map__legend .is-free::before { background: var(--rest-free); }
+.floor-map__legend .is-busy::before { background: var(--secondary-color); }
+.floor-map__legend .is-bill::before { background: var(--rest-bill); }
+
+.floor-map__new {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.floor-map__new button {
+  gap: 6px;
+}
+
+.floor-map__tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.floor-table {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 112px;
+  padding: 12px 14px;
+  border-radius: var(--radius-lg);
+  border: 2px solid transparent;
+  background: var(--card-bg);
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .floor-table:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -8px rgb(0 0 0 / 0.35);
+  }
+  .floor-table:hover:active { transform: scale(0.98); }
+  .floor-map__rooms button:not(.is-active):hover {
+    background: color-mix(in srgb, var(--secondary-color) 8%, var(--card-bg));
+  }
+}
+
+.floor-table:active { transform: scale(0.98); }
+.floor-table:focus-visible { outline: 2px solid var(--secondary-color); outline-offset: 2px; }
+
+.floor-table.shape-round { border-radius: 28px; }
+.floor-table.is-free { border-color: color-mix(in srgb, var(--rest-free) 45%, transparent); }
+.floor-table.is-busy { border-color: var(--secondary-color); background: color-mix(in srgb, var(--secondary-color) 8%, var(--card-bg)); }
+.floor-table.is-bill { border-color: var(--rest-bill); background: color-mix(in srgb, var(--rest-bill) 9%, var(--card-bg)); }
+
+.floor-table__name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.floor-table__meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.floor-table__meta .material-symbols-rounded {
+  font-size: 16px;
+}
+
+.floor-table__meta .material-symbols-rounded + .material-symbols-rounded,
+.floor-table__meta .material-symbols-rounded:not(:first-child) {
+  margin-left: 6px;
+}
+
+.floor-table__total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.floor-table__state {
+  margin-top: auto;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.floor-table.is-busy .floor-table__state { color: var(--secondary-color); }
+.floor-table.is-bill .floor-table__state { color: var(--rest-bill); }
+.floor-table.is-free .floor-table__state { color: var(--rest-free); }
+
+.floor-table__badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--primary-color);
+  color: #fff;
+}
+
+.floor-table__pending {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  width: 10px;
+  height: 10px;
+  animation: floor-pending 2s var(--rest-ease) infinite;
+  border-radius: 50%;
+  background: var(--rest-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--rest-danger) 25%, transparent);
+}
+
+.floor-map__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 48px 16px;
+  border: 1px dashed var(--panel-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.floor-map__empty .material-symbols-rounded { font-size: 40px; }
+.floor-map__empty p { margin: 0; color: var(--text-color); }
+.floor-map__empty .floor-map__hint { color: var(--text-muted); font-size: 0.85rem; }
+
+.floor-map__others h3 {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.floor-map__other-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.floor-other {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 8%, var(--card-bg));
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.floor-other.is-bill { border-color: var(--rest-bill); }
+.floor-other__name { font-weight: 600; }
+.floor-other__meta { font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+@keyframes floor-pending {
+  0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--rest-danger) 25%, transparent); }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--rest-danger) 8%, transparent); }
+}
+
+.floor-other:focus-visible { outline: 2px solid var(--secondary-color); outline-offset: 2px; }
+
+@media (hover: hover) {
+  .floor-other:hover { background: color-mix(in srgb, var(--secondary-color) 14%, var(--card-bg)); }
+}
+
+@media (max-width: 640px) {
+  .floor-map__new { margin-left: 0; width: 100%; }
+  .floor-map__new button { flex: 1; justify-content: center; }
+  .floor-map__tables { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+}

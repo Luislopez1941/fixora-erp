@@ -155,14 +155,28 @@ export const MODULES = [
   },
   {
     key: 'restaurants', label: 'Restaurantes y Food Service', icon: 'restaurants', symbol: 'restaurant', order: 90,
-    description: 'Salón, comandas, menús, cocina (KDS), recetas y entrega.',
+    description: 'Comandero, mesas, cocina (KDS), menú QR, recetario y costos, delivery, cobro, propinas, lealtad y BI para restaurantes.',
     groups: [
-      { label: 'Salón', screens: ['Plano', 'Salones', 'Zonas', 'Mesas', 'Asignación de meseros', 'Reservaciones'] },
-      { label: 'Comandas', screens: ['Nueva comanda', 'Modificaciones', 'División de cuentas', 'División de conceptos', 'Estados'] },
+      // Cobro del restaurante (mesa, para llevar y mostrador); reutiliza el motor de cobro de Ventas y el módulo Caja
+      { label: 'Punto de venta', screens: ['POS de restaurante', 'Cuentas abiertas', 'Dividir cuenta y pagos mixtos', 'Propinas al cobrar', 'Reimpresión de tickets'] },
+      // 1. Operación POS y servicio en sala
+      { label: 'Salón', screens: ['Plano', 'Salones', 'Zonas', 'Mesas', 'Asignación de meseros', 'Reservaciones', 'Tiempos de ocupación'] },
+      { label: 'Comandas', screens: ['Nueva comanda', 'Modificaciones', 'División de cuentas', 'División de conceptos', 'Estados', 'Comandero móvil', 'Unión de cuentas'] },
       { label: 'Menús', screens: ['Menús', 'Categorías', 'Platillos', 'Modificadores', 'Complementos', 'Disponibilidad'] },
-      { label: 'Cocina', screens: ['Estaciones', 'Cola de preparación', 'Enrutamiento', 'Tiempos', 'Pantalla KDS'] },
-      { label: 'Recetas', screens: ['Ingredientes', 'Subrecetas', 'Rendimientos', 'Unidades de consumo', 'Mermas', 'Costos'] },
-      { label: 'Entrega', screens: ['Para llevar', 'Reparto', 'Entregas', 'Canales externos', 'Seguimiento de pedidos'] },
+      { label: 'Menú digital', screens: ['Menú QR', 'Códigos QR por mesa', 'Auto-pedido en mesa', 'Pago desde el celular'] },
+      { label: 'Cocina', screens: ['Estaciones', 'Cola de preparación', 'Enrutamiento', 'Tiempos', 'Pantalla KDS', 'Alertas de retraso', 'Prioridades'] },
+      // 2. Inventarios, costos y recetario
+      { label: 'Recetas', screens: ['Ingredientes', 'Subrecetas', 'Rendimientos', 'Unidades de consumo', 'Mermas', 'Costos', 'Receta estándar', 'Costo real vs teórico'] },
+      { label: 'Insumos y compras', screens: ['Stock crítico', 'Puntos de reorden', 'Carga de facturas XML y PDF', 'Actualización de costos', 'Órdenes de compra a proveedores'] },
+      // 3. Integraciones e infraestructura
+      { label: 'Entrega', screens: ['Para llevar', 'Reparto', 'Entregas', 'Canales externos', 'Seguimiento de pedidos', 'Uber Eats, Rappi y DiDi Food', 'Menú en plataformas'] },
+      { label: 'Cobro y facturación', screens: ['Terminales bancarias', 'Cobro QR en mesa', 'Tap to Phone', 'Portal de autofacturación', 'Timbrado desde caja'] },
+      { label: 'Plataforma', screens: ['Modo sin conexión', 'Estado de sincronización', 'APIs abiertas'] },
+      // 4. Administración y BI (cajas y arqueos viven en el módulo Caja)
+      { label: 'Inteligencia', screens: ['Dashboard ejecutivo', 'Ticket promedio', 'Platillos más vendidos', 'Horas pico', 'Ventas por mesero', 'Predicción de insumos', 'Proyección de demanda'] },
+      { label: 'Personal y propinas', screens: ['Roles del restaurante', 'Asistencia del personal', 'Reparto de propinas'] },
+      // 5. CRM y fidelización
+      { label: 'Clientes y lealtad', screens: ['Historial de consumo', 'Preferencias y alergias', 'Cashback', 'Puntos', 'Tarjetas de regalo'] },
     ],
   },
   {
@@ -252,7 +266,7 @@ export const MODULES = [
     key: 'reports', label: 'Reportes y análisis', icon: 'report', symbol: 'analytics', order: 160, price: [349, 3490], requiredPermission: 'reports.view',
     description: 'Reportes por área y reportes personalizados.',
     groups: [
-      { label: null, screens: ['Ventas', 'Caja', 'Inventario', 'Compras', 'Finanzas', 'Fiscal', 'RH', 'Producción', 'Rentabilidad', 'Reportes personalizados'] },
+      { label: null, screens: ['Ventas', 'Caja', 'Inventario', 'Compras', 'Finanzas', 'Fiscal', 'RH', 'Producción', 'Rentabilidad', 'Conciliación OPERA vs Facto', 'Reportes personalizados'] },
     ],
   },
   {

@@ -1,0 +1,75 @@
+/* Salones y mesas (configuración del plano del POS) */
+.salones {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.salon-card {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  padding: 14px 16px 16px;
+}
+
+.salon-card.is-off { opacity: 0.65; }
+
+.salon-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.salon-card__head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--text-color);
+}
+
+.salon-card__head small { color: var(--text-muted); }
+
+.salon-card__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.salon-card__actions button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.salon-card__tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+
+.salon-table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.salon-table.shape-round { border-radius: 24px; }
+.salon-table > .material-symbols-rounded { color: var(--secondary-color); }
+.salon-table small { color: var(--text-muted); font-size: 0.75rem; }
+.salon-table.is-off { opacity: 0.5; border-style: dashed; }
+.salon-table.is-add { border-style: dashed; color: var(--text-muted); }
+.salon-table.is-add > .material-symbols-rounded { color: var(--text-muted); }
+.salon-table:disabled { cursor: default; }

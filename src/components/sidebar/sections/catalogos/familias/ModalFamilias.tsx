@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react'
+import KindSelect from '../../../../../modules/restaurants/shared/KindSelect'
+import '../../../../../modules/restaurants/menus/shared/Menus.css'
+import '../../../../../modules/restaurants/shared/restaurants.css'
 import { createPortal } from 'react-dom'
 import Swal from 'sweetalert2'
 import { useDispatch, useSelector } from 'react-redux'
@@ -35,6 +38,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
     return saved ? Number(saved) : null
   })
   const [allowedItemType, setAllowedItemType] = useState<string>('both')
+  const [restaurantKindId, setRestaurantKindId] = useState<number | null>(null)
   const [image, setImage] = useState('')
   const [imagePreview, setImagePreview] = useState('')
   const [imageName, setImageName] = useState('')
@@ -53,6 +57,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
       const savedCo = localStorage.getItem(LS_COMPANY)
       setCompanyId(savedCo ? Number(savedCo) : null)
       setAllowedItemType('both')
+      setRestaurantKindId(null)
       setImage('')
       setImagePreview('')
       setStatus('ACTIVE')
@@ -76,6 +81,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
 
     const itemType = selectedFamilia.allowedItemType
     setAllowedItemType(itemType === null || itemType === undefined ? 'both' : String(itemType))
+    setRestaurantKindId(selectedFamilia.restaurantKindId != null ? Number(selectedFamilia.restaurantKindId) : null)
 
     setStatus(selectedFamilia.status === 'INACTIVE' ? 'INACTIVE' : 'ACTIVE')
 
@@ -193,6 +199,7 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
       level: 1,
       type: 'FAMILIA',
       allowedItemType: allowedItemType === 'both' ? null : allowedItemType,
+      restaurantKindId,
       image: image || null,
       status,
       parentId: null,
@@ -332,6 +339,11 @@ const ModalFamilias: React.FC<ModalFamiliasProps> = ({ selectedFamilia, onSaved 
                   <option value='ARTICLE'>Solo Artículos</option>
                   <option value='SERVICE'>Solo Servicios</option>
                 </select>
+              </div>
+
+              <div className='modal-familias-field'>
+                <label className='modal-familias-label'>Tipo de consumo (restaurante)</label>
+                <KindSelect className='modal-familias-input' value={restaurantKindId} onChange={setRestaurantKindId} emptyLabel='Sin tipo' disabled={isSaving} />
               </div>
 
               <div className='modal-familias-field modal-familias-status-group'>

@@ -1,0 +1,157 @@
+/* Ventanas de restaurante: campos y listas de elección comunes */
+.pos-modal { width: min(520px, 100%); }
+.pos-modal.is-wide { width: min(720px, 100%); }
+
+.pos-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.pos-field input,
+.pos-field select,
+.pos-field textarea {
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  background: var(--modal-input-bg, var(--input-color));
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-weight: 400;
+}
+
+.pos-field textarea {
+  height: auto;
+  min-height: 72px;
+  padding: 10px 12px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.pos-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.pos-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-stepper button {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+}
+
+.pos-stepper strong {
+  min-width: 36px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-color);
+}
+
+.pos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pos-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-color);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.pos-chip.is-active {
+  border-color: var(--secondary-color);
+  background: color-mix(in srgb, var(--secondary-color) 14%, transparent);
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+.pos-chip .material-symbols-rounded { font-size: 16px; }
+
+.pos-pick {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.pos-pick button,
+.pos-pick label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--panel-border);
+  background: transparent;
+  color: var(--text-color);
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.pos-pick .is-checked { border-color: var(--secondary-color); background: color-mix(in srgb, var(--secondary-color) 8%, transparent); }
+.pos-pick__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.pos-pick__main small { color: var(--text-muted); }
+.pos-pick__end { font-variant-numeric: tabular-nums; }
+
+@media (hover: hover) {
+  .pos-chip:not(.is-active):hover { background: color-mix(in srgb, var(--secondary-color) 8%, transparent); }
+  .pos-pick button:hover,
+  .pos-pick label:hover { border-color: color-mix(in srgb, var(--secondary-color) 55%, var(--panel-border)); }
+  .pos-stepper button:not(:disabled):hover { background: color-mix(in srgb, var(--secondary-color) 10%, transparent); }
+}
+
+.pos-stepper button:disabled { opacity: 0.4; }
+
+.pos-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.pos-error {
+  margin: 0;
+  text-wrap: pretty;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--rest-danger) 10%, transparent);
+  color: var(--rest-danger);
+  font-size: 0.85rem;
+}

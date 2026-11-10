@@ -1,0 +1,91 @@
+/* Cuentas abiertas: lista de trabajo; el estado y el tiempo se leen de un vistazo */
+.restaurant-list__row.cuenta {
+  grid-template-columns: 40px minmax(0, 1fr) auto auto auto 20px;
+  min-height: 64px;
+  gap: 14px;
+}
+
+.cuenta__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--secondary-color) 12%, transparent);
+  color: var(--secondary-color);
+}
+
+.cuenta.is-bill .cuenta__icon {
+  background: color-mix(in srgb, var(--rest-bill) 14%, transparent);
+  color: var(--rest-bill);
+}
+
+/* el icono de la fila ya va dentro de su recuadro */
+.restaurant-list__row.cuenta > .material-symbols-rounded { color: var(--text-muted); font-size: 20px; }
+
+.cuenta__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta__meta span + span::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 8px 2px -6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.5;
+}
+
+.cuenta__status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.cuenta__status .restaurant-badge { margin-left: 0; font-size: 0.74rem; }
+
+.cuenta__time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 72px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-color);
+  font-variant-numeric: tabular-nums;
+}
+
+.cuenta__time small {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.restaurant-list__row.cuenta .restaurant-list__num { min-width: 88px; font-size: 1.05rem; }
+
+@media (hover: hover) {
+  .cuenta:hover .cuenta__go { transform: translateX(2px); color: var(--text-color); }
+}
+.cuenta__go { transition: transform 150ms var(--rest-ease), color 150ms var(--rest-ease); }
+
+@media (max-width: 760px) {
+  .restaurant-list__row.cuenta {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'icon main num'
+      '. status time';
+    row-gap: 8px;
+  }
+  .cuenta__icon { grid-area: icon; }
+  .cuenta .restaurant-list__main { grid-area: main; }
+  .cuenta__status { grid-area: status; justify-content: flex-start; }
+  .cuenta__time { grid-area: time; flex-direction: row; gap: 6px; align-items: baseline; }
+  .restaurant-list__row.cuenta .restaurant-list__num { grid-area: num; }
+  .cuenta__go { display: none; }
+}

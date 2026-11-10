@@ -490,3 +490,623 @@
     transition: none;
   }
 }
+
+/* ═══════════════ Rediseño Fixora ERP ═══════════════
+   Riel azul marino con ítem activo naranja sólido + panel blanco con marca, buscador gris y selección #FEE5CC. */
+.sbx-rail__item {
+  border-radius: 12px;
+  opacity: 0.7;
+}
+
+.sbx-rail__item.is-active {
+  opacity: 1;
+  background: var(--secondary-color);
+  color: #fff;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--secondary-color) 38%, transparent);
+}
+
+.sbx-rail__item.is-active.is-current::before {
+  display: none;
+}
+
+.sbx-rail__list.sbx-rail__list--shortcuts,
+.sbx-rail__bottom {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.sbx-panel {
+  background: var(--sub-menu-bg);
+  border-left: none;
+  border-right: 1px solid var(--border-subtle, var(--panel-border));
+}
+
+/* Marca */
+.sbx-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 14px;
+  padding: 16px 0 14px;
+  border-bottom: 1px solid var(--border-subtle, var(--panel-border));
+  color: var(--text-heading, var(--sub-menu-text));
+  text-decoration: none;
+}
+
+.sbx-brand img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.sbx-brand__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.sbx-brand__text strong {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.sbx-brand__text strong em {
+  font-style: normal;
+  color: var(--secondary-color);
+}
+
+.sbx-brand__text small {
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 500;
+  color: var(--text-secondary, var(--text-muted));
+  white-space: nowrap;
+}
+
+/* Título del módulo */
+.sbx-panel__head {
+  padding: 14px 8px 8px 16px;
+}
+
+.sbx-panel__head h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-heading, inherit);
+}
+
+/* Buscador */
+.sbx-search {
+  height: 38px;
+  margin: 2px 14px 12px;
+  padding: 0 12px;
+  gap: 8px;
+  border-radius: var(--radius-input, 10px);
+  background: var(--input-bg, color-mix(in srgb, var(--sub-menu-text) 8%, transparent));
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.sbx-search:focus-within {
+  border-color: var(--border-active, var(--secondary-color));
+}
+
+.sbx-search .material-symbols-rounded {
+  font-size: 19px;
+  color: var(--text-secondary, inherit);
+  opacity: 1;
+}
+
+.sbx-search input {
+  font-size: 0.86rem;
+}
+
+.sbx-search input::placeholder {
+  color: var(--text-secondary, var(--input-placeholder));
+}
+
+/* Enlaces */
+.sbx-panel__body {
+  padding: 0 12px 14px;
+}
+
+.sbx-link,
+.sbx-result {
+  padding: 10px 12px;
+  border-radius: var(--radius-button, 10px);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--sub-menu-text);
+}
+
+.sbx-link:hover,
+.sbx-result:hover {
+  background: var(--sub-menu-hover-bg);
+}
+
+.sbx-link:hover {
+  padding-left: 12px;
+}
+
+.sbx-link.is-current,
+.sbx-result.is-current {
+  background: var(--active-bg, color-mix(in srgb, var(--secondary-color) 16%, transparent));
+  color: var(--active-color, var(--secondary-color));
+  font-weight: 600;
+}
+
+.sbx-group {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: var(--radius-button, 10px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: none;
+  color: var(--text-secondary, inherit);
+  opacity: 1;
+}
+
+.sbx-group:hover {
+  color: var(--text-heading, inherit);
+}
+
+.sbx-group.is-current {
+  color: var(--active-color, var(--secondary-color));
+}
+
+.sbx-result small {
+  color: var(--text-secondary, inherit);
+  opacity: 1;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel {
+  box-shadow: 0 12px 32px rgba(0, 38, 73, 0.18);
+}
+
+.sbx-handle {
+  background: var(--sub-menu-bg);
+  border: 1px solid var(--border-subtle, transparent);
+  border-left: none;
+}
+
+/* Compactación */
+.sbx-brand {
+  padding: 12px 0 10px;
+  margin: 0 12px;
+}
+
+.sbx-brand img {
+  width: 30px;
+  height: 30px;
+}
+
+.sbx-panel__head {
+  padding: 10px 8px 6px 14px;
+}
+
+.sbx-search {
+  height: 34px;
+  margin: 0 12px 8px;
+}
+
+.sbx-panel__body {
+  padding: 0 10px 10px;
+}
+
+.sbx-link,
+.sbx-result {
+  padding: 7px 10px;
+  font-size: 0.86rem;
+}
+
+.sbx-group {
+  margin-top: 4px;
+  padding: 6px 10px;
+}
+
+/* ═══════════════ Sidebar · versión delgada (riel 56 px, panel 200 px) ═══════════════ */
+.sbx-rail {
+  width: 56px;
+  padding: 8px 0;
+  gap: 4px;
+}
+
+.sbx-logo {
+  width: 38px;
+  height: 38px;
+}
+
+.sbx-logo img {
+  width: 28px;
+  height: 28px;
+}
+
+.sbx-rail__item {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.sbx-rail__icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.sbx-rail__item .material-symbols-rounded {
+  font-size: 19px;
+}
+
+.sbx-rail__list {
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.sbx-rail__bottom {
+  gap: 2px;
+  padding-top: 6px;
+}
+
+.sbx-rail__item.is-current::before {
+  left: -9px;
+  top: 8px;
+  bottom: 8px;
+}
+
+.sbx-panel,
+.sbx-panel__inner {
+  width: 200px;
+}
+
+.sbx-panel.is-hidden {
+  width: 0;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel {
+  left: 56px;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel.is-hidden {
+  width: 200px;
+}
+
+.sbx-backdrop {
+  left: 56px;
+}
+
+.sbx-tip {
+  left: 62px;
+}
+
+.sbx-brand {
+  gap: 8px;
+  padding: 10px 0 8px;
+}
+
+.sbx-brand img {
+  width: 26px;
+  height: 26px;
+}
+
+.sbx-brand__text strong {
+  font-size: 0.95rem;
+}
+
+.sbx-brand__text small {
+  font-size: 0.56rem;
+}
+
+.sbx-panel__head {
+  padding: 8px 6px 4px 12px;
+}
+
+.sbx-panel__head h2 {
+  font-size: 0.95rem;
+}
+
+.sbx-search {
+  height: 30px;
+  margin: 0 10px 6px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.sbx-search .material-symbols-rounded {
+  font-size: 17px;
+}
+
+.sbx-search input {
+  font-size: 0.8rem;
+}
+
+.sbx-panel__body {
+  padding: 0 8px 8px;
+}
+
+.sbx-link,
+.sbx-result {
+  padding: 5px 9px;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+.sbx-link:hover {
+  padding-left: 9px;
+}
+
+.sbx-group {
+  margin-top: 2px;
+  padding: 5px 9px;
+  font-size: 0.74rem;
+}
+
+.sbx-result strong {
+  font-size: 0.82rem;
+}
+
+.sbx-result small {
+  font-size: 0.68rem;
+}
+
+/* ═══════════════ Sidebar · punto medio (riel 60 px, panel 212 px) ═══════════════ */
+.sbx-rail {
+  width: 60px;
+  padding: 10px 0;
+  gap: 6px;
+}
+
+.sbx-logo {
+  width: 42px;
+  height: 42px;
+}
+
+.sbx-logo img {
+  width: 32px;
+  height: 32px;
+}
+
+.sbx-rail__item {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.sbx-rail__icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.sbx-rail__item .material-symbols-rounded {
+  font-size: 21px;
+}
+
+.sbx-rail__list {
+  gap: 3px;
+  padding: 3px 0;
+}
+
+.sbx-rail__bottom {
+  gap: 3px;
+  padding-top: 8px;
+}
+
+.sbx-rail__item.is-current::before {
+  left: -9px;
+  top: 9px;
+  bottom: 9px;
+}
+
+.sbx-panel,
+.sbx-panel__inner {
+  width: 212px;
+}
+
+.sbx-panel.is-hidden {
+  width: 0;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel {
+  left: 60px;
+}
+
+.sidebar.sbx.is-narrow .sbx-panel.is-hidden {
+  width: 212px;
+}
+
+.sbx-backdrop {
+  left: 60px;
+}
+
+.sbx-tip {
+  left: 66px;
+}
+
+.sbx-brand {
+  gap: 9px;
+  padding: 13px 0 11px;
+}
+
+.sbx-brand img {
+  width: 30px;
+  height: 30px;
+}
+
+.sbx-brand__text strong {
+  font-size: 1rem;
+}
+
+.sbx-brand__text small {
+  font-size: 0.6rem;
+}
+
+.sbx-panel__head {
+  padding: 11px 8px 6px 14px;
+}
+
+.sbx-panel__head h2 {
+  font-size: 1rem;
+}
+
+.sbx-search {
+  height: 36px;
+  margin: 0 12px 10px;
+  padding: 0 11px;
+  border-radius: 10px;
+}
+
+.sbx-search .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.sbx-search input {
+  font-size: 0.84rem;
+}
+
+.sbx-panel__body {
+  padding: 0 10px 10px;
+}
+
+.sbx-link,
+.sbx-result {
+  padding: 8px 11px;
+  font-size: 0.88rem;
+  border-radius: 10px;
+}
+
+.sbx-link:hover {
+  padding-left: 11px;
+}
+
+.sbx-group {
+  margin-top: 4px;
+  padding: 7px 11px;
+  font-size: 0.78rem;
+}
+
+.sbx-result strong {
+  font-size: 0.88rem;
+}
+
+.sbx-result small {
+  font-size: 0.7rem;
+}
+
+/* ═══════════════ Iconos del riel: centrado exacto ═══════════════
+   El span del icono era inline y el svg quedaba sobre la línea base (se veía corrido); además cada svg trae su propio
+   tamaño. Aquí todos quedan en una caja fija de 22 px, centrada, y el ítem activo no cambia de tamaño ni de posición. */
+.sbx-rail__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 0;
+  box-sizing: border-box;
+}
+
+.sbx-rail__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.sbx-rail__icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.sbx-rail__item .material-symbols-rounded {
+  display: block;
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+  line-height: 22px;
+  text-align: center;
+}
+
+/* Activo: mismo tamaño que el resto, glow parejo (sin desplazarse hacia abajo) y sin el efecto de agrandar */
+.sbx-rail__item.is-active {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--secondary-color) 22%, transparent);
+}
+
+.sbx-rail__item:hover,
+.sbx-rail__item.is-active:hover {
+  transform: none;
+}
+
+.sbx-rail__list {
+  align-items: center;
+  overflow-x: visible;
+}
+
+.sbx-rail__list > li {
+  display: flex;
+  justify-content: center;
+}
+
+/* ═══════════════ Tipografía del panel: más ligera y legible ═══════════════ */
+.sbx-group {
+  padding: 9px 11px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+  color: var(--sub-menu-text);
+}
+
+.sbx-group:hover {
+  color: var(--sub-menu-text);
+  background: var(--sub-menu-hover-bg);
+}
+
+.sbx-group.is-current {
+  color: var(--active-color, var(--secondary-color));
+  font-weight: 600;
+}
+
+.sbx-group small {
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--text-secondary, inherit);
+  opacity: 1;
+}
+
+.sbx-group__chev {
+  font-size: 20px;
+  color: var(--text-secondary, inherit);
+}
+
+.sbx-link,
+.sbx-result {
+  padding: 8px 11px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--sub-menu-text);
+}
+
+.sbx-link.is-current,
+.sbx-result.is-current {
+  font-weight: 600;
+}
+
+.sbx-result strong {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.sbx-panel__head h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.sbx-search input {
+  font-size: 0.88rem;
+}

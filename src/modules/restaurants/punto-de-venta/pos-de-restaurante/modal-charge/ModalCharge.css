@@ -1,0 +1,104 @@
+/* Cobro de una cuenta del restaurante */
+.charge__summary,
+.charge__balance {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.charge__summary > div,
+.charge__balance > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--primary-color) 7%, transparent);
+  font-variant-numeric: tabular-nums;
+}
+
+.charge__summary span,
+.charge__balance span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.charge__summary strong,
+.charge__balance strong {
+  font-size: 1.05rem;
+  color: var(--text-color);
+}
+
+.charge__summary .is-total { background: var(--primary-color); }
+.charge__summary .is-total span,
+.charge__summary .is-total strong { color: #fff; }
+.charge__summary .is-total strong { font-size: 1.3rem; }
+
+.charge__balance .is-missing { background: color-mix(in srgb, var(--rest-danger) 12%, transparent); }
+.charge__balance .is-missing strong { color: var(--rest-danger); }
+.charge__balance .is-change { background: color-mix(in srgb, var(--rest-free) 12%, transparent); }
+.charge__balance .is-change strong { color: var(--rest-free); font-size: 1.3rem; }
+
+.charge__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.charge__row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 130px minmax(160px, 1.4fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.charge__row select,
+.charge__row input {
+  height: 40px;
+  padding: 0 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--modal-input-border, var(--panel-border));
+  background: var(--modal-input-bg, var(--input-color));
+  color: var(--text-color);
+  font-size: 0.95rem;
+  min-width: 0;
+}
+
+.charge__row input[type='number'] { font-variant-numeric: tabular-nums; text-align: right; }
+
+.charge__bills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.charge__remove {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.charge__add {
+  align-self: flex-start;
+  gap: 6px;
+}
+
+.charge__submit {
+  background: var(--secondary-color);
+  font-weight: 700;
+}
+
+.charge__submit:disabled { opacity: 0.55; cursor: default; }
+
+@media (max-width: 640px) {
+  .charge__row { grid-template-columns: 1fr 110px auto; }
+  .charge__row > :nth-child(3) { grid-column: 1 / -1; }
+}
+
+.charge__extra { display: flex; flex-wrap: wrap; gap: 8px; }

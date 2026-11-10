@@ -1,0 +1,93 @@
+/*
+ * Base compartida de las pantallas de Restaurantes: colores de estado (libre / ocupada / pidió cuenta / error), foco con
+ * teclado, respuesta al presionar y movimiento reducido. Los colores de marca vienen del tema del ERP
+ * (--primary-color, --secondary-color, --danger-color).
+ */
+:root {
+  --rest-free: #1f9d55;
+  --rest-bill: #2563eb;
+  --rest-danger: var(--danger-color, #d64545);
+  --rest-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --rest-touch: 40px;
+}
+
+[data-theme='light'] {
+  --rest-free: #17834a;
+  --rest-bill: #1d4ed8;
+}
+
+.rpos button,
+.rest-ui button {
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background-color 150ms var(--rest-ease),
+    border-color 150ms var(--rest-ease),
+    color 150ms var(--rest-ease),
+    transform 120ms var(--rest-ease),
+    opacity 150ms var(--rest-ease);
+}
+
+.rpos button:focus-visible,
+.rest-ui button:focus-visible,
+.rest-ui input:focus-visible,
+.rest-ui select:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 2px;
+}
+
+.rpos button:not(:disabled):active,
+.rest-ui button:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.rpos button:disabled,
+.rest-ui button:disabled {
+  cursor: default;
+}
+
+/* Campos de las ventanas (se montan fuera de .rest-ui): mismo foco y estados que el resto */
+.pos-field input:focus-visible,
+.pos-field select:focus-visible,
+.pos-field textarea:focus-visible {
+  outline: 2px solid var(--secondary-color);
+  outline-offset: 1px;
+}
+
+.pos-field input:disabled,
+.pos-field select:disabled,
+.pos-field textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.rpos ::selection,
+.rest-ui ::selection {
+  background: color-mix(in srgb, var(--secondary-color) 28%, transparent);
+}
+
+.rpos,
+.rest-ui,
+.tab-panel__items,
+.rpos__catalog {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 40%, transparent) transparent;
+}
+
+/* Pantallas táctiles (comandero, tablet): objetivos de al menos 40px */
+@media (pointer: coarse) {
+  .tab-item__qty button { width: var(--rest-touch); height: var(--rest-touch); }
+  .tab-item__remove { width: var(--rest-touch); height: var(--rest-touch); }
+  .tab-panel__back { width: var(--rest-touch); height: var(--rest-touch); }
+  .tab-panel__tools button { height: var(--rest-touch); }
+  .pos-chip { height: var(--rest-touch); }
+  .pos-pick button, .pos-pick label { min-height: 48px; }
+  .floor-map__rooms button { height: var(--rest-touch); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rpos *,
+  .rest-ui * {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}

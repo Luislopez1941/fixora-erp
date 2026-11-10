@@ -1678,6 +1678,120 @@ const APIs = {
     return ConfigurationAPIs.post(path);
   },
 
+  // ───────── Restaurantes: salones, mesas y cuentas (POS de restaurante) ─────────
+  getRestaurantFloor: async (branchId: number, all = false) =>
+    ConfigurationAPIs.get(`restaurants/floor?branchId=${branchId}${all ? '&all=1' : ''}`),
+  createDiningRoom: async (data: { branchId: number; name: string }) => ConfigurationAPIs.post('restaurants/dining-rooms', data),
+  updateDiningRoom: async (id: number, data: { name?: string; position?: number; active?: boolean }) =>
+    ConfigurationAPIs.patch(`restaurants/dining-rooms/${id}`, data),
+  createRestaurantTable: async (data: { diningRoomId: number; name: string; seats?: number; shape?: string }) =>
+    ConfigurationAPIs.post('restaurants/tables', data),
+  createRestaurantTablesBulk: async (data: { diningRoomId: number; count: number; prefix?: string; seats?: number }) =>
+    ConfigurationAPIs.post('restaurants/tables/bulk', data),
+  updateRestaurantTable: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/tables/${id}`, data),
+
+  getRestaurantTabs: async (params: { branchId: number; status?: string; from?: string; to?: string; page?: number; pageSize?: number }) => {
+    const q = new URLSearchParams()
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') q.set(k, String(v))
+    })
+    return ConfigurationAPIs.get(`restaurants/tabs?${q.toString()}`)
+  },
+  getRestaurantTips: async (branchId: number, from?: string, to?: string) => {
+    const q = new URLSearchParams({ branchId: String(branchId) })
+    if (from) q.set('from', from)
+    if (to) q.set('to', to)
+    return ConfigurationAPIs.get(`restaurants/tabs/tips?${q.toString()}`)
+  },
+  getRestaurantTab: async (id: number) => ConfigurationAPIs.get(`restaurants/tabs/${id}`),
+  getRestaurantTabTicket: async (id: number) => ConfigurationAPIs.get(`restaurants/tabs/${id}/ticket`),
+  openRestaurantTab: async (data: { branchId: number; type: string; tableId?: number; label?: string; guests?: number; notes?: string }) =>
+    ConfigurationAPIs.post('restaurants/tabs', data),
+  updateRestaurantTab: async (id: number, data: { label?: string; guests?: number; notes?: string; customerId?: number | null; waiterUserId?: number }) =>
+    ConfigurationAPIs.patch(`restaurants/tabs/${id}`, data),
+  addRestaurantTabItems: async (
+    id: number,
+    items: { itemId: number; itemVariationId?: number; quantity: number; modifiers?: string[]; notes?: string; seat?: number; course?: number }[],
+  ) => ConfigurationAPIs.post(`restaurants/tabs/${id}/items`, { items }),
+  updateRestaurantTabItem: async (id: number, itemId: number, data: Record<string, unknown>) =>
+    ConfigurationAPIs.patch(`restaurants/tabs/${id}/items/${itemId}`, data),
+  removeRestaurantTabItem: async (id: number, itemId: number) => ConfigurationAPIs.delete(`restaurants/tabs/${id}/items/${itemId}`),
+  cancelRestaurantTabItem: async (id: number, itemId: number, reason: string) =>
+    ConfigurationAPIs.post(`restaurants/tabs/${id}/items/${itemId}/cancel`, { reason }),
+  /** `course`: marchar solo ese tiempo (1 entrada, 2 plato fuerte, 3 postre) */
+  sendRestaurantTab: async (id: number, course?: number) => ConfigurationAPIs.post(`restaurants/tabs/${id}/send`, course ? { course } : {}),
+  requestRestaurantBill: async (id: number) => ConfigurationAPIs.post(`restaurants/tabs/${id}/request-bill`),
+  reopenRestaurantTab: async (id: number) => ConfigurationAPIs.post(`restaurants/tabs/${id}/reopen`),
+  moveRestaurantTab: async (id: number, tableId: number) => ConfigurationAPIs.post(`restaurants/tabs/${id}/move`, { tableId }),
+  mergeRestaurantTabs: async (id: number, sourceTabIds: number[]) => ConfigurationAPIs.post(`restaurants/tabs/${id}/merge`, { sourceTabIds }),
+  splitRestaurantTab: async (id: number, parts: { tabItemId: number; quantity?: number }[], label?: string) =>
+    ConfigurationAPIs.post(`restaurants/tabs/${id}/split`, { parts, label }),
+  cancelRestaurantTab: async (id: number, reason: string) => ConfigurationAPIs.post(`restaurants/tabs/${id}/cancel`, { reason }),
+  previewRestaurantTab: async (id: number, discount?: number) => ConfigurationAPIs.post(`restaurants/tabs/${id}/preview`, { discount }),
+  // ───────── Restaurantes: menús, platillos, modificadores y disponibilidad ─────────
+  getRestaurantMenus: async () => ConfigurationAPIs.get('restaurants/menus'),
+  createRestaurantMenu: async (data: Record<string, unknown>) => ConfigurationAPIs.post('restaurants/menus', data),
+  updateRestaurantMenu: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/menus/${id}`, data),
+  deleteRestaurantMenu: async (id: number) => ConfigurationAPIs.delete(`restaurants/menus/${id}`),
+  getRestaurantMenuCategories: async (menuId?: number) => ConfigurationAPIs.get(`restaurants/menu-categories${menuId ? `?menuId=${menuId}` : ''}`),
+  createRestaurantMenuCategory: async (data: { menuId: number; name: string }) => ConfigurationAPIs.post('restaurants/menu-categories', data),
+  updateRestaurantMenuCategory: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/menu-categories/${id}`, data),
+  deleteRestaurantMenuCategory: async (id: number) => ConfigurationAPIs.delete(`restaurants/menu-categories/${id}`),
+  searchRestaurantDishItems: async (search: string) => ConfigurationAPIs.get(`restaurants/dish-items?search=${encodeURIComponent(search)}`),
+  getRestaurantDishes: async (params: { branchId?: number; menuId?: number; search?: string } = {}) => {
+    const q = new URLSearchParams()
+    if (params.branchId) q.set('branchId', String(params.branchId))
+    if (params.menuId) q.set('menuId', String(params.menuId))
+    if (params.search) q.set('search', params.search)
+    return ConfigurationAPIs.get(`restaurants/dishes?${q.toString()}`)
+  },
+  createRestaurantDish: async (data: Record<string, unknown>) => ConfigurationAPIs.post('restaurants/dishes', data),
+  updateRestaurantDish: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/dishes/${id}`, data),
+  deleteRestaurantDish: async (id: number) => ConfigurationAPIs.delete(`restaurants/dishes/${id}`),
+  setRestaurantDishMenus: async (id: number, menus: { menuId: number; categoryId?: number | null }[]) =>
+    ConfigurationAPIs.put(`restaurants/dishes/${id}/menus`, { menus }),
+  setRestaurantDishModifierGroups: async (id: number, groupIds: number[]) => ConfigurationAPIs.put(`restaurants/dishes/${id}/modifier-groups`, { groupIds }),
+  setRestaurantDishAddons: async (id: number, addons: { itemId: number; price?: number | null }[]) =>
+    ConfigurationAPIs.put(`restaurants/dishes/${id}/addons`, { addons }),
+  getRestaurantModifierGroups: async () => ConfigurationAPIs.get('restaurants/modifier-groups'),
+  createRestaurantModifierGroup: async (data: Record<string, unknown>) => ConfigurationAPIs.post('restaurants/modifier-groups', data),
+  updateRestaurantModifierGroup: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/modifier-groups/${id}`, data),
+  deleteRestaurantModifierGroup: async (id: number) => ConfigurationAPIs.delete(`restaurants/modifier-groups/${id}`),
+  createRestaurantModifierOption: async (groupId: number, data: { name: string; priceDelta?: number }) =>
+    ConfigurationAPIs.post(`restaurants/modifier-groups/${groupId}/options`, data),
+  updateRestaurantModifierOption: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/modifier-options/${id}`, data),
+  deleteRestaurantModifierOption: async (id: number) => ConfigurationAPIs.delete(`restaurants/modifier-options/${id}`),
+  // ───────── Restaurantes: monedero (cashback) ─────────
+  getWalletConfig: async () => ConfigurationAPIs.get('restaurants/wallet/config'),
+  setWalletConfig: async (data: { enabled?: boolean; earnPercent?: number }) => ConfigurationAPIs.put('restaurants/wallet/config', data),
+  getWalletPaymentMethod: async () => ConfigurationAPIs.get('restaurants/wallet/payment-method'),
+  getWallets: async (search?: string) => ConfigurationAPIs.get(`restaurants/wallet/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+  getCustomerWallet: async (customerId: number) => ConfigurationAPIs.get(`restaurants/wallet/customers/${customerId}`),
+  adjustCustomerWallet: async (customerId: number, amount: number, note: string) => ConfigurationAPIs.post(`restaurants/wallet/customers/${customerId}/adjust`, { amount, note }),
+
+  // ───────── Restaurantes: cocina ─────────
+  getKitchenTickets: async (branchId: number, areaId?: number, withReady = true) =>
+    ConfigurationAPIs.get(`restaurants/kitchen/tickets?branchId=${branchId}${areaId ? `&areaId=${areaId}` : ''}${withReady ? '' : '&ready=0'}`),
+  setKitchenItemsStatus: async (itemIds: number[], status: 'SENT' | 'READY' | 'SERVED') => ConfigurationAPIs.post('restaurants/kitchen/items/status', { itemIds, status }),
+  setKitchenRush: async (tabId: number, ticketNo: number, rush: boolean) => ConfigurationAPIs.post('restaurants/kitchen/rush', { tabId, ticketNo, rush }),
+  getKitchenStations: async (branchId: number) => ConfigurationAPIs.get(`restaurants/kitchen/stations?branchId=${branchId}`),
+  getKitchenRoutes: async (branchId: number) => ConfigurationAPIs.get(`restaurants/kitchen/routes?branchId=${branchId}`),
+  setKitchenRoute: async (itemId: number, areaId: number | null) => ConfigurationAPIs.put(`restaurants/kitchen/routes/${itemId}`, { areaId }),
+  getKitchenTimes: async (branchId: number, from?: string, to?: string) =>
+    ConfigurationAPIs.get(`restaurants/kitchen/times?branchId=${branchId}${from ? `&from=${encodeURIComponent(from)}` : ''}${to ? `&to=${encodeURIComponent(to)}` : ''}`),
+  getRestaurantCatalogCategories: async () => ConfigurationAPIs.get('restaurants/catalog-categories'),
+  getRestaurantKinds: async () => ConfigurationAPIs.get('restaurants/kinds'),
+  createRestaurantKind: async (data: { name: string }) => ConfigurationAPIs.post('restaurants/kinds', data),
+  updateRestaurantKind: async (id: number, data: Record<string, unknown>) => ConfigurationAPIs.patch(`restaurants/kinds/${id}`, data),
+  deleteRestaurantKind: async (id: number) => ConfigurationAPIs.delete(`restaurants/kinds/${id}`),
+  setRestaurantAvailability: async (data: { branchId: number; dishId: number; available: boolean; reason?: string; until?: string | null }) =>
+    ConfigurationAPIs.put('restaurants/availability', data),
+
+  chargeRestaurantTab: async (
+    id: number,
+    data: { payments: { paymentMethodId?: number; amount: number; reference?: string }[]; discount?: number; tip?: number; tipMethodId?: number; customerId?: number },
+  ) => ConfigurationAPIs.post(`restaurants/tabs/${id}/charge`, data),
+
   seedTenantByUserId: async (userId: number, customPath?: string) => {
     const path = customPath || `seed/user/${userId}`;
     return ConfigurationAPIs.post(path);

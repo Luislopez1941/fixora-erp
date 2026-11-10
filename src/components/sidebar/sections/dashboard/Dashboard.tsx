@@ -24,6 +24,7 @@ import {
   Tooltip,
 } from 'recharts'
 import APIs from '../../../../services/APIs'
+import { PrivateRoutes } from '../../../../models/routes'
 import { readCategoryBranchId } from '../../../../constants/category'
 import CategoriesStorePicker from '../catalogos/categories/CategoriesStorePicker'
 
@@ -77,32 +78,72 @@ const statusLabel: Record<string, string> = {
   CANCELLED: 'Cancelada',
 }
 
-const STOCK_COLORS = ['#072a57', '#14b8a6', '#fc7400', '#4CAF50', '#ba1a1a', '#9575cd']
-
-const MOCK_PROJECTS: { name: string; pct: number; accent: 'orange' | 'blue' }[] = [
-  { name: 'Auditoría de inventario', pct: 75, accent: 'orange' },
-  { name: 'Expansión de ventas', pct: 32, accent: 'blue' },
-  { name: 'Migración de plataforma', pct: 92, accent: 'orange' },
-  { name: 'Análisis de clientes UX', pct: 48, accent: 'blue' },
-  { name: 'Cumplimiento de normas', pct: 15, accent: 'blue' },
+const STOCK_COLORS = [
+  'var(--chart-blue)',
+  'var(--chart-orange)',
+  'var(--chart-blue-light)',
+  '#7C8798',
+  '#A9B7C8',
+  '#16A34A',
 ]
 
-const CHART_GRID = 'rgba(0, 0, 0, 0.06)'
-const CHART_TICK = '#8b919c'
+const CHART_GRID = 'var(--border-subtle)'
+const CHART_TICK = 'var(--text-secondary)'
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    const raw = payload[0].value
-    const isCount = payload[0].dataKey === 'ventas'
-    return (
-      <div className="dashboard-tooltip">
-        <p className="dashboard-tooltip__label">
-          {label}: {isCount ? raw : formatMoney(raw)}
+/** % de cambio entre los dos últimos valores de una serie (null si no hay con qué comparar). */
+const trendOf = (values: number[]): number | null => {
+  if (values.length < 2) return null
+  const prev = values[values.length - 2]
+  const curr = values[values.length - 1]
+  if (prev <= 0) return curr > 0 ? 100 : 0
+  return ((curr - prev) / prev) * 100
+}
+
+const formatTrend = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`
+
+const formatAxis = (value: number) => (Math.abs(value) >= 1000 ? `${Math.round(value / 1000)}k` : String(value))
+
+const TrendPill = ({ value }: { value: number | null }) => {
+  if (value == null || !Number.isFinite(value)) return null
+  const up = value >= 0
+  return (
+    <span className={`dx-pill ${up ? 'dx-pill--up' : 'dx-pill--down'}`}>
+      <span className="material-symbols-rounded" aria-hidden>{up ? 'arrow_upward' : 'arrow_downward'}</span>
+      {formatTrend(value)}
+    </span>
+  )
+}
+
+const Spark = ({ data, color, id }: { data: { value: number }[]; color: string; id: string }) => (
+  <div className="dx-kpi__spark" aria-hidden>
+    {data.length > 1 && (
+      <ResponsiveContainer width="100%" height={44}>
+        <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.28} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={`url(#${id})`} isAnimationActive={false} />
+        </AreaChart>
+      </ResponsiveContainer>
+    )}
+  </div>
+)
+
+const CompareTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null
+  return (
+    <div className="dashboard-tooltip">
+      <p className="dashboard-tooltip__label">{label}</p>
+      {payload.map((row: any) => (
+        <p className="dashboard-tooltip__row" key={row.dataKey}>
+          {row.dataKey === 'actual' ? 'Este mes' : 'Mes anterior'}: {formatMoney(row.value)}
         </p>
-      </div>
-    )
-  }
-  return null
+      ))}
+    </div>
+  )
 }
 
 const Dashboard: React.FC = () => {
@@ -149,6 +190,17 @@ const Dashboard: React.FC = () => {
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
+  const dateLabel = useMemo(() => {
+    const start = dateRange[0].startDate!
+    const end = dateRange[0].endDate!
+    const same = format(start, 'yyyy-MM-dd') === format(end, 'yyyy-MM-dd')
+    if (same) {
+      const isToday = format(end, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+      return `${isToday ? 'Hoy, ' : ''}${format(end, "d 'de' MMMM 'de' yyyy", { locale: es })}`
+    }
+    return `${format(start, 'd MMM', { locale: es })} — ${format(end, "d MMM yyyy", { locale: es })}`
+  }, [dateRange])
+
   const dateFrom = format(dateRange[0].startDate!, 'yyyy-MM-dd')
   const dateTo   = format(dateRange[0].endDate!,   'yyyy-MM-dd')
 
@@ -174,12 +226,6 @@ const Dashboard: React.FC = () => {
     if (prev <= 0) return curr > 0 ? 100 : 0
     return ((curr - prev) / prev) * 100
   }, [historico])
-
-  const formatPercent = (value: number | null) => {
-    if (value == null || !Number.isFinite(value)) return ''
-    const sign = value >= 0 ? '+' : ''
-    return `${sign}${value.toFixed(0)}%`
-  }
 
   const fetchDashboard = useCallback(async () => {
     const companyId = readCompanyId()
@@ -327,12 +373,18 @@ const Dashboard: React.FC = () => {
     [historico],
   )
 
-  const salesChartData = useMemo(
+  const gananciaTrend = useMemo(() => trendOf(historico.map((row) => row.ganancia)), [historico])
+  const ventasTrend = useMemo(() => trendOf(historico.map((row) => row.totalVentas)), [historico])
+  const gananciaSpark = useMemo(() => historico.map((row) => ({ value: row.ganancia })), [historico])
+  const ventasSpark = useMemo(() => historico.map((row) => ({ value: row.totalVentas })), [historico])
+
+  // Ingresos de cada mes contra los del mes anterior (el último mes, el actual, va resaltado)
+  const compareData = useMemo(
     () =>
-      historico.map((row) => ({
+      historico.map((row, index) => ({
         name: row.label,
-        ventas: row.totalVentas,
-        ganancia: row.ganancia,
+        actual: row.ingresos,
+        anterior: index > 0 ? historico[index - 1].ingresos : undefined,
       })),
     [historico],
   )
@@ -361,6 +413,16 @@ const Dashboard: React.FC = () => {
 
   const unreadCount = notifications.length
 
+  /** Las alertas de stock llevan al inventario; el resto no tiene pantalla propia. */
+  const notificationPath = (type: string) =>
+    type === 'STOCK_LOW' || type === 'STOCK_OUT' ? `/${PrivateRoutes.PRIVATE}/store/inventory` : null
+
+  const notificationTone = (type: string, severity?: string) => {
+    if (type === 'SALE_CANCELLED' || type === 'PRODUCTION_CANCELLED' || type === 'STOCK_OUT' || severity === 'high') return 'danger'
+    if (type === 'STOCK_LOW' || type === 'PRODUCTION_OVERDUE' || type === 'PRODUCTION_URGENT' || severity === 'medium') return 'warning'
+    return 'info'
+  }
+
   const getStatusClass = (status: string) => {
     switch (status) {
       case 'Completada':
@@ -374,28 +436,31 @@ const Dashboard: React.FC = () => {
     }
   }
 
-  const getNotificationSeverityClass = (severity: string) =>
-    `dashboard-notify__item dashboard-notify__item--${severity ?? 'low'}`
-
   return (
     <div className="dashboard">
       <div className="dashboard__container">
-        <header className="dashboard__hero">
+        <header className="dashboard__hero dx-topbar">
+          {expiryAlerts && (expiryAlerts.expired.lots > 0 || expiryAlerts.critical.lots > 0) && (
+            <button type="button" className="dashboard-expiry-alert" onClick={() => navigate(EXPIRATIONS_PATH)}>
+              <span className="material-symbols-rounded" aria-hidden>deployed_code</span>
+              <span className="dashboard-expiry-alert__text">
+                {expiryAlerts.expired.lots > 0 && (
+                  <strong>{expiryAlerts.expired.lots} lote(s) vencido(s) con existencia — dalos de baja para no venderlos.</strong>
+                )}
+                {expiryAlerts.critical.lots > 0 && <span>{expiryAlerts.critical.lots} lote(s) vencen en los próximos 7 días.</span>}
+              </span>
+              <span className="dashboard-expiry-alert__cta">Ver caducidades<span className="material-symbols-rounded" aria-hidden>chevron_right</span></span>
+            </button>
+          )}
           <div className="dashboard-date-range" ref={pickerRef}>
             <button
               type="button"
               className="dashboard-date-range__trigger"
+              aria-label="Seleccionar período"
               onClick={() => setPickerOpen(p => !p)}
             >
               <span className="material-symbols-rounded dashboard-date-range__icon">calendar_month</span>
-              <div className="dashboard-date-range__display">
-                <span className="dashboard-date-range__label">Período</span>
-                <span className="dashboard-date-range__value">
-                  {format(dateRange[0].startDate!, 'dd MMM yyyy', { locale: es })}
-                  {' — '}
-                  {format(dateRange[0].endDate!, 'dd MMM yyyy', { locale: es })}
-                </span>
-              </div>
+              <span className="dashboard-date-range__value">{dateLabel}</span>
               <span className="material-symbols-rounded dashboard-date-range__caret">
                 {pickerOpen ? 'expand_less' : 'expand_more'}
               </span>
@@ -436,317 +501,189 @@ const Dashboard: React.FC = () => {
           </div>
         </header>
 
-        {expiryAlerts && (expiryAlerts.expired.lots > 0 || expiryAlerts.critical.lots > 0) && (
-          <button type="button" className="dashboard-expiry-alert" onClick={() => navigate(EXPIRATIONS_PATH)}>
-            <span className="material-symbols-rounded" aria-hidden>event_busy</span>
-            <span className="dashboard-expiry-alert__text">
-              {expiryAlerts.expired.lots > 0 && (
-                <strong>{expiryAlerts.expired.lots} lote(s) vencido(s) con existencia — dalos de baja para no venderlos.</strong>
-              )}
-              {expiryAlerts.critical.lots > 0 && <span>{expiryAlerts.critical.lots} lote(s) vencen en los próximos 7 días.</span>}
-            </span>
-            <span className="dashboard-expiry-alert__cta">Ver caducidades</span>
-          </button>
-        )}
-
         {error && <p className="dashboard__error">{error}</p>}
 
         <div className={`dashboard__content ${loading ? 'dashboard__content--loading' : ''}`}>
-          <section className="dashboard__summary">
-            <article className="dashboard-kpi dashboard-kpi--income">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">payments</span>
-                </div>
-                {percentChange != null && (
-                  <small className={`dashboard-kpi__trend ${percentChange >= 0 ? 'dashboard-kpi__trend--up' : 'dashboard-kpi__trend--down'}`}>
-                    <span className="material-symbols-rounded">
-                      {percentChange >= 0 ? 'trending_up' : 'trending_down'}
-                    </span>
-                    {formatPercent(percentChange)}
-                  </small>
-                )}
+          <section className="dx-kpis" aria-label="Indicadores principales">
+            <article className="dx-card dx-kpi">
+              <div className="dx-kpi__head">
+                <span className="dx-icon dx-icon--blue"><span className="material-symbols-rounded">payments</span></span>
+                <span className="dx-kpi__label">Ingresos del mes</span>
               </div>
-              <span className="dashboard-kpi__label">Ingresos del mes</span>
-              <strong className="dashboard-kpi__value">{formatMoney(ingresos)}</strong>
-              <div className="dashboard-kpi__spark">
-                {areaData.length > 0 && (
-                  <ResponsiveContainer width="100%" height={48}>
-                    <AreaChart data={areaData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="dashIncome" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="rgb(7,42,87)" stopOpacity={0.35} />
-                          <stop offset="95%" stopColor="rgb(7,42,87)" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <Area
-                        type="monotone"
-                        dataKey="value"
-                        stroke="rgb(7,42,87)"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#dashIncome)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                )}
+              <strong className="dx-kpi__value">{formatMoney(ingresos)}</strong>
+              <div className="dx-kpi__foot">
+                <TrendPill value={percentChange} />
+                <Spark data={areaData} color="var(--chart-blue-light)" id="dxIngresos" />
               </div>
             </article>
 
-            <article className="dashboard-kpi dashboard-kpi--sales">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">shopping_cart</span>
-                </div>
+            <article className="dx-card dx-kpi">
+              <div className="dx-kpi__head">
+                <span className="dx-icon dx-icon--orange"><span className="material-symbols-rounded">trending_up</span></span>
+                <span className="dx-kpi__label">Ganancia mensual</span>
               </div>
-              <span className="dashboard-kpi__label">Ventas completadas</span>
-              <strong className="dashboard-kpi__value">{totalVentas}</strong>
-              <small className="dashboard-kpi__hint">Tickets del periodo</small>
-            </article>
-
-            <article className="dashboard-kpi dashboard-kpi--profit">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">trending_up</span>
-                </div>
-              </div>
-              <span className="dashboard-kpi__label">Ganancia mensual</span>
-              <strong className="dashboard-kpi__value">{formatMoney(gananciaMensual)}</strong>
-              <small className="dashboard-kpi__hint">Venta neta sin IVA</small>
-            </article>
-
-            <article className="dashboard-kpi dashboard-kpi--stock">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">inventory_2</span>
-                </div>
-                {stockResumen.stockBajo === 0 && stockResumen.agotados === 0 && (
-                  <span className="dashboard-kpi__badge">Healthy</span>
-                )}
-              </div>
-              <span className="dashboard-kpi__label">Inventario</span>
-              <strong className="dashboard-kpi__value">
-                {stockResumen.totalUnidades.toLocaleString('es-MX')} u.
-              </strong>
-              <div className="dashboard-kpi__badges">
-                {stockResumen.stockBajo > 0 && (
-                  <span className="dashboard-badge dashboard-badge--low">
-                    Bajo: {stockResumen.stockBajo}
-                  </span>
-                )}
-                {stockResumen.agotados > 0 && (
-                  <span className="dashboard-badge dashboard-badge--out">
-                    Agotados: {stockResumen.agotados}
-                  </span>
-                )}
+              <strong className="dx-kpi__value">{formatMoney(gananciaMensual)}</strong>
+              <div className="dx-kpi__foot">
+                <TrendPill value={gananciaTrend} />
+                <Spark data={gananciaSpark} color="var(--chart-orange)" id="dxGanancia" />
               </div>
             </article>
 
-            <article className="dashboard-kpi dashboard-kpi--cancel">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">cancel</span>
-                </div>
-                {operaciones.cancelaciones.count > 0 && (
-                  <small className="dashboard-kpi__trend dashboard-kpi__trend--down">
-                    <span className="material-symbols-rounded">trending_down</span>
-                    -{((operaciones.cancelaciones.count / (totalVentas || 1)) * 100).toFixed(1)}%
-                  </small>
-                )}
+            <article className="dx-card dx-kpi">
+              <div className="dx-kpi__head">
+                <span className="dx-icon dx-icon--blue"><span className="material-symbols-rounded">shopping_cart</span></span>
+                <span className="dx-kpi__label">Ventas completadas</span>
               </div>
-              <span className="dashboard-kpi__label">Cancelaciones</span>
-              <strong className="dashboard-kpi__value">
-                {operaciones.cancelaciones.count} órdenes
-              </strong>
-              <small className="dashboard-kpi__hint">
-                {formatMoney(operaciones.cancelaciones.monto)} del mes
+              <strong className="dx-kpi__value">{totalVentas.toLocaleString('es-MX')}</strong>
+              <div className="dx-kpi__foot">
+                <TrendPill value={ventasTrend} />
+                <Spark data={ventasSpark} color="var(--chart-blue-light)" id="dxVentas" />
+              </div>
+              <small className="dx-kpi__hint">
+                {operaciones.cancelaciones.count} cancelaciones · {operaciones.devoluciones.count} devoluciones
               </small>
             </article>
 
-            <article className="dashboard-kpi dashboard-kpi--refund">
-              <div className="dashboard-kpi__top">
-                <div className="dashboard-kpi__icon-wrap">
-                  <span className="material-symbols-rounded">undo</span>
-                </div>
-                <span className="dashboard-kpi__badge">
-                  {((operaciones.devoluciones.count / (totalVentas || 1)) * 100).toFixed(1)}% tasa
-                </span>
+            <article className="dx-card dx-kpi">
+              <div className="dx-kpi__head">
+                <span className="dx-icon dx-icon--orange"><span className="material-symbols-rounded">inventory_2</span></span>
+                <span className="dx-kpi__label">Inventario (unidades)</span>
               </div>
-              <span className="dashboard-kpi__label">Devoluciones</span>
-              <strong className="dashboard-kpi__value">
-                {operaciones.devoluciones.count} items
-              </strong>
-              <small className="dashboard-kpi__hint">
-                {formatMoney(operaciones.devoluciones.monto)} del mes
-              </small>
-            </article>
-          </section>
-
-          <section className="dashboard-panel dashboard-panel--notifications">
-            <div className="dashboard-panel__head">
-              <div>
-                <span className="dashboard-panel__eyebrow">Alertas</span>
-                <h3>Notificaciones importantes</h3>
-              </div>
-              <span className="dashboard-panel__meta">
-                {unreadCount > 0 ? `${unreadCount} pendientes` : 'Sin alertas activas'}
-              </span>
-            </div>
-            <div className="dashboard-notify">
-              {notifications.length === 0 ? (
-                <p className="dashboard-panel__empty">
-                  No hay cancelaciones, devoluciones ni alertas de stock en este periodo.
-                </p>
-              ) : (
-                notifications.map((item) => (
-                  <article
-                    key={item.id}
-                    className={getNotificationSeverityClass(item.severity)}
-                  >
-                    <span className="material-symbols-rounded dashboard-notify__icon" aria-hidden>
-                      {getNotificationIcon(item.type)}
-                    </span>
-                    <div className="dashboard-notify__body">
-                      <strong>{item.title}</strong>
-                      <p>{item.message}</p>
-                      <small>{formatRelativeTime(item.createdAt)}</small>
-                    </div>
-                  </article>
-                ))
-              )}
-            </div>
-          </section>
-
-          <section className="dashboard__charts">
-            <article className="dashboard-panel dashboard-panel--wide">
-              <div className="dashboard-panel__head">
-                <div>
-                  <span className="dashboard-panel__eyebrow">Histórico</span>
-                  <h3>Ventas por mes</h3>
-                </div>
-                <span className="dashboard-panel__meta">
-                  Últimos {historico.length || 6} meses
-                </span>
-              </div>
-              <div className="dashboard-panel__chart">
-                {salesChartData.length === 0 ? (
-                  <p className="dashboard-panel__empty">Sin datos para mostrar</p>
+              <strong className="dx-kpi__value">{stockResumen.totalUnidades.toLocaleString('es-MX')} u.</strong>
+              <div className="dx-kpi__foot">
+                {stockResumen.stockBajo + stockResumen.agotados > 0 ? (
+                  <span className="dx-pill dx-pill--down">
+                    <span className="material-symbols-rounded" aria-hidden>warning</span>
+                    {stockResumen.stockBajo + stockResumen.agotados} por atender
+                  </span>
                 ) : (
-                  <ResponsiveContainer width="100%" height={260}>
-                    <BarChart
-                      data={salesChartData}
-                      margin={{ top: 12, right: 8, left: 0, bottom: 4 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={CHART_GRID} />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fill: CHART_TICK, fontSize: 12 }}
-                      />
-                      <YAxis hide />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="ventas" fill="#bf6903" radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <span className="dx-pill dx-pill--up">
+                    <span className="material-symbols-rounded" aria-hidden>check</span>
+                    Saludable
+                  </span>
                 )}
               </div>
-            </article>
-
-            <article className="dashboard-panel">
-              <div className="dashboard-panel__head">
-                <div>
-                  <span className="dashboard-panel__eyebrow">Proyectos</span>
-                  <h3>Proyectos activos</h3>
-                </div>
-                <button type="button" className="dashboard-panel__viewall">Ver todos</button>
-              </div>
-              <div className="dashboard-progress__list">
-                {MOCK_PROJECTS.map((proj) => (
-                  <div className="dashboard-progress__item" key={proj.name}>
-                    <div className="dashboard-progress__item-head">
-                      <span className="dashboard-progress__name">{proj.name}</span>
-                      <span className="dashboard-progress__pct">{proj.pct}%</span>
-                    </div>
-                    <div className="dashboard-progress__track">
-                      <div
-                        className={`dashboard-progress__fill dashboard-progress__fill--${proj.accent}`}
-                        style={{ width: `${proj.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <small className="dx-kpi__hint">
+                {stockResumen.totalAlmacenes} {stockResumen.totalAlmacenes === 1 ? 'almacén' : 'almacenes'}
+              </small>
             </article>
           </section>
 
-          {stockWarehouses.length > 0 && (
-            <section className="dashboard-panel dashboard-panel--stock">
-              <div className="dashboard-panel__head">
-                <div>
-                  <span className="dashboard-panel__eyebrow">Almacenes</span>
-                  <h3>Distribución de stock</h3>
-                </div>
-                <span className="dashboard-panel__meta">
-                  {totalStockUnits.toLocaleString('es-MX')} unidades totales
-                </span>
+          <section className="dx-grid">
+            <article className="dx-card dx-card--chart">
+              <header className="dx-card__head">
+                <h3><span className="material-symbols-rounded" aria-hidden>bar_chart</span>Ventas vs. último mes</h3>
+                <span className="dx-chip">Últimos {historico.length || 6} meses</span>
+              </header>
+              <div className="dx-legend">
+                <span><i className="dx-legend__dot dx-legend__dot--blue" />Este mes</span>
+                <span><i className="dx-legend__dot dx-legend__dot--gray" />Mes anterior</span>
               </div>
-              <div className="dashboard-stock-donut">
-                <div className="dashboard-stock-donut__chart">
-                  <ResponsiveContainer width="100%" height={220}>
-                    <PieChart>
-                      <Pie
-                        data={stockWarehouses}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={58}
-                        outerRadius={82}
-                        paddingAngle={3}
-                        dataKey="value"
-                      >
-                        {stockWarehouses.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => `${value} u.`}
-                        contentStyle={{
-                          background: '#1f2228',
-                          border: '1px solid rgba(88, 106, 233, 0.25)',
-                          borderRadius: 8,
-                          color: '#f5f6f7',
-                        }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="dashboard-stock-donut__center">
-                    <strong>{totalStockUnits.toLocaleString('es-MX')}</strong>
-                    <span>unidades</span>
+              {compareData.length === 0 ? (
+                <p className="dashboard-panel__empty">Sin datos para mostrar</p>
+              ) : (
+                <ResponsiveContainer width="100%" height={230}>
+                  <BarChart data={compareData} margin={{ top: 8, right: 4, left: 0, bottom: 0 }} barGap={4} barCategoryGap="22%">
+                    <CartesianGrid strokeDasharray="0" vertical={false} stroke={CHART_GRID} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: CHART_TICK, fontSize: 12 }} />
+                    <YAxis axisLine={false} tickLine={false} width={44} tick={{ fill: CHART_TICK, fontSize: 12 }} tickFormatter={formatAxis} />
+                    <Tooltip content={<CompareTooltip />} cursor={{ fill: 'transparent' }} />
+                    <Bar dataKey="anterior" fill="var(--chart-gray)" radius={[4, 4, 0, 0]} maxBarSize={22} />
+                    <Bar dataKey="actual" fill="var(--chart-blue)" radius={[4, 4, 0, 0]} maxBarSize={22}>
+                      {compareData.map((_, index) => (
+                        <Cell key={index} fill={index === compareData.length - 1 ? 'var(--chart-orange)' : 'var(--chart-blue)'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </article>
+
+            <article className="dx-card">
+              <header className="dx-card__head">
+                <h3><span className="material-symbols-rounded" aria-hidden>deployed_code</span>Estado del inventario</h3>
+              </header>
+              {stockWarehouses.length === 0 ? (
+                <p className="dashboard-panel__empty">Sin existencias registradas</p>
+              ) : (
+                <>
+                  <div className="dx-donut">
+                    <ResponsiveContainer width="100%" height={160}>
+                      <PieChart>
+                        <Pie data={stockWarehouses} cx="50%" cy="50%" innerRadius={52} outerRadius={70} paddingAngle={2} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                          {stockWarehouses.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value: number) => `${value.toLocaleString('es-MX')} u.`} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="dx-donut__center">
+                      <strong>{totalStockUnits.toLocaleString('es-MX')}</strong>
+                      <span>unidades</span>
+                    </div>
                   </div>
+                  <ul className="dx-stock-list">
+                    {stockWarehouses.map((entry, index) => {
+                      const pct = totalStockUnits > 0 ? ((entry.value / totalStockUnits) * 100).toFixed(0) : '0'
+                      return (
+                        <li key={`legend-${index}`}>
+                          <i className="dx-legend__dot" style={{ backgroundColor: entry.color }} />
+                          <span className="dx-stock-list__name">{entry.name}</span>
+                          <strong>{entry.value.toLocaleString('es-MX')} u.</strong>
+                          <small>{pct}%</small>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </>
+              )}
+              {(stockResumen.stockBajo > 0 || stockResumen.agotados > 0) && (
+                <div className="dx-stock-flags">
+                  {stockResumen.stockBajo > 0 && <span className="dx-flag dx-flag--warning">Bajo stock: {stockResumen.stockBajo}</span>}
+                  {stockResumen.agotados > 0 && <span className="dx-flag dx-flag--danger">Agotados: {stockResumen.agotados}</span>}
                 </div>
-                <div className="dashboard-stock-legend">
-                  {stockWarehouses.map((entry, index) => {
-                    const pct =
-                      totalStockUnits > 0
-                        ? ((entry.value / totalStockUnits) * 100).toFixed(0)
-                        : '0'
-                    return (
-                      <div className="dashboard-stock-legend__item" key={`legend-${index}`}>
-                        <span
-                          className="dashboard-stock-legend__dot"
-                          style={{ backgroundColor: entry.color }}
-                        />
-                        <span className="dashboard-stock-legend__name">{entry.name}</span>
-                        <span className="dashboard-stock-legend__value">
-                          {entry.value.toLocaleString('es-MX')} u. · {pct}%
+              )}
+            </article>
+
+            <article className="dx-card">
+              <header className="dx-card__head">
+                <h3><span className="material-symbols-rounded" aria-hidden>notifications</span>Alertas recientes</h3>
+                {unreadCount > 0 && <span className="dx-count">{unreadCount}</span>}
+              </header>
+              {notifications.length === 0 ? (
+                <p className="dashboard-panel__empty">No hay cancelaciones, devoluciones ni alertas de stock en este periodo.</p>
+              ) : (
+                <ul className="dx-alerts">
+                  {notifications.map((item) => {
+                    const path = notificationPath(item.type)
+                    const tone = notificationTone(item.type, item.severity)
+                    const body = (
+                      <>
+                        <span className={`dx-alert__icon dx-alert__icon--${tone}`}>
+                          <span className="material-symbols-rounded" aria-hidden>{tone === 'info' ? 'info' : getNotificationIcon(item.type)}</span>
                         </span>
-                      </div>
+                        <span className="dx-alert__text">
+                          <strong>{item.title}</strong>
+                          <small>{item.message ? `${item.message} · ` : ''}{formatRelativeTime(item.createdAt)}</small>
+                        </span>
+                        {path && <span className="material-symbols-rounded dx-alert__chev" aria-hidden>chevron_right</span>}
+                      </>
+                    )
+                    return (
+                      <li key={item.id}>
+                        {path ? (
+                          <button type="button" className="dx-alert" onClick={() => navigate(path)}>{body}</button>
+                        ) : (
+                          <div className="dx-alert">{body}</div>
+                        )}
+                      </li>
                     )
                   })}
-                </div>
-              </div>
-            </section>
-          )}
+                </ul>
+              )}
+            </article>
+          </section>
 
           <section className="dashboard__bottom">
             <article className="dashboard-panel dashboard-panel--recent">
