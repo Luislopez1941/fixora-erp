@@ -61,6 +61,53 @@
   height: 16px;
 }
 
+/* Tipo 1: el título del módulo es el botón que despliega sus pantallas */
+.sbc-section__toggle {
+  width: 100%;
+  margin: 10px 0 2px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.sbc-section__toggle .sbc-module__label {
+  flex: 1;
+  min-width: 0;
+}
+
+.sbc-section__toggle:hover,
+.sbc-section__toggle[aria-expanded='true'],
+.sbc-section__toggle.is-current {
+  opacity: 0.95;
+}
+
+.sbc-section__toggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sbc-section__toggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.sbc-direct-list {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sbc-collapse.is-open .sbc-direct-list {
+  padding-bottom: 6px;
+}
+
 .sbc-module {
   width: 100%;
   display: flex;
@@ -365,4 +412,228 @@
     animation: none;
     transition: none;
   }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Tipo 1 ("direct"): diseño sobrio inspirado en Linear y Mercury (design-md).
+   Un solo acento (naranja de la marca), separadores finos, pesos ligeros y
+   estados por tono (sin sombras ni colores extra). Solo afecta al tipo 1.
+   ─────────────────────────────────────────────────────────────────────────── */
+.sbc--direct {
+  --sbd-ink: rgba(255, 255, 255, 0.94);
+  --sbd-muted: rgba(255, 255, 255, 0.66);
+  --sbd-subtle: rgba(255, 255, 255, 0.44);
+  --sbd-hover: rgba(255, 255, 255, 0.05);
+  --sbd-raised: rgba(255, 255, 255, 0.08);
+  --sbd-hairline: rgba(255, 255, 255, 0.08);
+  --sbd-accent: var(--secondary-color, #fc7400);
+  border-right: 1px solid var(--sbd-hairline);
+}
+
+.sbc--direct .sbc-head {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--sbd-hairline);
+}
+
+.sbc--direct .sbc-scroll {
+  padding: 10px 10px 14px;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.sbc--direct .sbc-section {
+  margin-bottom: 2px;
+}
+
+/* Fila de módulo (nivel 1) */
+.sbc--direct .sbc-section__toggle,
+.sbc--direct .sbc-module--link {
+  gap: 12px;
+  margin: 0;
+  padding: 6px 10px;
+  min-height: 40px;
+  border-radius: 8px;
+  color: var(--sbd-ink);
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  opacity: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sbc--direct .sbc-section__toggle:hover,
+.sbc--direct .sbc-module--link:hover {
+  background: var(--sbd-hover);
+  color: var(--sbd-ink);
+}
+
+.sbc--direct .sbc-section__toggle[aria-expanded='true'] {
+  color: var(--sbd-ink);
+}
+
+/* Ícono en una ficha tonal; en el módulo de la pantalla actual toma el acento */
+.sbc--direct .sbc-section__toggle .sbc-module__icon,
+.sbc--direct .sbc-module--link .sbc-module__icon {
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  color: var(--sbd-ink);
+  transition: color 0.15s ease;
+}
+
+.sbc--direct .sbc-section__toggle .sbc-module__icon svg,
+.sbc--direct .sbc-module--link .sbc-module__icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.sbc--direct .sbc-section__toggle[aria-expanded='true'] .sbc-module__icon {
+  color: var(--sbd-ink);
+}
+
+.sbc--direct .sbc-section__toggle.is-current .sbc-module__icon,
+.sbc--direct .sbc-module--link.is-current .sbc-module__icon {
+  background: transparent;
+  color: var(--sbd-accent);
+}
+
+.sbc--direct .sbc-module--link.is-current {
+  background: var(--sbd-raised);
+  color: var(--sbd-ink);
+}
+
+/* Número de pantallas y chevron, discretos */
+.sbc--direct .sbc-count {
+  display: none;
+  flex: none;
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--sbd-hover);
+  color: var(--sbd-subtle);
+  font-size: 0.68rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sbc--direct .sbc-chev {
+  font-size: 18px;
+  color: var(--sbd-subtle);
+}
+
+/* Lista de pantallas: guía fina alineada con el ícono */
+.sbc--direct .sbc-direct-list {
+  position: relative;
+  gap: 0;
+  margin-left: 22px;
+  padding-left: 13px;
+  border-left: 1px solid var(--sbd-hairline);
+}
+
+.sbc--direct .sbc-collapse.is-open .sbc-direct-list {
+  margin-top: 2px;
+  padding-bottom: 8px;
+}
+
+.sbc--direct .sbc-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  margin: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  color: var(--sbd-muted);
+  font-size: 0.86rem;
+  font-weight: 400;
+  line-height: 1.3;
+  opacity: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sbc--direct .sbc-link:hover {
+  padding-left: 10px;
+  background: var(--sbd-hover);
+  color: var(--sbd-ink);
+}
+
+/* Pantalla actual: superficie tonal + marca naranja sobre la guía */
+.sbc--direct .sbc-link.is-current {
+  padding-left: 10px;
+  background: var(--sbd-raised);
+  color: var(--sbd-ink);
+  font-weight: 500;
+}
+
+.sbc--direct .sbc-link.is-current::before {
+  left: -14px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--sbd-accent);
+}
+
+/* En construcción: texto tenue y etiqueta "Pronto" */
+.sbc--direct .sbc-link.is-soon {
+  color: var(--sbd-subtle);
+}
+
+.sbc--direct .sbc-link.is-soon::after {
+  content: 'Pronto';
+  margin-left: auto;
+  padding: 1px 6px;
+  border: 1px solid var(--sbd-hairline);
+  border-radius: 999px;
+  color: var(--sbd-subtle);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.sbc--direct .sbc-link.is-soon.is-current {
+  color: var(--sbd-muted);
+}
+
+.sbc--direct .sbc-section__toggle:focus-visible,
+.sbc--direct .sbc-module--link:focus-visible,
+.sbc--direct .sbc-link:focus-visible,
+.sbc--direct .sbc-logout:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--sbd-accent) 70%, transparent);
+  outline-offset: 1px;
+}
+
+/* Cerrar sesión: fila tranquila separada por una línea fina */
+.sbc--direct .sbc-logout {
+  margin: 0;
+  padding: 14px 18px;
+  border-top: 1px solid var(--sbd-hairline);
+  border-radius: 0;
+  color: var(--sbd-muted);
+  font-size: 0.84rem;
+  opacity: 1;
+}
+
+.sbc--direct .sbc-logout:hover {
+  background: var(--sbd-hover);
+  color: var(--sbd-ink);
+}
+
+.sbc--direct .sbc-logout .material-symbols-rounded {
+  font-size: 18px;
+}
+
+/* Acceso directo (módulo sin submenú): misma fila, con chevron dibujado a la derecha */
+.sbc--direct .sbc-module--link {
+  position: relative;
+}
+
+.sbc--direct .sbc-module--link::after {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-top: 1.6px solid var(--sbd-muted);
+  border-right: 1.6px solid var(--sbd-muted);
+  transform: rotate(45deg);
 }

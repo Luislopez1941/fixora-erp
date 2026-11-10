@@ -12,7 +12,7 @@ import { resetUser } from '../../redux/state/UserFixora'
 
 /**
  * Sidebar de una sola columna (tipos 1 y 2 de "Tipo de sidebar" del usuario):
- *   · direct    → todas las pantallas a la vista, bajo el nombre de su módulo (para quien ve pocas secciones).
+ *   · direct    → pantallas listadas bajo el nombre de su módulo; el nombre del módulo despliega y pliega su lista.
  *   · accordion → cada módulo se despliega con todas sus pantallas seguidas (sin grupos) dentro del mismo sidebar; los grupos solo existen en el sidebar de dos niveles.
  */
 const PRIVATE_BASE = `/${PrivateRoutes.PRIVATE}`
@@ -149,18 +149,28 @@ const SidebarClassic: React.FC<Props> = ({ variant }) => {
                 </Link>
               )
             }
+            const open = openModules.has(mod.key)
             if (variant === 'direct') {
+              // Nivel 1: el título del módulo despliega y pliega sus pantallas (abre solo el de la pantalla actual)
               return (
                 <section key={mod.key} className="sbc-section">
-                  <h3 className="sbc-section__title">
+                  <button
+                    type="button"
+                    className={`sbc-section__title sbc-section__toggle ${currentModuleKey === mod.key ? 'is-current' : ''}`}
+                    onClick={() => toggle(setOpenModules, mod.key)}
+                    aria-expanded={open}
+                  >
                     <span className="sbc-module__icon">{renderIcon(mod.icon)}</span>
-                    {mod.label}
-                  </h3>
-                  {mod.children!.map(renderLink)}
+                    <span className="sbc-module__label">{mod.label}</span>
+                    <small className="sbc-count" aria-label={`${mod.children!.length} pantallas`}>{mod.children!.length}</small>
+                    <span className={`sbc-chev material-symbols-rounded ${open ? 'open' : ''}`} aria-hidden>chevron_right</span>
+                  </button>
+                  <div className={`sbc-collapse ${open ? 'is-open' : ''}`} aria-hidden={!open}>
+                    <div className="sbc-direct-list">{mod.children!.map(renderLink)}</div>
+                  </div>
                 </section>
               )
             }
-            const open = openModules.has(mod.key)
             return (
               <section key={mod.key} className="sbc-section">
                 <button type="button" className={`sbc-module ${currentModuleKey === mod.key ? 'is-current' : ''}`} onClick={() => toggle(setOpenModules, mod.key)} aria-expanded={open}>

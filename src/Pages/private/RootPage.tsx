@@ -55,13 +55,12 @@ const RootPage: React.FC = () => {
     const loadPermissions = async () => {
       try {
         const res: any = await cachedRequest(`perms:${userId}`, 30_000, () => APIs.getUserEffectivePermissions(userId))
-        const perms = res?.data ?? res?.permissions ?? []
-        const permissionNames = Array.isArray(perms)
-          ? perms.map((p: any) => (typeof p === 'string' ? p : p.name)).filter(Boolean)
-          : []
-        if (permissionNames.length > 0) {
-          dispatch(updateUser({ permissions: permissionNames }))
-        }
+        const perms = res?.data ?? res?.permissions
+        // Solo con una respuesta válida: si llega una lista (aunque venga vacía) se reemplazan los permisos guardados.
+        // Antes, una lista vacía se ignoraba y el usuario seguía viendo el menú con los permisos que traía del login.
+        if (!Array.isArray(perms)) return
+        const permissionNames = perms.map((p: any) => (typeof p === 'string' ? p : p.name)).filter(Boolean)
+        dispatch(updateUser({ permissions: permissionNames }))
       } catch (err) {
         console.error('Error cargando permisos efectivos:', err)
       }
