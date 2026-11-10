@@ -1,4 +1,5 @@
-import React, { useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSelector } from 'react-redux'
 import { useDropzone, type FileRejection } from 'react-dropzone'
 import { useCan } from '../../../core/permissions/useCan'
 import { MAX_FILE_MB, readWorkbookFiles, type SheetData } from './xlsxReader'
@@ -7,6 +8,9 @@ import {
 } from './reconcile'
 import { exportFacto, exportOpera } from './exportCsv'
 import { pdfResumen } from './exportPdf'
+import { xlsxReporteCompleto } from './exportXlsx'
+import { applyAdjustments, type Adjustment, type AdjustmentInput } from './adjustments'
+import { adjustmentsApi } from './adjustmentsApi'
 import Results from './Results'
 import './Conciliacion.css'
 
@@ -32,6 +36,25 @@ const Conciliacion: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [loadError, setLoadError] = useState('')
   const [panel, setPanel] = useState<'' | 'how' | 'sheets'>('')
+  const [adjustments, setAdjustments] = useState<Adjustment[]>([])
+  const userName = useSelector((s: { user?: { name?: string; email?: string } }) => s.user?.name || s.user?.email || 'Usuario')
+
+  // Ajustes manuales guardados (hoy en simulación; ver adjustmentsApi.ts)
+  useEffect(() => {
+    let alive = true
+    adjustmentsApi.list().then((list) => { if (alive) setAdjustments(list) }).catch(() => {})
+    return () => { alive = false }
+  }, [])
+
+  const saveAdjustment = useCallback(async (input: AdjustmentInput) => {
+    await adjustmentsApi.save(input)
+    setAdjustments(await adjustmentsApi.list())
+  }, [])
+
+  const removeAdjustment = useCallback(async (id: string) => {
+    await adjustmentsApi.remove(id)
+    setAdjustments(await adjustmentsApi.list())
+  }, [])
   // Hojas vigentes y número de carga: si se suelta otro archivo mientras se lee el anterior, gana el último
   const sheetsRef = useRef<SheetData[]>([])
   const loadId = useRef(0)
@@ -98,7 +121,9 @@ const Conciliacion: React.FC = () => {
     }
   }, [sheets, operaSheet, factoSheet, tolerance])
 
-  const data = analysis?.data ?? null
+  const baseData = analysis?.data ?? null
+  // El resultado automático con los ajustes manuales encima: es lo que se muestra y lo que se descarga
+  const data = useMemo(() => (baseData ? applyAdjustments(baseData, adjustments, tolerance) : null), [baseData, adjustments, tolerance])
 
   if (!can(PERMISSION)) {
     return (
@@ -137,6 +162,9 @@ const Conciliacion: React.FC = () => {
                       </button>
                       <button type='button' className='conciliacion__btn conciliacion__btn--primary' onClick={() => exportFacto(data.facto)}>
                         <Icon name='download' /> Facto (CSV)
+                      </button>
+                      <button type='button' className='conciliacion__btn conciliacion__btn--tint' onClick={() => xlsxReporteCompleto(data, adjustments)}>
+                        <Icon name='table_view' /> Reporte (Excel)
                       </button>
                       <button type='button' className='conciliacion__btn conciliacion__btn--tint' onClick={() => pdfResumen(data, tolerance)}>
                         <Icon name='picture_as_pdf' /> Resumen (PDF)
@@ -238,7 +266,16 @@ const Conciliacion: React.FC = () => {
           <div key={i} className='conciliacion__alert conciliacion__alert--warn'><Icon name='warning' />{w}</div>
         ))}
 
-        {data ? <Results data={data} tolerance={tolerance} /> : null}
+        {data ? (
+          <Results
+            data={data}
+            tolerance={tolerance}
+            adjustments={adjustments}
+            user={userName}
+            onSaveAdjustment={saveAdjustment}
+            onRemoveAdjustment={removeAdjustment}
+          />
+        ) : null}
       </div>
     </div>
   )

@@ -23,6 +23,7 @@
  * contra TOTAL_INGRESOS / TOTAL_PAGO / TOTAL_PAGADO de OPERA, con una tolerancia de centavos por redondeo.
  */
 import type { Cell } from './xlsxReader'
+import type { Adjustment } from './adjustments'
 
 // ───────────────────────── utilidades ─────────────────────────
 
@@ -303,9 +304,9 @@ export function readFacto(rows: Cell[][]): FactoRow[] {
 
 // ───────────────────────── conciliación ─────────────────────────
 
-export type MatchStatus = 'conciliada' | 'diferencia' | 'ambigua' | 'sin-opera' | 'sin-reserva' | 'fuera-periodo' | 'pago' | 'cancelada'
+export type MatchStatus = 'conciliada' | 'diferencia' | 'ambigua' | 'sin-opera' | 'sin-reserva' | 'fuera-periodo' | 'pago' | 'cancelada' | 'ajustada' | 'excluida'
 export type MatchMethod =
-  | 'UUID' | 'Folio OPERA' | 'ID único = CONCAT' | 'Confirmación + monto' | 'Confirmación (varios folios)' | 'Confirmación (único folio)' | ''
+  | 'UUID' | 'Folio OPERA' | 'ID único = CONCAT' | 'Confirmación + monto' | 'Confirmación (varios folios)' | 'Confirmación (único folio)' | 'Manual' | ''
 
 export interface FactoResult {
   facto: FactoRow
@@ -320,14 +321,21 @@ export interface FactoResult {
   /** Filas de OPERA candidatas cuando la confirmación se repite y no se pudo decidir. */
   candidates: OperaRow[]
   notes: string[]
+  /** Ajuste manual aplicado (si lo hay) y el estatus que tenía antes del ajuste. */
+  adjustment?: Adjustment
+  prevStatus?: MatchStatus
 }
 
 export interface OperaResult {
   opera: OperaRow
   facto: FactoRow | null
-  status: 'conciliada' | 'diferencia' | 'sin-facto' | 'solo-pago'
+  status: OperaStatus
   repeated: number
+  adjustment?: Adjustment
+  prevStatus?: OperaStatus
 }
+
+export type OperaStatus = 'conciliada' | 'diferencia' | 'sin-facto' | 'solo-pago' | 'ajustada' | 'excluida'
 
 export interface DuplicateGroup {
   confirmacion: string

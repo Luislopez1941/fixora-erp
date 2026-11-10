@@ -1,4 +1,5 @@
 import { downloadPdf, type PdfColumn } from './pdfWriter'
+import { reasonLabel } from './adjustments'
 import { FACTO_STATUS } from './exportCsv'
 import { folioGroups, operaTotals, serialToText, type DuplicateGroup, type FactoResult, type OperaResult, type Reconciliation } from './reconcile'
 
@@ -51,7 +52,7 @@ export const pdfFacto = (title: string, file: string, description: string, facto
       FACTO_STATUS[r.status].label, r.facto.serieFolio || `Fila ${r.facto.excelRow}`, serialToText(r.facto.fecha), r.facto.centro, r.facto.reserva, r.facto.huesped,
       r.opera.map((o) => o.folioOpera).join(' + ') || '-', money(r.factoAmount),
       ...(showOpera ? [r.opera.length ? money(r.operaTotal) : '-', r.opera.length ? money(r.diff) : '-'] : []),
-      [...r.facto.checks, ...r.notes].join(' | '),
+      [...r.facto.checks, ...r.notes, ...(r.adjustment ? [`Ajuste: ${reasonLabel(r.adjustment.reason)}${r.adjustment.note ? ` - ${r.adjustment.note}` : ''}`] : [])].join(' | '),
     ]),
     footerNote: 'Detalle completo en el Excel',
   })
@@ -84,9 +85,11 @@ export const pdfResumen = (data: Reconciliation, tolerance: number) => {
   const by = (s: FactoResult['status']) => data.facto.filter((r) => r.status === s)
   const byO = (s: OperaResult['status']) => data.opera.filter((r) => r.status === s)
   const conc = by('conciliada')
-  const withReserva = data.facto.filter((r) => ['conciliada', 'diferencia', 'ambigua', 'sin-opera'].includes(r.status))
-  const pct = withReserva.length ? (conc.length / withReserva.length) * 100 : 0
-  const operaWith = byO('conciliada').length + byO('diferencia').length
+  const BASE = ['conciliada', 'diferencia', 'ambigua', 'sin-opera']
+  const ajustBase = by('ajustada').filter((r) => r.prevStatus && BASE.includes(r.prevStatus))
+  const withReserva = data.facto.filter((r) => BASE.includes(r.status)).length + ajustBase.length
+  const pct = withReserva ? ((conc.length + ajustBase.length) / withReserva) * 100 : 0
+  const operaWith = byO('conciliada').length + byO('diferencia').length + byO('ajustada').length
   const sinFactura = byO('sin-facto')
   const operaBase = operaWith + sinFactura.length
   const range = data.operaRange ? `Periodo de OPERA: ${serialToText(data.operaRange[0])} al ${serialToText(data.operaRange[1])}. ` : ''
@@ -116,6 +119,8 @@ export const pdfResumen = (data: Reconciliation, tolerance: number) => {
       row('Fuera de periodo', by('fuera-periodo').length, amt(by('fuera-periodo')), 'Fecha fuera del extracto de OPERA.'),
       row('Complementos de pago', by('pago').length, null, 'No se concilian contra OPERA.'),
       row('Canceladas', by('cancelada').length, null, 'No se concilian.'),
+      row('Ajustadas a mano', by('ajustada').length, amt(by('ajustada')), 'Resueltas con un ajuste manual (vínculo o aclaración con motivo).'),
+      row('Excluidas', by('excluida').length, amt(by('excluida')), 'Fuera de esta conciliación por decisión manual.'),
       row('Totales con error en la factura', data.facto.filter((r) => r.facto.checks.length).length, null, 'Subtotal + impuestos no da el total.'),
       ['OPERA -> FACTO (ingresos)', '', '', ''],
       row('Con factura', byO('conciliada').length, sum(byO('conciliada').map((r) => r.opera.totalIngresos)), 'La fila de OPERA ya tiene factura conciliada.'),

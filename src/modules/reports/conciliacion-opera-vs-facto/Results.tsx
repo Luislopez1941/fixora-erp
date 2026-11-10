@@ -1,5 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react'
-import { serialToText, type FactoResult, type OperaResult, type Reconciliation } from './reconcile'
+import { serialToText, type FactoResult, type OperaResult } from './reconcile'
+import { ADJ_KIND_LABEL, reasonLabel, type Adjustment, type AdjustmentInput, type AppliedReconciliation } from './adjustments'
+import { ADJUSTMENTS_SIMULATED } from './adjustmentsApi'
+import AdjustModal, { type AdjustTarget } from './AdjustModal'
 import { FACTO_STATUS, OPERA_STATUS } from './exportCsv'
 import FactoDetail from './FactoDetail'
 import { xlsxFacto, xlsxOperaSinFactura, xlsxRepetidas } from './exportXlsx'
@@ -12,11 +15,11 @@ const compact = (n: number) => Number(n || 0).toLocaleString('es-MX', { style: '
 const int = (n: number) => Number(n || 0).toLocaleString('es-MX')
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${money(Math.abs(n))}`
 
-type Tab = 'facto' | 'opera' | 'repetidas'
+type Tab = 'facto' | 'opera' | 'repetidas' | 'ajustes'
 
 /** Lo que hay que revisar va primero; dentro de cada grupo, lo de mayor monto. */
 const PRIORITY: Record<FactoResult['status'], number> = {
-  ambigua: 0, 'sin-opera': 1, diferencia: 2, conciliada: 3, 'sin-reserva': 4, 'fuera-periodo': 5, pago: 6, cancelada: 7,
+  ambigua: 0, 'sin-opera': 1, diferencia: 2, conciliada: 3, ajustada: 4, 'sin-reserva': 5, 'fuera-periodo': 6, pago: 7, cancelada: 8, excluida: 9,
 }
 const byPriority = (a: FactoResult, b: FactoResult) =>
   PRIORITY[a.status] - PRIORITY[b.status] ||
@@ -62,11 +65,20 @@ const Donut: React.FC<{ segments: { value: number; tone: string }[]; center: str
 }
 
 interface Props {
-  data: Reconciliation
+  data: AppliedReconciliation
   tolerance: number
+  adjustments: Adjustment[]
+  user: string
+  onSaveAdjustment: (input: AdjustmentInput) => Promise<void>
+  onRemoveAdjustment: (id: string) => Promise<void>
 }
 
-const Results: React.FC<Props> = ({ data, tolerance }) => {
+/** Estatus con los que una factura cuenta en la base de la conciliación (tiene reserva y se espera en OPERA). */
+const BASE_STATUSES: FactoResult['status'][] = ['conciliada', 'diferencia', 'ambigua', 'sin-opera']
+
+const Results: React.FC<Props> = ({ data, tolerance, adjustments, user, onSaveAdjustment, onRemoveAdjustment }) => {
+  const [adjustTarget, setAdjustTarget] = useState<AdjustTarget | null>(null)
+  const [busyId, setBusyId] = useState('')
   const [tab, setTab] = useState<Tab>('facto')
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
@@ -78,11 +90,17 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
     const by = (s: FactoResult['status']) => data.facto.filter((r) => r.status === s)
     const sum = (list: FactoResult[], pick: (r: FactoResult) => number) => list.reduce((a, r) => a + pick(r), 0)
     const conciliada = by('conciliada'), diferencia = by('diferencia'), ambigua = by('ambigua'), sinOpera = by('sin-opera')
-    const base = conciliada.length + diferencia.length + ambigua.length + sinOpera.length
+    const ajustada = by('ajustada'), excluida = by('excluida')
+    // Las ajustadas cuentan en la base solo si antes eran parte de ella (con reserva)
+    const ajustadaBase = ajustada.filter((r) => r.prevStatus && BASE_STATUSES.includes(r.prevStatus))
+    const base = conciliada.length + diferencia.length + ambigua.length + sinOpera.length + ajustadaBase.length
     const operaBy = (s: OperaResult['status']) => data.opera.filter((r) => r.status === s)
     const sinFacto = operaBy('sin-facto')
     return {
-      conciliada, diferencia, ambigua, sinOpera, base,
+      conciliada, diferencia, ambigua, sinOpera, base, ajustada, excluida, ajustadaBase,
+      ajustadaAmount: sum(ajustada, (r) => r.factoAmount),
+      ajustadaOpera: operaBy('ajustada').length,
+      excluidaOpera: operaBy('excluida').length,
       sinReserva: by('sin-reserva').length,
       pago: by('pago').length,
       cancelada: by('cancelada').length,
@@ -137,6 +155,15 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
     requestAnimationFrame(() => tableRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
+  const undo = async (id: string) => {
+    setBusyId(id)
+    try {
+      await onRemoveAdjustment(id)
+    } finally {
+      setBusyId('')
+    }
+  }
+
   const factoFilters: [string, string, number][] = [
     ['all', 'Todas', data.facto.length],
     ['conciliada', 'Conciliadas', stats.conciliada.length],
@@ -147,6 +174,8 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
     ['fuera-periodo', 'Fuera de periodo', stats.fueraPeriodo],
     ['pago', 'Complementos de pago', stats.pago],
     ['cancelada', 'Canceladas', stats.cancelada],
+    ['ajustada', 'Ajustadas', stats.ajustada.length],
+    ['excluida', 'Excluidas', stats.excluida.length],
     ['checks', 'Total con error', stats.checks],
   ]
   const operaFilters: [string, string, number][] = [
@@ -155,20 +184,29 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
     ['diferencia', 'Con diferencia', stats.diferenciaOpera],
     ['sin-facto', 'Sin factura', stats.sinFacto],
     ['solo-pago', 'Solo pago', stats.soloPago],
+    ['ajustada', 'Ajustadas', stats.ajustadaOpera],
+    ['excluida', 'Excluidas', stats.excluidaOpera],
     ['repetida', 'Confirmación repetida', stats.repetidasOpera],
   ]
   const chips = (tab === 'facto' ? factoFilters : operaFilters).filter(([key, , n]) => n > 0 || key === 'all' || key === filter)
 
   const shown = tab === 'facto' ? factoRows.length : operaRows.length
-  const pct = stats.base ? (stats.conciliada.length / stats.base) * 100 : 0
-  const operaMatched = stats.conciliadaOpera + stats.diferenciaOpera
+  const pct = stats.base ? ((stats.conciliada.length + stats.ajustadaBase.length) / stats.base) * 100 : 0
+  const operaMatched = stats.conciliadaOpera + stats.diferenciaOpera + stats.ajustadaOpera
   const operaBase = operaMatched + stats.sinFacto
   const operaPct = operaBase ? (operaMatched / operaBase) * 100 : 0
 
   const sinFactoRows = data.opera.filter((r) => r.status === 'sin-facto')
   const sinFactoConUuid = sinFactoRows.filter((r) => r.opera.uuid).length
   const factoBy = (pred: (r: FactoResult) => boolean) => data.facto.filter(pred)
+  const concAmount = compact(stats.conciliadaAmount)
   const review: { label: string; hint: string; count: number; icon: string; tone: string; onClick: () => void; download: () => void; pdf: () => void }[] = [
+    {
+      label: 'Montos que sí cuadran', icon: 'check_circle', tone: 'ok', count: stats.conciliada.length,
+      hint: `${concAmount} · factura y OPERA con el mismo monto`,
+      onClick: () => goTo('facto', 'conciliada'), download: () => xlsxFacto('Montos que sí cuadran', 'montos-que-si-cuadran', factoBy((r) => r.status === 'conciliada')),
+      pdf: () => pdfFacto('Montos que sí cuadran', 'montos-que-si-cuadran', 'Facturas que cruzan con OPERA y cuyo monto cuadra (dentro de la tolerancia).', factoBy((r) => r.status === 'conciliada')),
+    },
     {
       label: 'OPERA sin factura', icon: 'receipt_long', tone: 'danger', count: stats.sinFacto,
       hint: stats.sinFacto ? `${compact(stats.sinFactoAmount)} en ingresos${sinFactoConUuid ? ` · ${int(sinFactoConUuid)} ya traen UUID en OPERA (posible factura manual)` : ''}` : 'Todo lo de OPERA tiene factura',
@@ -223,13 +261,14 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
                   { value: stats.diferencia.length, tone: 'warn' },
                   { value: stats.ambigua.length, tone: 'info' },
                   { value: stats.sinOpera.length, tone: 'danger' },
+                  { value: stats.ajustadaBase.length, tone: 'violet' },
                 ]}
                 center={`${pct.toLocaleString('es-MX', { maximumFractionDigits: 1 })}%`}
                 caption='conciliado'
               />
               <div className='conciliacion__summary-text'>
                 <div className='conciliacion__eyebrow'>Facto → OPERA</div>
-                <p><strong>{int(stats.conciliada.length)}</strong> de {int(stats.base)} facturas con reserva ya cruzan con OPERA</p>
+                <p><strong>{int(stats.conciliada.length + stats.ajustadaBase.length)}</strong> de {int(stats.base)} facturas con reserva ya cruzan con OPERA{stats.ajustadaBase.length ? ` (${int(stats.ajustadaBase.length)} con ajuste)` : ''}</p>
                 <span className='conciliacion__summary-amount'>{compact(stats.conciliadaAmount)} conciliados</span>
               </div>
             </div>
@@ -259,6 +298,7 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
               { key: 'diferencia', tone: 'warn', label: 'Con diferencia', n: stats.diferencia.length, sub: `Neto ${signed(stats.diferenciaNet)}` },
               { key: 'ambigua', tone: 'info', label: 'Ambiguas', n: stats.ambigua.length, sub: 'Elegir a mano' },
               { key: 'sin-opera', tone: 'danger', label: 'Sin OPERA', n: stats.sinOpera.length, sub: compact(stats.sinOperaAmount) },
+              { key: 'ajustada', tone: 'violet', label: 'Ajustadas', n: stats.ajustada.length, sub: compact(stats.ajustadaAmount) },
             ].map((s) => (
               <button key={s.key} type='button' className={`conciliacion__stat conciliacion__stat--${s.tone}`} disabled={!s.n} onClick={() => goTo('facto', s.key)}>
                 <span className='conciliacion__stat-label'><i className={`conciliacion__dot conciliacion__dot--${s.tone}`} />{s.label}</span>
@@ -270,7 +310,7 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
         </section>
 
         <section className='conciliacion__card conciliacion__review' aria-label='Para revisar'>
-          <div className='conciliacion__eyebrow'>Para revisar</div>
+          <div className='conciliacion__eyebrow'>Para revisar y descargar</div>
           <ul>
             {review.map((r) => (
               <li key={r.label} className={`conciliacion__tile-item conciliacion__tile--${r.tone}`}>
@@ -300,6 +340,7 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
             ['facto', 'Facto → OPERA', data.facto.length],
             ['opera', 'OPERA → Facto', data.opera.length],
             ['repetidas', 'Confirmaciones repetidas', data.duplicates.length],
+            ['ajustes', 'Ajustes', adjustments.length],
           ] as [Tab, string, number][]).map(([key, label, n]) => (
             <button key={key} type='button' role='tab' aria-selected={tab === key} className={tab === key ? 'is-active' : ''} onClick={() => goTo(key)}>
               {label} <span className='conciliacion__count'>{int(n)}</span>
@@ -312,7 +353,7 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
           </label>
         </div>
 
-        {tab !== 'repetidas' ? (
+        {tab === 'facto' || tab === 'opera' ? (
           <div className='conciliacion__chips' role='group' aria-label='Filtrar'>
             {chips.map(([key, label, n]) => (
               <button key={key} type='button' className={`conciliacion__chip ${filter === key ? 'is-active' : ''}`} onClick={() => { setFilter(key); setLimit(PAGE); setOpen(null) }}>
@@ -368,7 +409,13 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
                       {expanded ? (
                         <tr className='conciliacion__detail'>
                           <td colSpan={8}>
-                            <FactoDetail r={r} tolerance={tolerance} />
+                            <FactoDetail
+                              r={r}
+                              tolerance={tolerance}
+                              onAdjust={() => setAdjustTarget({ side: 'facto', r })}
+                              onUndo={r.adjustment ? () => undo(r.adjustment!.id) : undefined}
+                              busy={!!r.adjustment && busyId === r.adjustment.id}
+                            />
                           </td>
                         </tr>
                       ) : null}
@@ -387,7 +434,7 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
               <thead>
                 <tr>
                   <th>Estatus</th><th>Confirmación</th><th>Folio OPERA</th><th>Fecha</th>
-                  <th className='is-num'>Ingresos</th><th className='is-num'>Pago</th><th>Factura Facto</th><th>Info</th>
+                  <th className='is-num'>Ingresos</th><th className='is-num'>Pago</th><th>Factura Facto</th><th>Info</th><th aria-label='Ajustar' />
                 </tr>
               </thead>
               <tbody>
@@ -403,7 +450,17 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
                       <td className='is-num'>{money(o.totalIngresos)}</td>
                       <td className='is-num'>{money(o.totalPago)}</td>
                       <td>{r.facto ? <><strong>{r.facto.serieFolio || r.facto.idUnico}</strong><small>{money(r.facto.total)}</small></> : <span className='is-muted'>—</span>}</td>
-                      <td><small className='conciliacion__plain'>{o.info}</small></td>
+                      <td>
+                        <small className='conciliacion__plain'>{o.info}</small>
+                        {r.adjustment ? <small className='conciliacion__adj-note'>{ADJ_KIND_LABEL[r.adjustment.kind]}{r.adjustment.reason !== 'vinculo-manual' ? ` · ${reasonLabel(r.adjustment.reason)}` : ''}{r.adjustment.note ? ` · ${r.adjustment.note}` : ''}</small> : null}
+                      </td>
+                      <td className='conciliacion__row-action'>
+                        {r.adjustment && r.adjustment.side === 'opera' ? (
+                          <button type='button' className='conciliacion__mini-btn' onClick={() => undo(r.adjustment!.id)} disabled={busyId === r.adjustment.id}>Deshacer</button>
+                        ) : (
+                          <button type='button' className='conciliacion__mini-btn' onClick={() => setAdjustTarget({ side: 'opera', r })}><Icon name='tune' /> Ajustar</button>
+                        )}
+                      </td>
                     </tr>
                   )
                 })}
@@ -440,7 +497,48 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
           </div>
         ) : null}
 
-        {tab === 'repetidas' ? (dupRows.length > limit ? (
+        {tab === 'ajustes' ? (
+          <div className='conciliacion__adjs'>
+            {ADJUSTMENTS_SIMULATED ? (
+              <p className='conciliacion__adjs-note'><Icon name='science' /> Simulación: los ajustes se guardan solo en este navegador. Cuando se conecte al servidor los verán todos los usuarios con permiso.</p>
+            ) : null}
+            {adjustments.length ? (
+              <div className='conciliacion__table-wrap'>
+                <table className='conciliacion__table'>
+                  <thead>
+                    <tr><th>Fecha</th><th>Registro</th><th>Ajuste</th><th>Motivo</th><th>Nota</th><th>Usuario</th><th aria-label='Deshacer' /></tr>
+                  </thead>
+                  <tbody>
+                    {[...adjustments].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((a) => {
+                      const orphan = data.orphans.some((o) => o.id === a.id)
+                      return (
+                        <tr key={a.id}>
+                          <td><small className='conciliacion__plain'>{new Date(a.createdAt).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}</small></td>
+                          <td>
+                            <strong>{a.ref}</strong>
+                            <small>{a.side === 'facto' ? 'Factura de Facto' : 'Fila de OPERA'}{a.kind === 'vincular' ? ` · ${a.links.length} ${a.links.length === 1 ? 'fila' : 'filas'} de OPERA` : ''}</small>
+                            {orphan ? <small className='conciliacion__adj-orphan'>No está en el archivo cargado</small> : null}
+                          </td>
+                          <td><Pill tone={a.kind === 'excluir' ? 'muted' : 'violet'}>{ADJ_KIND_LABEL[a.kind]}</Pill></td>
+                          <td><small className='conciliacion__plain'>{reasonLabel(a.reason)}</small></td>
+                          <td><small className='conciliacion__plain'>{a.note || '—'}</small></td>
+                          <td><small className='conciliacion__plain'>{a.user}</small></td>
+                          <td className='conciliacion__row-action'>
+                            <button type='button' className='conciliacion__mini-btn' onClick={() => undo(a.id)} disabled={busyId === a.id}>{busyId === a.id ? 'Deshaciendo…' : 'Deshacer'}</button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className='conciliacion__empty'>Todavía no hay ajustes. Abre una factura o una fila de OPERA y usa "Ajustar".</p>
+            )}
+          </div>
+        ) : null}
+
+        {tab === 'ajustes' ? null : tab === 'repetidas' ? (dupRows.length > limit ? (
           <div className='conciliacion__foot'>
             <span>Mostrando {int(Math.min(limit, dupRows.length))} de {int(dupRows.length)}</span>
             <button type='button' className='conciliacion__pill-btn' onClick={() => setLimit((l) => l + PAGE)}>Mostrar más</button>
@@ -452,6 +550,17 @@ const Results: React.FC<Props> = ({ data, tolerance }) => {
           </div>
         )}
       </section>
+
+      {adjustTarget ? (
+        <AdjustModal
+          target={adjustTarget}
+          data={data}
+          tolerance={tolerance}
+          user={user}
+          onSave={onSaveAdjustment}
+          onClose={() => setAdjustTarget(null)}
+        />
+      ) : null}
     </>
   )
 }

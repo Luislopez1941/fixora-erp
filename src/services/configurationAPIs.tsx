@@ -19,6 +19,9 @@ class ApiService {
       baseURL,
       headers: {
         'Content-Type': 'application/json',
+        // Con un túnel gratuito de ngrok, el navegador recibe una página HTML de advertencia en vez de los datos
+        // (ERR_NGROK_6024). Este encabezado la omite; fuera de ngrok no hace nada.
+        'ngrok-skip-browser-warning': 'true',
       },
     });
 

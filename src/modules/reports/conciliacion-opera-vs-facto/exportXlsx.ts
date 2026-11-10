@@ -1,6 +1,7 @@
 import { downloadXlsx } from './xlsxWriter'
 import { FACTO_HEADER, FACTO_MONEY, OPERA_HEADER, OPERA_MONEY, factoTable, operaTable } from './exportCsv'
-import { folioGroups, operaTotals, type DuplicateGroup, type FactoResult, type OperaResult } from './reconcile'
+import { folioGroups, operaTotals, type DuplicateGroup, type FactoResult, type OperaResult, type Reconciliation } from './reconcile'
+import { ADJ_KIND_LABEL, reasonLabel, type Adjustment } from './adjustments'
 
 const stamp = () => new Date().toISOString().slice(0, 10)
 
@@ -25,3 +26,28 @@ export const xlsxRepetidas = (dups: DuplicateGroup[]) =>
       money: [4, 5, 6, 7],
     },
   ])
+
+/** Un solo libro con todo: lo que cuadra, lo ajustado a mano, lo pendiente y la bitácora de ajustes, una hoja por caso. */
+export const xlsxReporteCompleto = (data: Reconciliation, adjustments: Adjustment[] = []) => {
+  const f = (...st: FactoResult['status'][]) => data.facto.filter((r) => st.includes(r.status))
+  const sheet = (name: string, list: FactoResult[]) => ({ name, header: FACTO_HEADER, rows: factoTable(list), money: FACTO_MONEY })
+  const opera = (...st: OperaResult['status'][]) => data.opera.filter((r) => st.includes(r.status))
+  downloadXlsx(`conciliacion-opera-vs-facto-${stamp()}`, [
+    sheet('Cuadran', f('conciliada')),
+    sheet('Ajustadas', f('ajustada')),
+    sheet('Pendientes', f('diferencia', 'ambigua', 'sin-opera')),
+    { name: 'OPERA sin factura', header: OPERA_HEADER, rows: operaTable(opera('sin-facto')), money: OPERA_MONEY },
+    { name: 'OPERA ajustada', header: OPERA_HEADER, rows: operaTable(opera('ajustada', 'excluida')), money: OPERA_MONEY },
+    sheet('Excluidas', f('excluida')),
+    sheet('Sin reserva', f('sin-reserva')),
+    sheet('Complementos de pago', f('pago')),
+    {
+      name: 'Bitácora de ajustes',
+      header: ['Fecha', 'Registro', 'Lado', 'Ajuste', 'Motivo', 'Nota', 'Usuario', 'Filas de OPERA vinculadas'],
+      rows: [...adjustments].sort((a, b) => a.createdAt.localeCompare(b.createdAt)).map((a) => [
+        new Date(a.createdAt).toLocaleString('es-MX'), a.ref, a.side === 'facto' ? 'Facto' : 'OPERA', ADJ_KIND_LABEL[a.kind], reasonLabel(a.reason), a.note, a.user, a.links.length || '',
+      ]),
+    },
+    { name: 'OPERA completo', header: OPERA_HEADER, rows: operaTable(data.opera), money: OPERA_MONEY },
+  ])
+}

@@ -1,6 +1,7 @@
 import React from 'react'
 import { folioGroups, operaTotals, serialToText, type FactoResult } from './reconcile'
 import { FACTO_STATUS } from './exportCsv'
+import { ADJ_KIND_LABEL, reasonLabel } from './adjustments'
 
 const money = (n: number) => Number(n || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN', maximumFractionDigits: 2 })
 const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${money(Math.abs(n))}`
@@ -17,13 +18,21 @@ const Line: React.FC<{ label: string; children: React.ReactNode; mono?: boolean 
 
 const VERDICT_ICON: Record<string, string> = {
   conciliada: 'check_circle', diferencia: 'rule', ambigua: 'help', 'sin-opera': 'search_off',
-  'sin-reserva': 'storefront', 'fuera-periodo': 'event_busy', pago: 'payments', cancelada: 'block',
+  'sin-reserva': 'storefront', 'fuera-periodo': 'event_busy', pago: 'payments', cancelada: 'block', ajustada: 'tune', excluida: 'do_not_disturb_on',
 }
 
-interface Props { r: FactoResult; tolerance: number }
+interface Props {
+  r: FactoResult
+  tolerance: number
+  /** Abre la ventana de ajuste. */
+  onAdjust?: () => void
+  /** Deshace el ajuste vigente. */
+  onUndo?: () => void
+  busy?: boolean
+}
 
 /** Detalle de una factura: qué pasó, Facto contra OPERA lado a lado y las filas de OPERA que se usaron. */
-const FactoDetail: React.FC<Props> = ({ r, tolerance }) => {
+const FactoDetail: React.FC<Props> = ({ r, tolerance, onAdjust, onUndo, busy }) => {
   const f = r.facto
   const st = FACTO_STATUS[r.status]
   const groups = folioGroups(r.opera)
@@ -54,17 +63,48 @@ const FactoDetail: React.FC<Props> = ({ r, tolerance }) => {
   } else if (r.status === 'sin-reserva') {
     headline = 'Consumo sin reserva'
     detail = 'Normalmente es de restaurante o bar y no pasa por OPERA.'
+  } else if (r.status === 'ajustada' && r.adjustment) {
+    headline = r.adjustment.kind === 'vincular' ? 'Vinculada a mano con OPERA' : 'Aclarada a mano'
+    detail = r.adjustment.kind === 'vincular'
+      ? `Folio ${folios || '—'}. ${diffAbs < 0.005 ? 'Los montos son iguales.' : `Diferencia de ${money(diffAbs)}${diffAbs <= tolerance ? ', dentro de la tolerancia' : ''}.`}`
+      : reasonLabel(r.adjustment.reason)
+  } else if (r.status === 'excluida' && r.adjustment) {
+    headline = 'Excluida de la conciliación'
+    detail = reasonLabel(r.adjustment.reason)
   }
+  const canAdjust = !!onAdjust && r.status !== 'pago' && r.status !== 'cancelada'
+  const adj = r.adjustment
 
   return (
     <div className='conciliacion__d'>
       <div className={`conciliacion__d-verdict conciliacion__d-verdict--${st.tone}`}>
         <Icon name={VERDICT_ICON[r.status] ?? 'info'} />
-        <div>
+        <div className='conciliacion__d-verdict-text'>
           <strong>{headline}</strong>
           {detail ? <span>{detail}</span> : null}
         </div>
+        {canAdjust ? (
+          <button type='button' className='conciliacion__btn conciliacion__btn--tint conciliacion__d-adjust' onClick={onAdjust}>
+            <Icon name='tune' /> {adj ? 'Cambiar ajuste' : 'Ajustar'}
+          </button>
+        ) : null}
       </div>
+
+      {adj ? (
+        <div className='conciliacion__d-adj'>
+          <Icon name='edit_note' />
+          <div>
+            <strong>{adj.reason === 'vinculo-manual' ? ADJ_KIND_LABEL[adj.kind] : adj.kind === 'vincular' ? `${ADJ_KIND_LABEL[adj.kind]} · diferencia por ${reasonLabel(adj.reason).toLowerCase()}` : `${ADJ_KIND_LABEL[adj.kind]} · ${reasonLabel(adj.reason)}`}</strong>
+            <span>
+              {adj.note ? `${adj.note} · ` : ''}{adj.user} · {new Date(adj.createdAt).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' })}
+              {r.prevStatus ? ` · antes: ${FACTO_STATUS[r.prevStatus].label}` : ''}
+            </span>
+          </div>
+          {onUndo ? (
+            <button type='button' className='conciliacion__mini-btn' onClick={onUndo} disabled={busy}>{busy ? 'Deshaciendo…' : 'Deshacer'}</button>
+          ) : null}
+        </div>
+      ) : null}
 
       {f.checks.map((c, i) => <div key={`c${i}`} className='conciliacion__callout conciliacion__callout--danger'><Icon name='receipt_long' />{c}</div>)}
       {Math.abs(paidVsCfdi) > tolerance ? (
